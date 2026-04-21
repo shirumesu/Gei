@@ -1,0 +1,626 @@
+#!/usr/bin/env python3
+"""
+ship_scan.py
+
+Usage:
+  python ship_scan.py <project_root_path> [--format jsonl|table] [--include-minified]
+
+This scanner is intended for post-implementation mechanical review. It defaults
+to JSONL output because the primary consumer is another agent, not a human.
+"""
+
+from __future__ import annotations
+
+import argparse
+import fnmatch
+import json
+import os
+import platform
+import re
+import subprocess
+import sys
+from dataclasses import dataclass
+
+
+CURRENT_OS = platform.system()
+
+
+# We keep the raw candidate regexes fairly small, then do contextual filtering
+# afterward. That is much easier to reason about than one giant "perfect" regex.
+_UNC_PATTERN = r"(?P<unc>\\\\[^\\/\s\"'`,;]+\\[^\\/\s\"'`,;]+(?:\\[^\r\n\"'<>|?*`]*)?)"
+_WIN_PATTERN = r"(?P<windows>(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\r\n\"'<>|?*`]+)"
+_UNIX_PATTERN = (
+    r"(?P<unix>"
+    r"(?<![A-Za-z0-9_.`~/-])"
+    r"/(?:[A-Za-z0-9._-]+(?:/[^\s\"'\\`<>{}\[\](),;:]+)*)"
+    r")"
+)
+
+ABS_PATH_RE = re.compile(
+    "|".join((_UNC_PATTERN, _WIN_PATTERN, _UNIX_PATTERN)),
+    re.IGNORECASE,
+)
+
+_URL_RE = re.compile(r"^(https?|ftp|ftps|ssh|git|svn|file)://", re.IGNORECASE)
+_PKG_FILENAME_RE = re.compile(
+    r"^/[A-Za-z][A-Za-z0-9._-]*-\d[\d.]*\.(tgz|tar\.gz|whl|zip|gem|egg|nupkg|deb|rpm)$",
+    re.IGNORECASE,
+)
+_HASH_RE = re.compile(r"[+/=]{2,}|[A-Za-z0-9+/]{60,}")
+
+_PLACEHOLDER_SUFFIXES = (
+    re.compile(r"<[^>\n]+>\s*$"),
+    re.compile(r"\$\{[^}\n]+\}\s*$"),
+    re.compile(r"%[A-Za-z_][A-Za-z0-9_]*%\s*$"),
+)
+
+COMMON_UNIX_ROOTS = {
+    "Applications",
+    "bin",
+    "cache",
+    "code",
+    "data",
+    "dev",
+    "etc",
+    "home",
+    "Library",
+    "mnt",
+    "opt",
+    "private",
+    "proc",
+    "root",
+    "run",
+    "sbin",
+    "srv",
+    "sys",
+    "tmp",
+    "Users",
+    "usr",
+    "var",
+    "Volumes",
+    "workspace",
+    "workspaces",
+}
+
+MINIFIED_EXTENSIONS = {".js", ".cjs", ".mjs", ".css"}
+MINIFIED_LINE_LENGTH = 400
+MINIFIED_AVG_LINE_LENGTH = 200
+MINIFIED_WHITESPACE_RATIO = 0.1
+
+TRAILING_TRIM_CHARS = ".,;:)]}>"
+
+
+SKIP_DIRS = {
+    ".git",
+    ".hg",
+    ".svn",
+    "node_modules",
+    "__pycache__",
+    ".tox",
+    ".venv",
+    "venv",
+    "env",
+    "dist",
+    "build",
+    ".idea",
+    ".vscode",
+    ".mypy_cache",
+    ".pytest_cache",
+    "coverage",
+    ".next",
+    ".nuxt",
+}
+
+SKIP_EXTENSIONS = {
+    ".pyc",
+    ".pyo",
+    ".class",
+    ".jar",
+    ".o",
+    ".a",
+    ".so",
+    ".dylib",
+    ".exe",
+    ".dll",
+    ".pdb",
+    ".wasm",
+    ".zip",
+    ".tar",
+    ".gz",
+    ".bz2",
+    ".7z",
+    ".rar",
+    ".tgz",
+    ".pdf",
+    ".doc",
+    ".docx",
+    ".xls",
+    ".xlsx",
+    ".ppt",
+    ".pptx",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".bmp",
+    ".ico",
+    ".webp",
+    ".mp3",
+    ".mp4",
+    ".wav",
+    ".ogg",
+    ".avi",
+    ".mov",
+    ".mkv",
+    ".ttf",
+    ".otf",
+    ".woff",
+    ".woff2",
+    ".lock",
+}
+
+SKIP_FILENAMES = {
+    "package-lock.json",
+    "npm-shrinkwrap.json",
+    "Pipfile.lock",
+    "poetry.lock",
+    "Gemfile.lock",
+    "Cargo.lock",
+    "packages.lock.json",
+    "go.sum",
+}
+
+
+@dataclass(frozen=True)
+class Finding:
+    kind: str
+    value: str
+    file: str
+    line: int
+    column: int
+    ignored_by_gitignore: bool | None
+    snippet: str
+
+
+@dataclass
+class ScanReport:
+    root: str
+    platform: str
+    gitignore: bool
+    scanned_files: int
+    skipped_ignored_files: int
+    skipped_minified_files: int
+    findings: list[Finding]
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Scan a project for hardcoded absolute paths."
+    )
+    parser.add_argument("root", help="Project root to scan")
+    parser.add_argument(
+        "--format",
+        choices=("jsonl", "table"),
+        default="jsonl",
+        help="Output format. Defaults to jsonl because the caller is usually an agent.",
+    )
+    parser.add_argument(
+        "--include-minified",
+        action="store_true",
+        help="Scan minified JS/CSS files too. Off by default because they create noise.",
+    )
+    parser.add_argument(
+        "--include-ignored",
+        action="store_true",
+        help="Scan files matched by .gitignore too. Off by default because ship review usually cares about shippable files.",
+    )
+    return parser.parse_args(argv)
+
+
+def load_gitignore_patterns(root: str):
+    gitignore_path = os.path.join(root, ".gitignore")
+    if not os.path.isfile(gitignore_path):
+        return None
+
+    patterns = []
+    with open(gitignore_path, encoding="utf-8", errors="replace") as handle:
+        for raw_line in handle:
+            line = raw_line.rstrip("\n").rstrip("\r")
+            if not line or line.startswith("#"):
+                continue
+            negation = line.startswith("!")
+            if negation:
+                line = line[1:]
+            dir_only = line.endswith("/")
+            if dir_only:
+                line = line.rstrip("/")
+            patterns.append((line.strip(), negation, dir_only))
+    return patterns
+
+
+def is_ignored_by_gitignore(filepath: str, root: str, patterns) -> bool:
+    if patterns is None:
+        return False
+
+    rel_path = os.path.relpath(filepath, root)
+    rel_fwd = rel_path.replace(os.sep, "/")
+    parts = rel_fwd.split("/")
+
+    ignored = False
+    for pattern, negation, _dir_only in patterns:
+        normalized_pattern = pattern.lstrip("/")
+        matched = (
+            fnmatch.fnmatch(rel_fwd, normalized_pattern)
+            or fnmatch.fnmatch(parts[-1], normalized_pattern)
+            or any(fnmatch.fnmatch(part, normalized_pattern) for part in parts)
+        )
+        if not matched and "/" in normalized_pattern and not any(char in normalized_pattern for char in "*?[]"):
+            matched = rel_fwd == normalized_pattern or rel_fwd.startswith(normalized_pattern + "/")
+        if matched:
+            ignored = not negation
+    return ignored
+
+
+def _path_contains_skipped_dir(dirpath: str, root: str) -> bool:
+    rel_path = os.path.relpath(dirpath, root)
+    if rel_path == ".":
+        return False
+    parts = rel_path.replace(os.sep, "/").split("/")
+    return any(part in SKIP_DIRS or (part.startswith(".") and part != ".") for part in parts)
+
+
+def list_project_root_entries(root: str) -> set[str]:
+    try:
+        return {name.casefold() for name in os.listdir(root)}
+    except OSError:
+        return set()
+
+
+def load_git_tracked_files(root: str) -> set[str] | None:
+    try:
+        result = subprocess.run(
+            ["git", "-C", root, "ls-files", "-z"],
+            capture_output=True,
+            text=False,
+            check=False,
+        )
+    except OSError:
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    entries = result.stdout.decode("utf-8", errors="replace").split("\0")
+    return {entry for entry in entries if entry}
+
+
+def normalize_candidate(candidate: str) -> str:
+    return candidate.rstrip(TRAILING_TRIM_CHARS)
+
+
+def split_unix_segments(candidate: str) -> list[str]:
+    return [segment for segment in candidate.split("/") if segment]
+
+
+def has_placeholder_prefix(line: str, start: int) -> bool:
+    prefix = line[:start].rstrip()
+    return any(pattern.search(prefix) for pattern in _PLACEHOLDER_SUFFIXES)
+
+
+def has_markup_prefix(line: str, start: int) -> bool:
+    return start > 0 and line[start - 1] == "<"
+
+
+def looks_like_project_relative_unix(candidate: str, project_root_entries: set[str]) -> bool:
+    segments = split_unix_segments(candidate)
+    if not segments:
+        return False
+    return segments[0].casefold() in project_root_entries
+
+
+def is_probably_minified(filepath: str) -> bool:
+    _, ext = os.path.splitext(filepath)
+    if ext.lower() not in MINIFIED_EXTENSIONS:
+        return False
+    if filepath.lower().endswith(".min.js") or filepath.lower().endswith(".min.css"):
+        return True
+
+    try:
+        with open(filepath, encoding="utf-8", errors="replace") as handle:
+            sample = handle.read(8192)
+    except (OSError, PermissionError):
+        return False
+
+    if not sample:
+        return False
+
+    lines = sample.splitlines() or [sample]
+    longest_line = max(len(line) for line in lines)
+    average_line_length = len(sample) / max(len(lines), 1)
+    whitespace_count = sum(char.isspace() for char in sample)
+    whitespace_ratio = whitespace_count / max(len(sample), 1)
+
+    return (
+        longest_line >= MINIFIED_LINE_LENGTH
+        and average_line_length >= MINIFIED_AVG_LINE_LENGTH
+        and whitespace_ratio <= MINIFIED_WHITESPACE_RATIO
+    )
+
+
+def is_false_positive(
+    candidate: str,
+    kind: str,
+    line: str,
+    start: int,
+    project_root_entries: set[str],
+) -> bool:
+    if not candidate or _URL_RE.match(candidate):
+        return True
+
+    if has_placeholder_prefix(line, start):
+        return True
+
+    if kind == "unix" and has_markup_prefix(line, start):
+        return True
+
+    if kind == "unc":
+        return False
+
+    if kind == "windows":
+        return False
+
+    body = candidate[1:]
+    segments = split_unix_segments(candidate)
+    if not segments:
+        return True
+
+    if _PKG_FILENAME_RE.match(candidate):
+        return True
+
+    if _HASH_RE.search(body):
+        return True
+
+    if looks_like_project_relative_unix(candidate, project_root_entries):
+        return True
+
+    if segments[0] not in COMMON_UNIX_ROOTS:
+        return True
+
+    if len(segments) == 1 and len(segments[0]) < 4:
+        return True
+
+    return False
+
+
+def build_snippet(line: str, start: int, end: int, limit: int = 120) -> str:
+    text = line.rstrip("\r\n")
+    if len(text) <= limit:
+        return text.strip()
+
+    window_start = max(0, start - (limit // 3))
+    window_end = min(len(text), max(end + (limit // 3), window_start + limit))
+    snippet = text[window_start:window_end]
+
+    if window_start > 0:
+        snippet = "..." + snippet
+    if window_end < len(text):
+        snippet = snippet + "..."
+    return snippet.strip()
+
+
+def scan_file(
+    filepath: str,
+    rel_path: str,
+    ignored_by_gitignore: bool | None,
+    project_root_entries: set[str],
+):
+    findings: list[Finding] = []
+    try:
+        with open(filepath, encoding="utf-8", errors="replace") as handle:
+            for lineno, line in enumerate(handle, start=1):
+                for match in ABS_PATH_RE.finditer(line):
+                    candidate = normalize_candidate(match.group())
+                    kind = match.lastgroup or "unknown"
+                    if is_false_positive(
+                        candidate,
+                        kind,
+                        line,
+                        match.start(),
+                        project_root_entries,
+                    ):
+                        continue
+
+                    findings.append(
+                        Finding(
+                            kind=kind,
+                            value=candidate,
+                            file=rel_path,
+                            line=lineno,
+                            column=match.start() + 1,
+                            ignored_by_gitignore=ignored_by_gitignore,
+                            snippet=build_snippet(line, match.start(), match.end()),
+                        )
+                    )
+    except (OSError, PermissionError):
+        return []
+
+    return findings
+
+
+def scan_project(
+    root: str,
+    include_minified: bool = False,
+    include_ignored: bool = False,
+) -> ScanReport:
+    patterns = load_gitignore_patterns(root)
+    tracked_files = load_git_tracked_files(root)
+    project_root_entries = list_project_root_entries(root)
+    findings: list[Finding] = []
+    scanned_files = 0
+    skipped_ignored_files = 0
+    skipped_minified_files = 0
+
+    for dirpath, dirnames, filenames in os.walk(root):
+        if _path_contains_skipped_dir(dirpath, root):
+            dirnames.clear()
+            continue
+
+        dirnames[:] = [
+            dirname
+            for dirname in dirnames
+            if dirname not in SKIP_DIRS and not dirname.startswith(".")
+        ]
+
+        for filename in filenames:
+            if filename in SKIP_FILENAMES:
+                continue
+
+            _, ext = os.path.splitext(filename)
+            if ext.lower() in SKIP_EXTENSIONS:
+                continue
+
+            full_path = os.path.join(dirpath, filename)
+            rel_path = os.path.relpath(full_path, root).replace(os.sep, "/")
+            ignored_by_gitignore = (
+                is_ignored_by_gitignore(full_path, root, patterns) if patterns is not None else None
+            )
+
+            if (
+                ignored_by_gitignore is True
+                and not include_ignored
+                and (tracked_files is None or rel_path not in tracked_files)
+            ):
+                skipped_ignored_files += 1
+                continue
+
+            if not include_minified and is_probably_minified(full_path):
+                skipped_minified_files += 1
+                continue
+
+            scanned_files += 1
+            findings.extend(
+                scan_file(
+                    full_path,
+                    rel_path,
+                    ignored_by_gitignore,
+                    project_root_entries,
+                )
+            )
+
+    return ScanReport(
+        root=os.path.abspath(root),
+        platform=CURRENT_OS,
+        gitignore=patterns is not None,
+        scanned_files=scanned_files,
+        skipped_ignored_files=skipped_ignored_files,
+        skipped_minified_files=skipped_minified_files,
+        findings=findings,
+    )
+
+
+def iter_jsonl_records(report: ScanReport):
+    yield {
+        "type": "summary",
+        "root": report.root,
+        "platform": report.platform,
+        "gitignore": report.gitignore,
+        "scanned_files": report.scanned_files,
+        "skipped_ignored_files": report.skipped_ignored_files,
+        "skipped_minified_files": report.skipped_minified_files,
+        "findings": len(report.findings),
+    }
+
+    for finding in report.findings:
+        yield {
+            "type": "finding",
+            "kind": finding.kind,
+            "value": finding.value,
+            "file": finding.file,
+            "line": finding.line,
+            "column": finding.column,
+            "ignored_by_gitignore": finding.ignored_by_gitignore,
+            "snippet": finding.snippet,
+        }
+
+
+def print_jsonl(report: ScanReport) -> None:
+    for record in iter_jsonl_records(report):
+        print(json.dumps(record, ensure_ascii=False))
+
+
+def print_table(report: ScanReport) -> None:
+    print(f"root      : {report.root}")
+    print(f"platform  : {report.platform}")
+    print(f"gitignore : {'yes' if report.gitignore else 'no'}")
+    print(f"files     : {report.scanned_files}")
+    print(f"ignored   : {report.skipped_ignored_files}")
+    print(f"minified  : {report.skipped_minified_files}")
+    print(f"findings  : {len(report.findings)}")
+    print()
+
+    if not report.findings:
+        print("No hardcoded absolute paths found.")
+        return
+
+    headers = ["kind", "path", "file", "line", "ignored"]
+    rows = [
+        [
+            finding.kind,
+            finding.value,
+            finding.file,
+            str(finding.line),
+            (
+                "yes"
+                if finding.ignored_by_gitignore is True
+                else "no"
+                if finding.ignored_by_gitignore is False
+                else "n/a"
+            ),
+        ]
+        for finding in report.findings
+    ]
+
+    widths = [len(header) for header in headers]
+    for row in rows:
+        for index, cell in enumerate(row):
+            widths[index] = max(widths[index], len(cell))
+
+    def format_row(row: list[str]) -> str:
+        return "  ".join(cell.ljust(widths[index]) for index, cell in enumerate(row))
+
+    print(format_row(headers))
+    print("  ".join("-" * width for width in widths))
+    for row in rows:
+        print(format_row(row))
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv or sys.argv[1:])
+    root = os.path.abspath(args.root)
+
+    if not os.path.isdir(root):
+        print(
+            json.dumps(
+                {
+                    "type": "error",
+                    "message": f'"{root}" is not a valid directory.',
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 1
+
+    report = scan_project(
+        root,
+        include_minified=args.include_minified,
+        include_ignored=args.include_ignored,
+    )
+    if args.format == "table":
+        print_table(report)
+    else:
+        print_jsonl(report)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
