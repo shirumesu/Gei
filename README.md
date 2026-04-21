@@ -26,7 +26,7 @@
 
 ### 付费购买 Token 安装
 
-发布后，把下面这句话里的 `<owner>` 替换成你的 GitHub 用户名或组织名，再复制给你的 Agent：
+把这句话复制给你的 Agent：
 
 ```text
 Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/gei/refs/heads/main/docs/install.md
@@ -36,11 +36,9 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 请在 [release](https://github.com/shirumesu/gei/releases/latest) 这里下载 `Gei.zip`，把里面需要的 skill 目录解压到你的 skills 目录里即可。
 
-如果你只想安装其中一部分 skill，也可以只保留需要的目录，目录结构以 [docs/install.md](docs/install.md) 为准。
-
 ## 更新日志 / 新发现
 
-### v0.1.0 - 2026-04-21
+### v0.1 - 2026-04-21
 
 - 首个公开发布版本：提供 `kickoff`、`memo`、`work`、`design` 四个 skill
 - 新增：可直接给 Agent 拉取的安装文档 `docs/install.md`

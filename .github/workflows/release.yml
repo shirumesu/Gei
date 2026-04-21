@@ -26,8 +26,6 @@ jobs:
           rm -rf package Gei.zip
           mkdir -p package
           cp -R skills/. package/
-          find package -type d -name '__pycache__' -prune -exec rm -rf {} +
-          find package -type f \( -name '*.pyc' -o -name '*.pyo' \) -delete
           cd package
           zip -r ../Gei.zip .
 
