@@ -5,8 +5,10 @@ ship_scan.py
 Usage:
   python ship_scan.py <project_root_path> [--format jsonl|table] [--include-minified]
 
-This scanner is intended for post-implementation mechanical review. It defaults
-to JSONL output because the primary consumer is another agent, not a human.
+This scanner is intended for post-implementation mechanical review. It reports
+hardcoded absolute paths plus common junk artifacts that are not excluded by
+.gitignore. It defaults to JSONL output because the primary consumer is another
+agent, not a human.
 """
 
 from __future__ import annotations
@@ -170,14 +172,69 @@ SKIP_FILENAMES = {
     "go.sum",
 }
 
+JUNK_DIR_NAMES = {
+    "__pycache__": (
+        "python_bytecode_cache",
+        "Python bytecode cache directory.",
+    ),
+    ".pytest_cache": ("pytest_cache", "pytest cache directory."),
+    ".mypy_cache": ("mypy_cache", "mypy cache directory."),
+    ".ruff_cache": ("ruff_cache", "ruff cache directory."),
+    ".hypothesis": ("hypothesis_cache", "Hypothesis cache directory."),
+    ".tox": ("tox_environment", "tox environment directory."),
+    ".nox": ("nox_environment", "nox environment directory."),
+    ".venv": ("virtual_environment", "Local virtual environment directory."),
+    "venv": ("virtual_environment", "Local virtual environment directory."),
+    "htmlcov": ("coverage_html_report", "Coverage HTML output directory."),
+    ".ipynb_checkpoints": (
+        "notebook_checkpoint",
+        "Jupyter notebook checkpoint directory.",
+    ),
+    ".eggs": ("python_build_artifact", "Setuptools build artifact directory."),
+    ".parcel-cache": ("bundler_cache", "Bundler cache directory."),
+    ".sass-cache": ("style_cache", "Style compiler cache directory."),
+    ".turbo": ("task_cache", "Task runner cache directory."),
+}
+
+JUNK_DIR_PATTERNS = (
+    ("*.egg-info", "python_build_metadata", "Python build metadata directory."),
+)
+
+JUNK_FILE_NAMES = {
+    ".ds_store": ("os_metadata", "macOS Finder metadata file."),
+    "thumbs.db": ("os_metadata", "Windows thumbnail cache file."),
+    "desktop.ini": ("os_metadata", "Windows desktop metadata file."),
+    ".coverage": ("coverage_data", "Coverage data file."),
+}
+
+JUNK_FILE_PATTERNS = (
+    (".coverage.*", "coverage_data", "Coverage data file."),
+    ("*.pyc", "python_bytecode", "Python bytecode file."),
+    ("*.pyo", "python_bytecode", "Python bytecode file."),
+    ("*$py.class", "python_bytecode", "Jython bytecode file."),
+    ("*.tmp", "temporary_file", "Temporary file."),
+    ("*.temp", "temporary_file", "Temporary file."),
+    ("*.swp", "editor_swap", "Editor swap file."),
+    ("*.swo", "editor_swap", "Editor swap file."),
+    ("*~", "editor_backup", "Editor backup file."),
+    ("*.bak", "backup_file", "Backup file."),
+    ("*.orig", "merge_backup", "Merge backup file."),
+    ("*.rej", "patch_reject", "Rejected patch file."),
+    ("npm-debug.log*", "package_manager_debug_log", "npm debug log."),
+    ("yarn-debug.log*", "package_manager_debug_log", "Yarn debug log."),
+    ("yarn-error.log*", "package_manager_debug_log", "Yarn error log."),
+    ("pnpm-debug.log*", "package_manager_debug_log", "pnpm debug log."),
+)
+
 
 @dataclass(frozen=True)
 class Finding:
+    type: str
     kind: str
     value: str
     file: str
-    line: int
-    column: int
+    line: int | None
+    column: int | None
     ignored_by_gitignore: bool | None
     snippet: str
 
@@ -195,7 +252,7 @@ class ScanReport:
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Scan a project for hardcoded absolute paths."
+        description="Scan a project for hardcoded absolute paths and junk artifacts."
     )
     parser.add_argument("root", help="Project root to scan")
     parser.add_argument(
@@ -318,6 +375,21 @@ def looks_like_project_relative_unix(candidate: str, project_root_entries: set[s
     return segments[0].casefold() in project_root_entries
 
 
+def is_shebang_line(line: str, start: int) -> bool:
+    return line.startswith("#!") and start <= 2
+
+
+def is_regex_definition_line(line: str) -> bool:
+    return "_PATTERN" in line or "re.compile(" in line
+
+
+def looks_like_regex_artifact(candidate: str, line: str) -> bool:
+    if not is_regex_definition_line(line):
+        return False
+
+    return any(token in candidate for token in ("[", "]", "(?:", "(?P<", "{", "}"))
+
+
 def is_probably_minified(filepath: str) -> bool:
     _, ext = os.path.splitext(filepath)
     if ext.lower() not in MINIFIED_EXTENSIONS:
@@ -357,7 +429,13 @@ def is_false_positive(
     if not candidate or _URL_RE.match(candidate):
         return True
 
+    if is_shebang_line(line, start):
+        return True
+
     if has_placeholder_prefix(line, start):
+        return True
+
+    if looks_like_regex_artifact(candidate, line):
         return True
 
     if kind == "unix" and has_markup_prefix(line, start):
@@ -408,6 +486,52 @@ def build_snippet(line: str, start: int, end: int, limit: int = 120) -> str:
     return snippet.strip()
 
 
+def classify_junk_name(
+    name: str,
+    exact_rules,
+    pattern_rules,
+):
+    lowered_name = name.casefold()
+    exact_match = exact_rules.get(lowered_name)
+    if exact_match is not None:
+        return exact_match
+
+    for pattern, kind, message in pattern_rules:
+        if fnmatch.fnmatch(lowered_name, pattern):
+            return kind, message
+
+    return None
+
+
+def should_skip_ignored_file(
+    rel_path: str,
+    ignored_by_gitignore: bool | None,
+    tracked_files: set[str] | None,
+) -> bool:
+    return (
+        ignored_by_gitignore is True
+        and (tracked_files is None or rel_path not in tracked_files)
+    )
+
+
+def build_junk_finding(
+    rel_path: str,
+    kind: str,
+    ignored_by_gitignore: bool | None,
+    message: str,
+) -> Finding:
+    return Finding(
+        type="junk_file",
+        kind=kind,
+        value=rel_path,
+        file=rel_path,
+        line=None,
+        column=None,
+        ignored_by_gitignore=ignored_by_gitignore,
+        snippet=message,
+    )
+
+
 def scan_file(
     filepath: str,
     rel_path: str,
@@ -432,6 +556,7 @@ def scan_file(
 
                     findings.append(
                         Finding(
+                            type="sensitive_path",
                             kind=kind,
                             value=candidate,
                             file=rel_path,
@@ -465,6 +590,33 @@ def scan_project(
             dirnames.clear()
             continue
 
+        for dirname in dirnames:
+            junk_dir = classify_junk_name(
+                dirname,
+                JUNK_DIR_NAMES,
+                JUNK_DIR_PATTERNS,
+            )
+            if junk_dir is None:
+                continue
+
+            full_dir_path = os.path.join(dirpath, dirname)
+            rel_dir_path = os.path.relpath(full_dir_path, root).replace(os.sep, "/")
+            ignored_by_gitignore = (
+                is_ignored_by_gitignore(full_dir_path, root, patterns) if patterns is not None else None
+            )
+            if ignored_by_gitignore is True:
+                continue
+
+            kind, message = junk_dir
+            findings.append(
+                build_junk_finding(
+                    rel_dir_path,
+                    kind,
+                    ignored_by_gitignore,
+                    message,
+                )
+            )
+
         dirnames[:] = [
             dirname
             for dirname in dirnames
@@ -475,20 +627,41 @@ def scan_project(
             if filename in SKIP_FILENAMES:
                 continue
 
-            _, ext = os.path.splitext(filename)
-            if ext.lower() in SKIP_EXTENSIONS:
-                continue
-
             full_path = os.path.join(dirpath, filename)
             rel_path = os.path.relpath(full_path, root).replace(os.sep, "/")
             ignored_by_gitignore = (
                 is_ignored_by_gitignore(full_path, root, patterns) if patterns is not None else None
             )
 
-            if (
-                ignored_by_gitignore is True
-                and not include_ignored
-                and (tracked_files is None or rel_path not in tracked_files)
+            junk_file = classify_junk_name(
+                filename,
+                JUNK_FILE_NAMES,
+                JUNK_FILE_PATTERNS,
+            )
+            if junk_file is not None:
+                if should_skip_ignored_file(rel_path, ignored_by_gitignore, tracked_files):
+                    skipped_ignored_files += 1
+                    continue
+
+                kind, message = junk_file
+                findings.append(
+                    build_junk_finding(
+                        rel_path,
+                        kind,
+                        ignored_by_gitignore,
+                        message,
+                    )
+                )
+                continue
+
+            _, ext = os.path.splitext(filename)
+            if ext.lower() in SKIP_EXTENSIONS:
+                continue
+
+            if not include_ignored and should_skip_ignored_file(
+                rel_path,
+                ignored_by_gitignore,
+                tracked_files,
             ):
                 skipped_ignored_files += 1
                 continue
@@ -519,6 +692,13 @@ def scan_project(
 
 
 def iter_jsonl_records(report: ScanReport):
+    sensitive_paths = sum(
+        1 for finding in report.findings if finding.type == "sensitive_path"
+    )
+    junk_files = sum(
+        1 for finding in report.findings if finding.type == "junk_file"
+    )
+
     yield {
         "type": "summary",
         "root": report.root,
@@ -527,12 +707,14 @@ def iter_jsonl_records(report: ScanReport):
         "scanned_files": report.scanned_files,
         "skipped_ignored_files": report.skipped_ignored_files,
         "skipped_minified_files": report.skipped_minified_files,
+        "sensitive_paths": sensitive_paths,
+        "junk_files": junk_files,
         "findings": len(report.findings),
     }
 
     for finding in report.findings:
         yield {
-            "type": "finding",
+            "type": finding.type,
             "kind": finding.kind,
             "value": finding.value,
             "file": finding.file,
@@ -549,26 +731,36 @@ def print_jsonl(report: ScanReport) -> None:
 
 
 def print_table(report: ScanReport) -> None:
+    sensitive_paths = sum(
+        1 for finding in report.findings if finding.type == "sensitive_path"
+    )
+    junk_files = sum(
+        1 for finding in report.findings if finding.type == "junk_file"
+    )
+
     print(f"root      : {report.root}")
     print(f"platform  : {report.platform}")
     print(f"gitignore : {'yes' if report.gitignore else 'no'}")
     print(f"files     : {report.scanned_files}")
     print(f"ignored   : {report.skipped_ignored_files}")
     print(f"minified  : {report.skipped_minified_files}")
+    print(f"sensitive : {sensitive_paths}")
+    print(f"junk      : {junk_files}")
     print(f"findings  : {len(report.findings)}")
     print()
 
     if not report.findings:
-        print("No hardcoded absolute paths found.")
+        print("No sensitive paths or junk files found.")
         return
 
-    headers = ["kind", "path", "file", "line", "ignored"]
+    headers = ["type", "kind", "value", "file", "line", "ignored"]
     rows = [
         [
+            finding.type,
             finding.kind,
             finding.value,
             finding.file,
-            str(finding.line),
+            "-" if finding.line is None else str(finding.line),
             (
                 "yes"
                 if finding.ignored_by_gitignore is True

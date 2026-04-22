@@ -1,8 +1,7 @@
 # Gei - 芸
 
-参考与启发自 [superpowers](superpowers)、 [gstack](https://github.com/garrytan/gstack)、 [Waza](https://github.com/tw93/waza)  
-他们都是很优秀的 skill，但是这些 skill 很多都太重了，有的时候对于我目前的 `Codex` 环境兼容性也不足  
-因此我写下了这个 skill
+现在的很多工程 skill 都太重了，并且基于 Claude Code 生态有的时候对 Codex 兼容并不完善。  
+因此我写下了这个 skill  
 
 ## 为什么要做这个？
 
@@ -11,16 +10,18 @@
 	- 当你觉得这个 skill 很好用但是却不知道具体依赖关系导致不知道该让 AI 读取哪个
 
 因此我将其精简合并，并且融入了我自己的工作流程以及项目管理偏好。  
-得益于此，几乎只需要使用一个 `/command` 就能开始你的任务（当然让他自动加载也行）
+得益于此，大多数任务都只需要从一个入口开始（当然让他自动加载也行）  
 
 ## Skills
 
 | skill | 使用时机 | 用处 |
 | ----- | ------- | ---- |
-| `/kickoff` | 在任何创造性工作开始之前 | 他会帮助你收缩你的需求，尤其当你需求模糊的时候他会很好用，一般的任务从这里开始 |
-| `/memo` | 任何项目文档管理 | 他维护了一个完整的 Spec 文档，包括每个 *Spec*、 *Plan*、 *TODO*、 *ChangeLog*、 *Architecture* 文件…，会自动在适当的时机激活维护。在 `/kickoff` 后会自动激活使用 |
-| `/work` | 任何代码任务 | 定义了完整的编码、测试、代码审查、版本更迭、发布规范和他们相应的流程，几乎适合任何编码任务，如果项目拥有 Spec 文档，会在适当的时机激活 |
-| `/design` | 实验性：当你在设计的时候使用他 | 提炼自 [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de) 具体效果未经验证 |
+| `/using-gei` | 在任何会话开始前使用 | 总路由层。判断当前任务该如何使用SKILL |
+| `/consider` | 在任何创造性工作开始之前 | 他会帮助你收缩你的需求，尤其当你需求模糊的时候他会很好用，一般的任务从这里开始 |
+| `/memo` | 工程项目的规范 / task / spec 记忆维护 | 维护项目的记忆层，具备一套完整的项目架构记录、规范、TODO、CHANGELOG日志记录，每个工作都可追溯，可无上下文加载。额外提供显式要求归档时自动归档。 |
+| `/work` | 任何代码任务 | 完整的编码、测试、审查、版本维护以及发布的流程，几乎适合任何编码任务。已内部路由分为轻量版和工程版，区别为工程版流程更重且会采用子agent |
+| `/see` | 任何对外的网络访问 | 提供了完善的搜索流程，确保信息准确，可靠，具时效性。透过[Jina](https://jina.ai/)优化搜索结果。并且支持访问 *reddit* / *twitter* / *小红书* 这类风控平台 |
+| `/design` | 实验性：网页、PPT、文档设计等视觉任务 | 提炼自 [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de)，更适合界面、版式、原型、演示文稿等视觉产物 |
 
 ## 安装
 
@@ -36,18 +37,42 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 请在 [release](https://github.com/shirumesu/gei/releases/latest) 这里下载 `Gei.zip`，把里面需要的 skill 目录解压到你的 skills 目录里即可。
 
+## 已知问题
+
+- `/See` 依赖一部分[上游工具](#感谢)，他们不太稳定，偶尔需要自己手动注册登录态，skill 内已写好自动安装以及指引，你的 Agent 应该会指引你完成安装和登录。
+	- 由于上游工具多是爬虫、cli自动化等，封号风险本身难以保证，若不想用，请在任务中明确向 AI 提出。
+
+## TODO
+
+- [ ] `/learn`，记忆系统？辅助学习？编写新skill的指南？我不知道…但总感觉如果是 芸 他需要这个。 
+
 ## 更新日志 / 新发现
 
-### v0.1 - 2026-04-21
+### v0.2 - 2026-04-23
 
-- 首个公开发布版本：提供 `kickoff`、`memo`、`work`、`design` 四个 skill
-- 新增：可直接给 Agent 拉取的安装文档 `docs/install.md`
-- 新增：tag 触发的 GitHub Release Action，会自动打包 `Gei.zip`
-- 文档：修正安装入口到远端实际的 `main` 分支，并整理安装说明
+- 新增：
+	- `using-gei` 作为 Gei 的总路由 skill，用于在 `design`、`consider`、`memo`、`work` 之间分流
+	- `see` skill，支持对比、事实核查、主题探索、教程检索、舆情采样和多源总结
+	- `see` 的 `tool.md` 与 `health_check.py`，补充 Jina、Reddit、Twitter/X、小红书工具指引和本地环境检查
+	- `work`的`ship_check`额外覆盖垃圾和缓存文件
+	- `memo`新增显式调用的归档功能
+- 更名：将 `kickoff` 统一更名为 `consider`，同步仓库路径、文档和路由表述
+- 重构：`work` 改为路由入口，拆分轻量流程与 spec 驱动流程
+- 修复：
+	- `memo`未能正确写入work文件
+	- `work`的`ship_check`误报
+- 文档：更新安装说明，补齐 `using-gei` 与按需安装的说明
 
 <details>
 <summary>历史版本</summary>
 
+### v0.1 - 2026-04-21
+
+- 首个公开发布版本：提供 `consider`、`memo`、`work`、`design` 四个 skill
+- 新增：可直接给 Agent 拉取的安装文档 `docs/install.md`
+- 新增：tag 触发的 GitHub Release Action，会自动打包 `Gei.zip`
+- 文档：修正安装入口到远端实际的 `main` 分支，并整理安装说明
+- 
 ### v0.0.3 - 2026-04-21
 
 - 新增：tag 触发的 GitHub Release Action，会自动打包 `Gei.zip`
@@ -60,6 +85,19 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ### v0.0.1 - 2026-04-21
 
-- 新增：初始化 `spec/` 系统，补齐 `kickoff` 和 `memo` 的项目内上下文
+- 新增：初始化 `spec/` 系统，补齐 `consider` 和 `memo` 的项目内上下文
 
 </details>
+
+## 感谢
+
+- 灵感来源和参考：
+	- [superpowers](superpowers)
+	- [gstack](https://github.com/garrytan/gstack)
+	- [Waza](https://github.com/tw93/waza)  
+- 上游工具：
+	- X 访问支持： [twitter-cli](https://github.com/public-clis/twitter-cli)
+	- 小红书 访问支持： [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
+	- Reddit 访问支持： [rdt-cli](https://github.com/public-clis/rdt-cli)
+- 捐赠者
+	- [我自己](https://github.com/shirumesu) 捐赠了一个完整的 人类大脑，有效降低了开发过程中的 token 成本

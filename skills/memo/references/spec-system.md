@@ -18,10 +18,16 @@ spec/
   TODO.md
   MEMORY.md
   CHANGELOG.md
+  archive/
+    TODO.md
+    MEMORY.md
+    CHANGELOG.md
   test/
   docs/
     #NNN-work.md
 ```
+
+`spec/archive/` is optional. Create it only when an archive cleanup pass actually moves content out of the active files.
 
 ## Read Order
 
@@ -36,6 +42,16 @@ For a new task in an established project, use this order:
 
 Read code after that only where the docs are insufficient or possibly stale.
 
+For an archive cleanup pass, read in this order:
+
+1. `spec/TODO.md`
+2. `spec/CHANGELOG.md`
+3. `spec/MEMORY.md`
+4. existing files in `spec/archive/`
+5. the current spec-task file only if it is needed to classify a borderline entry
+
+During archive cleanup, do not read code unless the user asked for it or the docs are too stale to classify an entry safely.
+
 ## Write Order
 
 When creating the system for the first time:
@@ -48,6 +64,8 @@ When creating the system for the first time:
 6. the first combined spec-task file at `spec/docs/#001-work.md`
 
 When updating during normal work, touch only the files required by the current event.
+
+When updating during archive cleanup, create `spec/archive/` only if content is actually moved there.
 
 ## ID Rules
 
@@ -80,6 +98,9 @@ Good pattern:
 - update memory when a pitfall, rejection, or version-specific hazard becomes reusable
 - update the changelog when a task ships
 - update architecture only when structure changes
+- run an archive cleanup when closed history starts to hide current context
+
+For detailed archive procedure, read `references/archive.md`.
 
 ## Minimal Change Planning
 
@@ -131,3 +152,5 @@ Call `memo` when any of these events happened:
 8. The session is about to end and one of the events above happened without a matching doc update.
 
 Do not call `memo` for ordinary code edits that do not change durable project knowledge.
+
+Call `memo` for archive cleanup when the user asks to archive or when `TODO.md`, `CHANGELOG.md`, or `MEMORY.md` accumulated enough stale material that the active memory surface is no longer easy to scan.

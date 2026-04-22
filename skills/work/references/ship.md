@@ -47,7 +47,7 @@ Check for anything that would make the shipped result unsafe or non-portable.
 
 At minimum:
 
-- run `python skills/work/scripts/ship_scan.py .` to scan for hard-coded absolute paths
+- run `python skills/work/scripts/ship_scan.py {project_root_path}` to scan absolute paths and any junk files that may not have been excluded by `.gitignore`.
 - search for likely secret leaks or unsafe local-only configuration
 - check for machine-specific assumptions that other users cannot reproduce
 

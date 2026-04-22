@@ -120,13 +120,16 @@ Avoid:
 - Include id, priority, and a short reason.
 - Link to the owning spec doc when possible.
 - Do not hide multiple tasks inside one sentence.
+- Treat `Done` as a short-lived close-out section. Move older completed items into `spec/archive/TODO.md` during archive cleanup.
 
 ### `MEMORY.md`
 
 - Record only repeatable pitfalls, rejected directions, and version-specific hazards.
+- Keep only entries that are reusable across multiple tasks, files, or sessions.
 - Name the trigger, the failure, and the safe pattern that avoids it next time.
 - Include the relevant file path, command, error text, or spec id when known.
-- Skip ordinary progress notes and full decision histories.
+- Skip ordinary progress notes, one-off file-local instructions, and full decision histories.
+- When an entry looks too local or too stale to keep active, surface it to the user as an archive candidate instead of silently treating it as durable memory.
 
 ### `CHANGELOG.md`
 
@@ -134,6 +137,14 @@ Avoid:
 - Reference the spec doc and resolved TODO ids.
 - Prefer user-visible or architecture-visible language.
 - Do not copy commit messages line by line.
+- Keep only the latest five version entries in the active file. Move older entries into `spec/archive/CHANGELOG.md` without changing their meaning.
+
+### `spec/archive/*.md`
+
+- Preserve ids, dates, and source references.
+- Keep archived wording close to the original text.
+- Add a short archive note only when the reason for removal is not obvious.
+- Organize the file so old entries stay easy to find.
 
 ### `spec/docs/#NNN-work.md`
 
@@ -150,5 +161,6 @@ Before saving, check:
 3. Did any sentence announce structure instead of delivering content?
 4. Are ids, file paths, and commands exact?
 5. Did you leave any filler such as `TBD`, `later`, or `appropriate`?
+6. Would each active `MEMORY.md` entry still help on another similar task, or should it move to archive instead?
 
 If the answer to any check is yes, rewrite the line.

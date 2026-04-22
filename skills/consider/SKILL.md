@@ -1,21 +1,19 @@
 ---
-name: kickoff
+name: consider
 description: Use when starting any creative work. Design creativity and coding related tasks such as new project start, modification, feature addition. This skill helps to explore the needs of the user.
 ---
 
-# Kickoff
+# Consider
 
 ## Overview
 
-Kickoff owns the front of the loop: recover context, clarify intent, research the field, shrink scope, and produce a user-approved direction for `memo` to formalize.
+Consider owns the front of the loop: recover context, clarify intent, research the field, shrink scope, and produce a user-approved direction for `memo` to formalize.
 
 **REQUIRED NEXT STEP:** Hand off to `memo` after the user approves the direction.
 
-**Announce at start:** "I'm using the kickoff skill to shape the task before memo."
-
 ## Core Boundary
 
-Kickoff is not an execution skill.
+Consider is not an execution skill.
 
 Stop after these conditions are true:
 
@@ -24,7 +22,7 @@ Stop after these conditions are true:
 3. Deferred work is clearly identified.
 4. `memo` has enough information to create or update `spec/`, including `spec/test/` and the current `spec/docs/#NNN-work.md`.
 
-Do not write code, implementation tasks, execution checklists, or spec files inside Kickoff.
+Do not write code, implementation tasks, execution checklists, or spec files inside Consider.
 
 ## Working Order
 
@@ -68,7 +66,7 @@ Prefer recovering context from those files over re-reading large parts of the co
 
 ## Scope Gate
 
-Kickoff handles one bounded problem at a time.
+Consider handles one bounded problem at a time.
 
 If the request mixes multiple independent systems, stop and decompose it before continuing. Examples:
 
@@ -162,3 +160,4 @@ If the project is new, `memo` should initialize `spec/`, create `spec/test/`, an
 If the project already has `spec/`, `memo` should update the existing system, keep `spec/test/` aligned, and create or update the current `spec/docs/#NNN-work.md`.
 
 Do not skip directly from a rough idea to execution.
+

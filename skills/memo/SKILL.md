@@ -1,17 +1,15 @@
 ---
 name: memo
-description: Use when initializing or maintaining a project's spec system. Or when any spec-doc change, repeatable pitfalls, TODO state changes, architecture drift, or shipped outcomes must be recorded for future agents.
+description: Use when initializing, maintaining, or pruning a project's spec system. Or when any spec-doc change, TODO state change, archive cleanup, repeatable pitfall, durable rejection, architecture drift, or shipped outcome must be recorded or reorganized for future agents.
 ---
 
 # Memo
 
 ## Overview
 
-Memo owns the durable project memory system under `spec/`.
+Memo owns the durable project memory system under `spec/` and its optional history surface under `spec/archive/`.
 
 Its job is to keep future agents productive without forcing a fresh deep read of the whole repo. It does that with a small set of high-signal documents, stable identifiers, and event-driven updates.
-
-**Announce at start:** "I'm using the memo skill to maintain the project's spec memory."
 
 Use the templates and writing rules in `references/` instead of improvising document structure.
 
@@ -25,11 +23,21 @@ Write only what the current event requires.
 
 Do not bulk-rewrite unrelated documents. Do not refresh every file because a task happened. Update the smallest correct surface.
 
+## Archive Cleanup
+
+Use an archive cleanup pass when the user asks to archive, when the active memory files became noisy, or when completed history is crowding out current context.
+
+Read `references/archive.md` before doing this work.
+
+Keep archive cleanup doc-first. Do not inspect code unless the user explicitly asked for it or the current documents are too stale to classify an item safely.
+
+The goal is to improve readability and retire stale detail, not to rebuild project understanding from the codebase.
+
 ## Minimal Change Rule
 
 Every combined spec-task file must start from the smallest coherent change that can satisfy the goal.
 
-Apply these rules when writing or updating `spec/docs/#NNN-work.md`:
+Apply these rules when writing or updating `spec/docs/#NNN-{work-description}.md`:
 
 1. Prefer the smallest viable file set.
 2. Prefer modifying existing focused files before introducing new files, modules, or layers.
@@ -60,12 +68,12 @@ Invoke `memo` when any trigger below is true. Do not leave this to general judgm
 If one of these events happened, `memo` must run:
 
 1. `spec/` is missing, incomplete, or the project has no current spec system.
-2. A new bounded task is accepted and needs its own `spec/docs/#NNN-work.md`.
-3. The current task's goal, scope, constraints, affected files, interfaces, or verification plan changed after the current `#NNN-work.md` was created.
+2. A new bounded task is accepted and needs its own `spec/docs/#NNN-{work-description}.md`.
+3. The current task's goal, scope, constraints, affected files, interfaces, or verification plan changed after the current `#NNN-{work-description}.md` was created.
 4. A TODO item was created, reprioritized, moved between sections, resolved, or deferred.
 5. A repeatable pitfall was discovered:
    - a command or workflow failed in a way that could happen again
-   - a user rejected a direction, wording, or behavior that could be proposed again
+   - a user rejected a direction, wording, or behavior that is general enough to recur beyond one file or one casual exchange
    - a version-specific or tool-specific hazard was confirmed
 6. The project structure changed in a way that affects durable context:
    - module boundaries changed
@@ -74,7 +82,8 @@ If one of these events happened, `memo` must run:
    - required commands or entry points changed
    - important data flow changed
 7. A task reached a handoff, merge, release, ship, or other checkpoint that should appear in `CHANGELOG.md`.
-8. A session ends after changes in items 3 through 7 happened but the matching spec files were not updated yet.
+8. The user asked to archive, or the active memory surface accumulated enough stale history that a cleanup pass is needed.
+9. A session ends after changes in items 3 through 8 happened but the matching spec files were not updated yet.
 
 Do not invoke `memo` for ordinary code edits that do not change any durable project knowledge.
 
@@ -88,10 +97,16 @@ spec/
   TODO.md
   MEMORY.md
   CHANGELOG.md
+  archive/
+    TODO.md
+    MEMORY.md
+    CHANGELOG.md
   test/
   docs/
-    #NNN-work.md
+    #NNN-{work-description}.md
 ```
+
+`spec/archive/` is optional. Create it on the first archive cleanup pass that actually moves content out of the active files.
 
 Read `references/spec-system.md` before initializing or restructuring the memory system.
 
@@ -102,12 +117,14 @@ Read `references/spec-system.md` before initializing or restructuring the memory
 - `spec/TODO.md`
   The live work ledger with Backlog, TODO, In Progress, and Done sections.
 - `spec/MEMORY.md`
-  A do-not-repeat ledger: repeatable pitfalls, rejected directions, version-specific hazards, and the checks that prevent those mistakes from happening again.
+  A do-not-repeat ledger: repeatable pitfalls, durable rejected directions, version-specific hazards, and the checks that prevent those mistakes from happening again. Do not keep one-off file-local notes here.
 - `spec/CHANGELOG.md`
-  A ship-oriented history that references spec docs and resolved TODO items.
+  A ship-oriented recent history that references spec docs and resolved TODO items.
+- `spec/archive/`
+  Archived history removed from the active memory surface. Keep archived TODO, MEMORY, and CHANGELOG content recoverable here without cluttering the main files.
 - `spec/test/`
   The spec-managed test workspace for project tests, verification fixtures, and task-specific checks that belong with the spec system.
-- `spec/docs/#NNN-work.md`
+- `spec/docs/#NNN-{work-description}.md`
   The combined spec-task record. It holds the scoped context, chosen direction, and concrete execution plan for one bounded task. It is not a diary.
 
 ## Numbering And Naming
@@ -115,7 +132,7 @@ Read `references/spec-system.md` before initializing or restructuring the memory
 Apply these rules unless the repo already follows a different stable scheme:
 
 - Spec docs use zero-padded ids: `#001`, `#002`, `#003`
-- Task files use `#NNN-work.md`, where `work` is the task slug
+- Task files use `#NNN-{work-description}.md`, where `work` is the task slug
 - TODO ids use `#TOD-001`, `#TOD-002`, `#TOD-003`
 - Slugs use lowercase hyphen-case
 - Inline references reuse the same ids exactly
@@ -130,7 +147,7 @@ Trigger this when any of these are true:
 
 - `spec/` does not exist
 - one of `ARCHITECTURE.md`, `TODO.md`, `MEMORY.md`, `CHANGELOG.md`, `test/`, or `docs/` is missing
-- the project has no current `spec/docs/#NNN-work.md` for the accepted task
+- the project has no current `spec/docs/#NNN-{work-description}.md` for the accepted task
 - the current repo clearly has no working spec system yet
 
 Actions:
@@ -141,7 +158,7 @@ Actions:
 4. Write the first pass of `ARCHITECTURE.md`.
 5. Seed `TODO.md` with known backlog items and immediate work.
 6. Ensure `spec/test/` exists for project test files.
-7. Create or update `spec/docs/#001-work.md` as the current combined spec-task file.
+7. Create or update `spec/docs/#001-{work-description}.md` as the current combined spec-task file.
 8. Record routing rules so future agents know which document to read first.
 
 ### 2. Task Start Event
@@ -149,7 +166,7 @@ Actions:
 Trigger this when any of these are true:
 
 - the user approved a new bounded task
-- the agent is about to start planning or execution for a task with no current `#NNN-work.md`
+- the agent is about to start planning or execution for a task with no current `#NNN-{work-description}.md`
 - the next task was selected from `TODO.md` and is becoming active
 
 Actions:
@@ -160,7 +177,7 @@ Actions:
    - sections for milestone checkpoints
    - phases for independent worker-sized units with clearly stated files, constraints, and expected change
    - tasks for indivisible instructions that can share local phase context
-4. Create or update the current combined spec-task file at `spec/docs/#NNN-work.md`.
+4. Create or update the current combined spec-task file at `spec/docs/#NNN-{work-description}.md`.
 5. Link related TODO ids.
 6. Reserve or update test files under `spec/test/` when the task needs spec-managed tests.
 7. Move active work into `In Progress` only when execution truly begins.
@@ -182,7 +199,7 @@ Write to `MEMORY.md` when:
 
 - a technical mistake is likely to happen again
 - a command, file pattern, or workflow caused a repeatable failure
-- a user explicitly rejected a direction, wording, or behavior that might be proposed again
+- a user explicitly rejected a reusable direction, wording, or behavior that might be proposed again across similar tasks
 - a library, tool, or version introduced a hazard future agents should notice early
 
 Update the combined spec-task file when:
@@ -192,7 +209,7 @@ Update the combined spec-task file when:
 - important files or interfaces change
 - spec-managed test files or verification strategy change
 
-Do not write to `MEMORY.md` for ordinary progress updates, routine design choices, or full chains of thought.
+Do not write to `MEMORY.md` for ordinary progress updates, routine design choices, one-off file-local instructions, or full chains of thought.
 
 Do not touch `ARCHITECTURE.md` unless system structure, routing, commands, or major flow actually changed.
 
@@ -203,14 +220,14 @@ Trigger this when any TODO item is:
 - added
 - reprioritized
 - moved between `Backlog`, `TODO`, `In Progress`, and `Done`
-- linked to or unlinked from a `#NNN-work.md`
+- linked to or unlinked from a `#NNN-{work-description}.md`
 - split into multiple TODO items
 - deferred from the current task
 
 Actions:
 
 1. Update `TODO.md`.
-2. Update the active `#NNN-work.md` when the TODO change affects current scope.
+2. Update the active `#NNN-{work-description}.md` when the TODO change affects current scope.
 3. Update `CHANGELOG.md` only if the TODO movement reflects shipped or deferred work at a checkpoint.
 
 ### 5. Architecture Change Event
@@ -228,7 +245,7 @@ Trigger this when any of these are true:
 Actions:
 
 1. Update `ARCHITECTURE.md`.
-2. Update the active `#NNN-work.md` if the current task caused the change.
+2. Update the active `#NNN-{work-description}.md` if the current task caused the change.
 3. Update `MEMORY.md` only if the change exposed a repeatable pitfall or hazard.
 
 ### 6. Ship Event
@@ -278,6 +295,7 @@ State rules:
 - `TODO` holds accepted work that is not active yet.
 - `In Progress` holds only currently active work.
 - `Done` holds completed items with the spec or changelog reference that closed them.
+- During archive cleanup, move older closed items out of `Done` and into `spec/archive/TODO.md`.
 
 Do not keep the same item in two sections.
 
@@ -310,6 +328,8 @@ Each entry should answer:
 
 Prefer user-visible or architecture-visible language over commit-diff narration.
 
+Keep the active changelog focused on recent history. During archive cleanup, keep only the latest five version entries in `spec/CHANGELOG.md` and move older ones into `spec/archive/CHANGELOG.md`.
+
 ## Writing Style
 
 All memo-managed documents must be written in English.
@@ -337,6 +357,7 @@ Before finishing a memo update:
 8. Check that tasks inside each phase follow the same concrete task-writing style used by `writing-plans`.
 9. Check that facts match the repo state.
 10. Check that unchanged files truly did not need updates.
+11. Check that stale closed history is archived instead of cluttering the active memory surface.
 
 ## Templates
 
