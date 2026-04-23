@@ -14,4 +14,4 @@
 
 ## Done
 
-- `#TOD-004` [Done] Short description. Closed by: [#NNN](docs/#NNN-work.md)
+- `#TOD-004` [Done] Short description. Closed by: [#NNN](docs/#NNN-{work-description}.md)

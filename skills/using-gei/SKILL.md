@@ -1,125 +1,83 @@
 ---
 name: using-gei
-description: "Use when starting any conversation that may involve the Gei bundle. This is the router for the Gei skill series."
+description: "Use when starting any conversation that may involve the Gei bundle. This is the first-hop router for the Gei-skill series."
 ---
 
-This is the entry router for Gei.
+This is the entry router for Gei, a collection of skills such as `design`, `consider`, `see`, `memo`, and `work`.
 
-If there is a real chance the task belongs to one of the Gei skills, stop here first and decide the route before you answer, explore, or act.
+If there is a real chance the task belongs to one of the skills, stop here first and choose the first downstream skill before you answer, explore, ask clarifying questions, or act.
 
 ## Instruction Priority
 
-Gei routing helps decide **how** to work, but the user's instructions still decide **what** to do.
+Gei routing decides **how** to work. The user's instructions still decide **what** to do.
 
 1. User instructions and repo rules come first.
-2. This router decides which Gei skill applies.
-3. The selected downstream skill defines the workflow after handoff.
+2. If the user explicitly requests a skill, load that skill first unless a higher-priority instruction makes that impossible.
+3. If this router conflicts with the selected downstream skill, follow the downstream skill.
+4. This router chooses only the first downstream skill.
+5. The selected downstream skill owns later workflow decisions.
 
-If the user explicitly asks for `design`, `consider`, `memo`, or `work`, still check this router first, then route to the requested skill unless a higher-priority instruction makes that impossible.
+## Core Rule
 
-## The Rule
+Route by the user's primary objective, not by the first visible action word.
 
-Check `using-gei` before:
+Actions such as search, inspect, read, compare, check, verify, update, and summarize may be supporting actions. They should not decide the first skill unless they are the user's final deliverable.
 
-- replying
-- asking clarifying questions
-- exploring the repo
-- reading large parts of the codebase
-- running implementation commands
+Only load one downstream skill at a time. If later context requires another skill, the currently loaded skill decides that handoff.
 
-If none of the Gei skills applies, answer normally.  
-If one does apply, route to it immediately.
+## First-Hop Routing
 
-## Decision Guide
+### 1. Explicit Skill Request
 
-| Skill | Route here when | Do not route here for | Typical follow-on |
-| --- | --- | --- | --- |
-| `design` | The deliverable is a visual artifact or design decision: web page, UI, prototype, PPT, document design, layout system, motion study, visual exploration | General coding, task scoping, or engineering memory maintenance | `work` if the approved design later needs implementation; `memo` if the design changes durable engineering context |
-| `consider` | The task is creative, ambiguous, early-stage, or still needs the right user need, constraints, scope, or tradeoff framing | Straightforward execution with a clear target; routine spec maintenance | Usually hands off to `memo`, then to `work` or `design` |
-| `memo` | The task is about maintaining the project's durable engineering memory: spec/task docs, architecture notes, TODO state, changelog, repeatable pitfalls, or the repo's planning memory surface | Generic document editing, copywriting, slide content, blog posts, or ordinary prose docs that are not part of engineering project memory | Often runs after `consider`; may also run after `work` or `design` to sync durable context |
-| `work` | The task is primarily coding or engineering execution: feature work, bug fixes, refactors, tests, debugging, review, versioning, release work | Requirement discovery, design exploration, or engineering-memory maintenance as the main task | May invoke `memo` before close if durable project memory changed |
+If the user explicitly names a skill, load that skill first.
 
-## Skill Boundaries
+Examples:
 
-### `design`
+- `$memo` + "maintain docs" -> `using-gei` -> `memo`
+- `$work` + "release a new version" -> `using-gei` -> `work`
 
-Use `design` when the user is asking for design output.
+Do not second-guess the first hop just because another skill may also be useful later.
 
-Typical asks:
+### 2. Primary Objective
 
-- "Design a landing page."
-- "Make three dashboard directions."
-- "Redesign this PPT."
-- "Help me design a document or report layout."
-- "Explore a UI style system."
+If no skill is explicitly requested, choose the first downstream skill by the user's main intended outcome.
 
-Do not use `design` just because the final output might contain code. If the main question is still about visual direction, start with `design`.
+- Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
+- Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
+- Durable project memory, spec files, TODO state, documentation maintenance, or alignment checks -> `memo`
+- Interface, visual artifact, layout, poster, deck, prototype, or visual direction -> `design`
+- External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
+- No matching skill -> exit Gei and answer normally, or use the appropriate non-skill if one applies.
 
-### `consider`
+When a new skill is added, route to it by its own current description if it is the best first-hop match. Do not expand this router into a complete copy of every downstream skill's trigger list.
 
-Use `consider` when the conversation needs better problem framing before execution.
+### 3. Supporting Actions
 
-Typical asks:
+Do not choose a skill only because the request mentions a supporting action. Consider what that action is for.
 
-- "I have an idea. Help me figure out what I should build."
-- "Help me think through the right requirements."
-- "Compare approaches and cut scope."
-- "I want this feature, but I am not sure what the real user need is."
+Examples:
 
-`consider` is the front of the loop for creative or ambiguous work. Its job is to help recover context, find the real ask, research the space when needed, and narrow the direction until a downstream skill becomes defensible.
+- "Search for mods for a game" -> `using-gei` -> `see`
+  - Research is the final deliverable.
+- "I want to add a feature; check how another project designed it" -> `using-gei` -> `consider`
+  - Feature planning is the primary objective. `consider` may invoke research if external examples are needed.
+- "Release a new version" -> `using-gei` -> `work`
+  - Release execution is the primary objective. `work` should gather project context first and may invoke `memo` if documentation, TODOs, specs, or durable memory need updates.
+- "Check whether the current system matches the alignment docs" -> `using-gei` -> `memo`
+  - Documentation alignment is the primary objective.
+- "Hi" -> exit Gei and answer normally.
 
-### `memo`
+### 4. Context Acquisition
 
-Use `memo` when the task is about the project's durable engineering documentation layer.
+Do not route to `see` or `memo` only because context might be needed.
 
-This is the important boundary:
+The selected first-hop skill is responsible for gathering the context it needs:
 
-`memo` is **not** for all document work. It is for the documentation that keeps an engineering project operable for future agents and future sessions.
-
-Route to `memo` for work such as:
-
-- maintaining task/spec records
-- updating architecture notes
-- syncing TODO state
-- recording shipped outcomes
-- recording repeatable pitfalls or workflow hazards
-- initializing or repairing the project's planning-memory surface
-
-Do not route to `memo` for:
-
-- ordinary article or prose editing
-- slide writing
-- marketing copy
-- general note taking
-- visual document design
-
-If the user says "update the project docs," check the spirit of the task. If they mean durable engineering memory and task/spec maintenance, route to `memo`. If they mean ordinary content editing, do not.
-
-### `work`
-
-Use `work` for almost any coding task.
-
-Typical asks:
-
-- "Fix this bug."
-- "Implement this feature."
-- "Refactor this module."
-- "Add tests."
-- "Review this change."
-- "Prepare the release."
-
-If the task is already clear and execution is the main job, `work` is the right route.
-
-If the task is not yet well scoped, do not force execution first. Route to `consider`, then continue to `memo` or `work` as needed.
-
-## Common Routing Patterns
-
-- New feature idea with unclear scope: `consider` -> `memo` -> `work`
-- New visual direction with unclear requirements: `consider` -> `design`
-- Established design task such as a webpage, PPT, or document layout: `design`
-- Update engineering task/spec memory after a decision: `memo`
-- Bug fix, refactor, tests, or code review: `work`
-- Coding task that also changes durable project memory: `work`, then `memo` before close
+- `work` gathers project, Git, test, build, and release context before acting.
+- `consider` gathers project and external context when the design depends on it.
+- `design` gathers visual, product, and reference context needed for the artifact.
+- `memo` gathers system and document context needed to maintain durable records.
+- `see` gathers source context when research is the deliverable.
 
 ## Red Flags
 
@@ -127,11 +85,17 @@ These thoughts usually mean the routing step is being skipped:
 
 - "This is simple. I can answer first."
 - "I need more context before I choose a skill."
+- "The request mentions search, so it must be `see`."
+- "The request might touch docs later, so it must start with `memo`."
 - "I already know what these skills do."
 
-Stop and route deliberately instead.
+Stop and route deliberately.
 
 ## End Condition
 
-Once the correct downstream skill is clear, hand off and stop using this file.
-
+- If a skill matches, state the routing path briefly, such as `using-gei` -> `consider`
+- **Principle of Progressive Disclosure**:
+  - If multiple skills are matched, such as: `using-gei` -> `consider` -> `memo` -> `work`, load **only** the skill with the shortest path(In example, it is`consider`).
+  - Then, either execute the subsequent skills as directed by the current skill
+  - Or wait until the current skill has fully completed before loading the next one; **do not** load all skills at the very beginning.
+- If no skill matches, exit this router and continue normally.

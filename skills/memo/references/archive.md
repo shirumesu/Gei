@@ -26,7 +26,7 @@ Read:
 2. `spec/CHANGELOG.md`
 3. `spec/MEMORY.md`
 4. any existing files in `spec/archive/`
-5. the current `spec/docs/#NNN-work.md` only if it is needed to classify a borderline entry
+5. the current `spec/docs/#NNN-{work-description}.md` only if it is needed to classify a borderline entry
 
 Do not inspect code unless the user asked for it or the documents are too stale to classify an entry safely.
 

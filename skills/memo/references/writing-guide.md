@@ -146,7 +146,7 @@ Avoid:
 - Add a short archive note only when the reason for removal is not obvious.
 - Organize the file so old entries stay easy to find.
 
-### `spec/docs/#NNN-work.md`
+### `spec/docs/#NNN-{work-description}.md`
 
 - Keep the first section about context, goals, and chosen direction.
 - Keep the later section about execution, if present, concrete and testable.

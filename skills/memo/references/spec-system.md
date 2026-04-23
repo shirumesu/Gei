@@ -24,7 +24,7 @@ spec/
     CHANGELOG.md
   test/
   docs/
-    #NNN-work.md
+    #NNN-{work-description}.md
 ```
 
 `spec/archive/` is optional. Create it only when an archive cleanup pass actually moves content out of the active files.
@@ -61,7 +61,7 @@ When creating the system for the first time:
 3. `MEMORY.md`
 4. `CHANGELOG.md`
 5. `test/`
-6. the first combined spec-task file at `spec/docs/#001-work.md`
+6. the first combined spec-task file at `spec/docs/#001-{work-description}.md`
 
 When updating during normal work, touch only the files required by the current event.
 
@@ -70,10 +70,17 @@ When updating during archive cleanup, create `spec/archive/` only if content is 
 ## ID Rules
 
 - Spec ids: `#001`, `#002`, `#003`
+- Task files: `#NNN-{work-description}.md`
 - TODO ids: `#TOD-001`, `#TOD-002`, `#TOD-003`
 - Slugs: lowercase hyphen-case
 
 If the project already uses another stable pattern, preserve the old pattern.
+
+## Event Routing
+
+`SKILL.md` owns event selection. Use this file for full spec layout, read order, write order, ids, and routing contracts.
+
+Do not use this file as a substitute for the per-event instructions under `references/events/`. Routine updates should read the selected event file and only the contracts for documents being written.
 
 ## Routing Rules
 
@@ -138,19 +145,17 @@ Bad pattern:
 - one phase that only works if the worker already remembers detailed reasoning from another phase
 - one task that still says "and then handle the rest"
 
-## Invocation Triggers
+## Trigger Source
 
-Call `memo` when any of these events happened:
+The complete trigger map lives in `SKILL.md`. The detailed action rules live in one file per event:
 
-1. `spec/` is missing or incomplete.
-2. A new bounded task was accepted.
-3. The current task scope, constraints, affected files, interfaces, or verification changed.
-4. Any TODO item changed state.
-5. A repeatable pitfall, user rejection, or version-specific hazard was discovered.
-6. Architecture, routing, commands, or data flow changed.
-7. A merge, release, ship, or handoff checkpoint was reached.
-8. The session is about to end and one of the events above happened without a matching doc update.
-
-Do not call `memo` for ordinary code edits that do not change durable project knowledge.
-
-Call `memo` for archive cleanup when the user asks to archive or when `TODO.md`, `CHANGELOG.md`, or `MEMORY.md` accumulated enough stale material that the active memory surface is no longer easy to scan.
+- `references/events/init.md`
+- `references/events/task-start.md`
+- `references/events/active-work.md`
+- `references/events/memory-entry.md`
+- `references/events/todo-change.md`
+- `references/events/architecture-change.md`
+- `references/events/ship.md`
+- `references/events/deferred-work.md`
+- `references/events/catch-up.md`
+- `references/archive.md`
