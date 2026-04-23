@@ -2,11 +2,11 @@
 
 ## Overview
 
-Work Light owns the everyday production loop for coding tasks that do not already come with a complete spec-task or approved execution plan.
+Work Light owns the everyday production loop for coding tasks that do not require the spec-aware heavy flow.
 
 Its job is to inspect the task for feasibility, recover only the context needed to act, implement in the main thread, verify the result, review the change, and run release checks when the task actually needs shipping.
 
-This reference is for the main thread. Stay in one thread by default. Do not require `spec/`, `#NNN-work.md`, durable planning docs, or delegated worker/review flows in this mode.
+This reference is for the main thread. Stay in one thread by default. Do not require `spec/`, `#NNN-work.md`, durable planning docs, or delegated worker/review flows in this mode. A task may remain light even when the project has `spec/`.
 
 ## Entry Gate
 
@@ -25,6 +25,14 @@ If a blocking requirement is still unclear after a small context read, stop and 
 - Do not leave `TODO`, `TBD`, placeholder branches, or half-implemented logic in production code.
 - Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
 - Do not claim "done", "fixed", or "verified" without command evidence in the current conversation.
+
+## Spec Boundary
+
+Light does not create, initialize, read-order, or maintain `spec/` by default.
+
+If the work reveals information that may belong in durable project memory, such as a routing change, required command, TODO movement, architecture change, shipped outcome, or repeatable pitfall, tell the user exactly what you noticed and ask whether they want it recorded through `memo`.
+
+If the user says yes, invoke `memo` and follow Memo's event rules. If the user says no or does not answer before the current task can finish safely, complete the light task without spec changes and mention the unrecorded durable note in the handoff.
 
 ## Default Loop
 

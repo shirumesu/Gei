@@ -56,9 +56,13 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 - 修复：
 	- `using-gei` 现在会更准确地区分最终目标和支撑动作，只选择第一个下游 skill，避免为了搜集上下文提前加载不合适的 skill
 	- 安装文档的完整安装示例补回 `see` 目录
+	- `work` 现在会遵循 `memo` 的指引维护spec文档而不是在 `work` 中定义
 - 文档：
 	- 新增 `consider/references/read-spec.md`，明确有 spec 项目中的最小读取顺序
 	- 补齐 v0.2.1 发布说明，覆盖 `v0.2` 后的 `consider`、`memo`、`using-gei` 更新
+
+<details>
+<summary>历史版本</summary>
 
 ### v0.2 - 2026-04-23
 
@@ -74,9 +78,6 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 	- `memo`未能正确写入work文件
 	- `work`的`ship_check`误报
 - 文档：更新安装说明，补齐 `using-gei` 与按需安装的说明
-
-<details>
-<summary>历史版本</summary>
 
 ### v0.1 - 2026-04-21
 

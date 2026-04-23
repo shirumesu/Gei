@@ -4,18 +4,19 @@
 
 This reference is for execution workers dispatched by `work`.
 
-Your job is to finish one assigned phase from the active `spec/docs/#NNN-work.md`, prove it with tests, and hand clean evidence back to the main thread.
+Your job is to finish one assigned phase from the active task context provided by the main thread, prove it with tests, and hand clean evidence back to the main thread.
 
 Do not take over orchestration. Do not drift into unrelated repo archaeology.
+
+The main thread owns Memo coordination. Do not create, repair, or maintain `spec/` documents unless the prompt explicitly assigns a Memo-backed document update.
 
 ## Default Read Set
 
 Start with the minimum context:
 
 1. the main thread prompt
-2. the active `spec/docs/#NNN-work.md`
+2. the active task context provided by the main thread
 3. the exact files and tests named in the prompt
-4. `spec/ARCHITECTURE.md` only when the phase touches shared interfaces or boundaries
 
 The plan usually already narrowed the phase enough. Do not read the whole project just to feel safer.
 

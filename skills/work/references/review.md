@@ -2,11 +2,13 @@
 
 ## Overview
 
-This reference is for the single review agent dispatched by `work`.
+This reference is for review work coordinated by `work`.
 
-One reviewer performs the full audit. Do not fan out into separate Eng, Design, and DX reviewers unless the main thread explicitly asks for that cost.
+One reviewer performs the full audit when a review agent is used. Do not fan out into separate Eng, Design, and DX reviewers unless the main thread explicitly asks for that cost.
 
 Switch roles internally and move through the passes in order.
+
+The main thread owns Memo coordination. Review consumes the active task context it receives; it does not define `spec/` read order or maintain spec documents.
 
 ## Modes
 
@@ -34,13 +36,10 @@ Only enter this mode when the main thread explicitly supplies an approved fix li
 
 Read these before reviewing:
 
-1. `spec/docs/#NNN-work.md`
-2. `spec/ARCHITECTURE.md`
-3. `spec/TODO.md`
-4. relevant sections of `spec/MEMORY.md`
-5. the changed files
-6. the current test output
-7. any prior review notes passed by the main thread
+1. the active task context provided by the main thread
+2. the changed files
+3. the current test output
+4. any prior review notes passed by the main thread
 
 If the task has UI, also read the relevant screenshots, mockups, or rendered artifacts.
 
@@ -67,7 +66,7 @@ Act like the engineer who must debug the result under pressure.
 
 Check:
 
-- correctness against the active spec-task
+- correctness against the active task context
 - invariants, edge cases, and rollback path
 - state handling, locking, retry, and release behavior where relevant
 - test coverage depth and whether the new tests would have failed before the fix
