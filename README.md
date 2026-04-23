@@ -48,6 +48,18 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ## 更新日志 / 新发现
 
+### v0.2.1 - 2026-04-23
+
+- 重构：
+	- `consider` 现在会更明确地停在设计阶段：先恢复最小必要上下文、澄清边界并输出可审批方案，批准前不进入实现
+	- `memo` 拆分为事件引用与文档契约，入口只负责选择当前事件，后续只读取本次写入需要的规则
+- 修复：
+	- `using-gei` 现在会更准确地区分最终目标和支撑动作，只选择第一个下游 skill，避免为了搜集上下文提前加载不合适的 skill
+	- 安装文档的完整安装示例补回 `see` 目录
+- 文档：
+	- 新增 `consider/references/read-spec.md`，明确有 spec 项目中的最小读取顺序
+	- 补齐 v0.2.1 发布说明，覆盖 `v0.2` 后的 `consider`、`memo`、`using-gei` 更新
+
 ### v0.2 - 2026-04-23
 
 - 新增：

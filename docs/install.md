@@ -19,6 +19,10 @@ A full install can look like this:
     SKILL.md
     references/
     scripts/
+  see/
+    SKILL.md
+    references/
+    scripts/
   using-gei/
     SKILL.md
   work/
