@@ -48,6 +48,16 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ## 更新日志 / 新发现
 
+### v0.2.2 - 2026-04-25
+
+- 重构：
+	- `Work\script\ship_scan` 完整解耦确保后续可维护性 & 增强性能 & 修复部分误报 & 修复显示错误 & 新增 [readme](./skills/work/scripts/README.md) 确保以后我还看得懂在干什么
+- 修复：
+	- `using-gei` 在 *description* 部分强调必须优先加载，确保为第一个被加载的 SKILL
+
+<details>
+<summary>历史版本</summary>
+
 ### v0.2.1 - 2026-04-23
 
 - 重构：
@@ -60,9 +70,6 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 - 文档：
 	- 新增 `consider/references/read-spec.md`，明确有 spec 项目中的最小读取顺序
 	- 补齐 v0.2.1 发布说明，覆盖 `v0.2` 后的 `consider`、`memo`、`using-gei` 更新
-
-<details>
-<summary>历史版本</summary>
 
 ### v0.2 - 2026-04-23
 
