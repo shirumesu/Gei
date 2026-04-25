@@ -3,7 +3,7 @@
 ship_scan.py
 
 Usage:
-  python ship_scan.py <project_root_path> [--format jsonl|table]
+  python ship_scan.py <project_root_path> [--format log|jsonl|table]
   python ship_scan.py <project_root_path> [--include-minified] [--include-ignored] [--workers N]
 
 This scanner is intended for post-implementation mechanical review before a
@@ -32,7 +32,7 @@ import json
 import os
 import sys
 
-from ship_scan_lib.output import print_jsonl, print_table
+from ship_scan_lib.output import print_jsonl, print_log, print_table
 from ship_scan_lib.scanner import scan_project
 
 
@@ -46,9 +46,9 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("root", help="Project, staging, or package directory to scan.")
     parser.add_argument(
         "--format",
-        choices=("jsonl", "table"),
-        default="jsonl",
-        help="Output format. Defaults to jsonl for agent and tool consumption.",
+        choices=("log", "jsonl", "table"),
+        default="log",
+        help="Output format. Defaults to human-readable log output.",
     )
     parser.add_argument(
         "--include-minified",
@@ -97,10 +97,12 @@ def main(argv: list[str] | None = None) -> int:
         include_ignored=args.include_ignored,
         workers=args.workers,
     )
-    if args.format == "table":
+    if args.format == "jsonl":
+        print_jsonl(report)
+    elif args.format == "table":
         print_table(report)
     else:
-        print_jsonl(report)
+        print_log(report)
     return 0
 
 

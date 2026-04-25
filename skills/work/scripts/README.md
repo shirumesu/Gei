@@ -44,18 +44,26 @@ them in scope.
 Directory mode is used when Git candidate collection is unavailable, or when
 `--include-ignored` asks the scanner to walk the directory tree directly.
 
-Directory mode is best-effort. It applies built-in skip rules and can use the
-root `.gitignore` as a hint in non-Git directories, but it does not implement
-full Git ignore semantics such as nested `.gitignore`, `.git/info/exclude`, or
-global excludes.
+Directory mode is best-effort. It applies explicit built-in skip rules and can
+use the root `.gitignore` as a hint in non-Git directories, but it does not
+implement full Git ignore semantics such as nested `.gitignore`,
+`.git/info/exclude`, or global excludes. Hidden directories are scanned unless
+they are named in the built-in skip rules.
 
 For the strictest release check, run the scanner against the actual staging or
 package directory that will be distributed.
 
 ## Output
 
-The default output is JSONL because the usual caller is an agent or another
-tool. The first record is always a summary:
+The default output is a human-readable log:
+
+```text
+Info: summary | mode: git | ignore: git | files: 299 | minified: 2 | binary: 2 | unreadable: 0 | findings: 11
+Warning: [sensitive_path:unix] found | value: /path/to/tool | location: src/window.rs:343 | ignored: no
+```
+
+JSONL is available for agents and tools. The first JSONL record is always a
+summary:
 
 ```json
 {
@@ -75,9 +83,9 @@ tool. The first record is always a summary:
 Finding records include `type`, `kind`, `value`, `file`, `line`, `column`,
 `ignored_by_gitignore`, and `snippet`.
 
-Table output is available for manual review. Long cells are wrapped instead of
-truncated so the full path remains visible without forcing a single row to span
-far beyond the terminal width.
+Table output is also available for manual review. Long cells are wrapped instead
+of truncated so the full path remains visible without forcing a single row to
+span far beyond the terminal width.
 
 ## Files
 
@@ -98,7 +106,7 @@ scripts/
 
 - `ship_scan.py`
   CLI entrypoint. It parses arguments, validates the root directory, calls the
-  scanner, and prints JSONL or table output.
+  scanner, and prints log, JSONL, or table output.
 
 - `ship_scan_lib/models.py`
   Shared dataclasses and type aliases for findings, file candidates, scan
@@ -130,7 +138,7 @@ scripts/
   pool, aggregates counters, and builds the final `ScanReport`.
 
 - `ship_scan_lib/output.py`
-  JSONL and table rendering.
+  Log, JSONL, and table rendering.
 
 ## Maintenance Notes
 
@@ -145,12 +153,11 @@ For new junk patterns, update `rules.py`. The pruning set for junk directories
 is derived from the junk directory rule table so a directory can be reported and
 then skipped without maintaining two separate lists.
 
-For new output fields, update `models.py` and `output.py` together. JSONL and
-table output should keep the same summary semantics.
+For new output fields, update `models.py` and `output.py` together. Log, JSONL,
+and table output should keep the same summary semantics.
 
 For ignore behavior, prefer Git commands over reimplementing Git semantics. The
 non-Git fallback is intentionally approximate and should be described as such.
 
 For performance-sensitive changes, preserve stable output ordering. File content
 scanning can run in parallel, but aggregation should remain deterministic.
-

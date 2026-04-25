@@ -135,7 +135,7 @@ def collect_directory_candidates(
                     )
                 )
 
-            if dirname in PRUNE_DIR_NAMES or dirname.startswith("."):
+            if dirname in PRUNE_DIR_NAMES:
                 continue
             if ignored_by_gitignore is True and not include_ignored:
                 continue

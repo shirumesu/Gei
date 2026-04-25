@@ -58,6 +58,46 @@ def print_jsonl(report: ScanReport) -> None:
         print(json.dumps(record, ensure_ascii=False))
 
 
+def ignored_label(value: bool | None) -> str:
+    if value is True:
+        return "yes"
+    if value is False:
+        return "no"
+    return "n/a"
+
+
+def finding_location(file: str, line: int | None) -> str:
+    if line is None:
+        return file
+    return f"{file}:{line}"
+
+
+def print_log(report: ScanReport) -> None:
+    stats = build_report_stats(report)
+    print(
+        "Info: summary | "
+        f"mode: {report.scan_mode} | "
+        f"ignore: {report.ignore_source} | "
+        f"files: {report.scanned_files} | "
+        f"minified: {report.skipped_minified_files} | "
+        f"binary: {report.skipped_binary_files} | "
+        f"unreadable: {report.skipped_unreadable_files} | "
+        f"findings: {stats.findings}"
+    )
+
+    if stats.findings == 0:
+        print("Info: no sensitive paths or junk files found")
+        return
+
+    for finding in report.findings:
+        print(
+            f"Warning: [{finding.type}:{finding.kind}] found | "
+            f"value: {finding.value} | "
+            f"location: {finding_location(finding.file, finding.line)} | "
+            f"ignored: {ignored_label(finding.ignored_by_gitignore)}"
+        )
+
+
 def table_column_limits(headers: list[str]) -> list[int]:
     terminal_width = shutil.get_terminal_size((120, 20)).columns
     fixed_width = len("  ") * (len(headers) - 1)
@@ -144,13 +184,7 @@ def print_table(report: ScanReport) -> None:
             finding.value,
             finding.file,
             "-" if finding.line is None else str(finding.line),
-            (
-                "yes"
-                if finding.ignored_by_gitignore is True
-                else "no"
-                if finding.ignored_by_gitignore is False
-                else "n/a"
-            ),
+            ignored_label(finding.ignored_by_gitignore),
         ]
         for finding in report.findings
     ]
