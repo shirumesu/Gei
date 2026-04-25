@@ -14,13 +14,16 @@ agent, not a human.
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import fnmatch
 import json
 import os
 import platform
 import re
+import shutil
 import subprocess
 import sys
+import textwrap
 from dataclasses import dataclass
 
 
@@ -31,10 +34,15 @@ CURRENT_OS = platform.system()
 # afterward. That is much easier to reason about than one giant "perfect" regex.
 _UNC_PATTERN = r"(?P<unc>\\\\[^\\/\s\"'`,;]+\\[^\\/\s\"'`,;]+(?:\\[^\r\n\"'<>|?*`]*)?)"
 _WIN_PATTERN = r"(?P<windows>(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\r\n\"'<>|?*`]+)"
+_UNIX_ROOT_PATTERN = (
+    r"Applications|bin|cache|code|data|dev|etc|home|Library|mnt|opt|"
+    r"private|proc|root|run|sbin|srv|sys|tmp|Users|usr|var|"
+    r"Volumes|workspace|workspaces"
+)
 _UNIX_PATTERN = (
     r"(?P<unix>"
     r"(?<![A-Za-z0-9_.`~/-])"
-    r"/(?:[A-Za-z0-9._-]+(?:/[^\s\"'\\`<>{}\[\](),;:]+)*)"
+    rf"/(?:{_UNIX_ROOT_PATTERN})(?:/[^\s\"'\\`<>{{}}\[\](),;:]+)*"
     r")"
 )
 
@@ -250,6 +258,13 @@ class ScanReport:
     findings: list[Finding]
 
 
+@dataclass(frozen=True)
+class ScanFileResult:
+    scanned_files: int
+    skipped_minified_files: int
+    findings: list[Finding]
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Scan a project for hardcoded absolute paths and junk artifacts."
@@ -270,6 +285,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--include-ignored",
         action="store_true",
         help="Scan files matched by .gitignore too. Off by default because ship review usually cares about shippable files.",
+    )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=None,
+        help="Number of file scanning workers. Defaults to an I/O-oriented automatic value.",
     )
     return parser.parse_args(argv)
 
@@ -349,6 +370,61 @@ def load_git_tracked_files(root: str) -> set[str] | None:
 
     entries = result.stdout.decode("utf-8", errors="replace").split("\0")
     return {entry for entry in entries if entry}
+
+
+def load_git_scan_files(root: str) -> list[str] | None:
+    try:
+        result = subprocess.run(
+            [
+                "git",
+                "-C",
+                root,
+                "ls-files",
+                "-z",
+                "--cached",
+                "--others",
+                "--exclude-standard",
+            ],
+            capture_output=True,
+            text=False,
+            check=False,
+        )
+    except OSError:
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    entries = result.stdout.decode("utf-8", errors="replace").split("\0")
+    return [entry for entry in entries if entry]
+
+
+def is_ignored_by_git(root: str, rel_path: str) -> bool | None:
+    try:
+        result = subprocess.run(
+            ["git", "-C", root, "check-ignore", "-q", "--", rel_path],
+            capture_output=True,
+            text=False,
+            check=False,
+        )
+    except OSError:
+        return None
+
+    if result.returncode == 0:
+        return True
+    if result.returncode == 1:
+        return False
+    return None
+
+
+def default_worker_count() -> int:
+    return min(32, (os.cpu_count() or 1) * 4)
+
+
+def normalize_worker_count(workers: int | None) -> int:
+    if workers is None:
+        return default_worker_count()
+    return max(1, workers)
 
 
 def normalize_candidate(candidate: str) -> str:
@@ -572,10 +648,90 @@ def scan_file(
     return findings
 
 
+def scan_candidate_file(
+    filepath: str,
+    rel_path: str,
+    ignored_by_gitignore: bool | None,
+    project_root_entries: set[str],
+    include_minified: bool,
+) -> ScanFileResult:
+    if not include_minified and is_probably_minified(filepath):
+        return ScanFileResult(
+            scanned_files=0,
+            skipped_minified_files=1,
+            findings=[],
+        )
+
+    return ScanFileResult(
+        scanned_files=1,
+        skipped_minified_files=0,
+        findings=scan_file(
+            filepath,
+            rel_path,
+            ignored_by_gitignore,
+            project_root_entries,
+        ),
+    )
+
+
+def scan_junk_dirs(
+    root: str,
+    patterns,
+    use_git_ignore: bool,
+) -> list[Finding]:
+    findings: list[Finding] = []
+
+    for dirpath, dirnames, _filenames in os.walk(root):
+        kept_dirnames = []
+
+        for dirname in dirnames:
+            full_dir_path = os.path.join(dirpath, dirname)
+            rel_dir_path = os.path.relpath(full_dir_path, root).replace(os.sep, "/")
+            ignored_by_gitignore: bool | None
+            if use_git_ignore:
+                ignored_by_gitignore = is_ignored_by_git(root, rel_dir_path)
+            else:
+                ignored_by_gitignore = (
+                    is_ignored_by_gitignore(full_dir_path, root, patterns)
+                    if patterns is not None
+                    else None
+                )
+
+            junk_dir = classify_junk_name(
+                dirname,
+                JUNK_DIR_NAMES,
+                JUNK_DIR_PATTERNS,
+            )
+            if junk_dir is not None and ignored_by_gitignore is not True:
+                kind, message = junk_dir
+                findings.append(
+                    build_junk_finding(
+                        rel_dir_path,
+                        kind,
+                        ignored_by_gitignore,
+                        message,
+                    )
+                )
+
+            if (
+                dirname in SKIP_DIRS
+                or dirname.startswith(".")
+                or ignored_by_gitignore is True
+            ):
+                continue
+
+            kept_dirnames.append(dirname)
+
+        dirnames[:] = kept_dirnames
+
+    return findings
+
+
 def scan_project(
     root: str,
     include_minified: bool = False,
     include_ignored: bool = False,
+    workers: int | None = None,
 ) -> ScanReport:
     patterns = load_gitignore_patterns(root)
     tracked_files = load_git_tracked_files(root)
@@ -584,6 +740,72 @@ def scan_project(
     scanned_files = 0
     skipped_ignored_files = 0
     skipped_minified_files = 0
+    git_scan_files = None if include_ignored else load_git_scan_files(root)
+
+    if git_scan_files is not None:
+        findings.extend(
+            scan_junk_dirs(
+                root,
+                patterns,
+                use_git_ignore=True,
+            )
+        )
+
+        content_candidates: list[tuple[str, str]] = []
+        for rel_path in git_scan_files:
+            filename = os.path.basename(rel_path)
+            if filename in SKIP_FILENAMES:
+                continue
+
+            junk_file = classify_junk_name(
+                filename,
+                JUNK_FILE_NAMES,
+                JUNK_FILE_PATTERNS,
+            )
+            if junk_file is not None:
+                kind, message = junk_file
+                findings.append(
+                    build_junk_finding(
+                        rel_path,
+                        kind,
+                        False,
+                        message,
+                    )
+                )
+                continue
+
+            _, ext = os.path.splitext(filename)
+            if ext.lower() in SKIP_EXTENSIONS:
+                continue
+
+            content_candidates.append((os.path.join(root, rel_path), rel_path))
+
+        worker_count = normalize_worker_count(workers)
+        with ThreadPoolExecutor(max_workers=worker_count) as executor:
+            results = executor.map(
+                lambda candidate: scan_candidate_file(
+                    candidate[0],
+                    candidate[1],
+                    False,
+                    project_root_entries,
+                    include_minified,
+                ),
+                content_candidates,
+            )
+            for result in results:
+                scanned_files += result.scanned_files
+                skipped_minified_files += result.skipped_minified_files
+                findings.extend(result.findings)
+
+        return ScanReport(
+            root=os.path.abspath(root),
+            platform=CURRENT_OS,
+            gitignore=True,
+            scanned_files=scanned_files,
+            skipped_ignored_files=skipped_ignored_files,
+            skipped_minified_files=skipped_minified_files,
+            findings=findings,
+        )
 
     for dirpath, dirnames, filenames in os.walk(root):
         if _path_contains_skipped_dir(dirpath, root):
@@ -602,7 +824,11 @@ def scan_project(
             full_dir_path = os.path.join(dirpath, dirname)
             rel_dir_path = os.path.relpath(full_dir_path, root).replace(os.sep, "/")
             ignored_by_gitignore = (
-                is_ignored_by_gitignore(full_dir_path, root, patterns) if patterns is not None else None
+                is_ignored_by_git(root, rel_dir_path)
+                if tracked_files is not None
+                else is_ignored_by_gitignore(full_dir_path, root, patterns)
+                if patterns is not None
+                else None
             )
             if ignored_by_gitignore is True:
                 continue
@@ -630,7 +856,11 @@ def scan_project(
             full_path = os.path.join(dirpath, filename)
             rel_path = os.path.relpath(full_path, root).replace(os.sep, "/")
             ignored_by_gitignore = (
-                is_ignored_by_gitignore(full_path, root, patterns) if patterns is not None else None
+                is_ignored_by_git(root, rel_path)
+                if tracked_files is not None
+                else is_ignored_by_gitignore(full_path, root, patterns)
+                if patterns is not None
+                else None
             )
 
             junk_file = classify_junk_name(
@@ -730,6 +960,63 @@ def print_jsonl(report: ScanReport) -> None:
         print(json.dumps(record, ensure_ascii=False))
 
 
+def table_column_limits(headers: list[str]) -> list[int]:
+    terminal_width = shutil.get_terminal_size((120, 20)).columns
+    fixed_width = len("  ") * (len(headers) - 1)
+    available = max(40, terminal_width - fixed_width)
+
+    preferred = [14, 28, 48, 48, 8, 7]
+    total_preferred = sum(preferred)
+    if total_preferred <= available:
+        return preferred
+
+    minimum = [14, 12, 14, 14, 4, 7]
+    extra = max(0, available - sum(minimum))
+    flexible_indexes = (1, 2, 3)
+    limits = minimum[:]
+    while extra > 0 and sum(limits) < total_preferred:
+        changed = False
+        for index in flexible_indexes:
+            if extra <= 0:
+                break
+            if limits[index] < preferred[index]:
+                limits[index] += 1
+                extra -= 1
+                changed = True
+        if not changed:
+            break
+    return limits
+
+
+def wrap_cell(value: str, width: int) -> list[str]:
+    wrapped = textwrap.wrap(
+        value,
+        width=max(1, width),
+        break_long_words=True,
+        break_on_hyphens=False,
+        replace_whitespace=False,
+        drop_whitespace=False,
+    )
+    return wrapped or [""]
+
+
+def format_wrapped_row(row: list[str], widths: list[int]) -> list[str]:
+    wrapped_cells = [
+        wrap_cell(cell, widths[index]) for index, cell in enumerate(row)
+    ]
+    row_height = max(len(cell_lines) for cell_lines in wrapped_cells)
+    lines = []
+
+    for line_index in range(row_height):
+        pieces = []
+        for cell_index, cell_lines in enumerate(wrapped_cells):
+            value = cell_lines[line_index] if line_index < len(cell_lines) else ""
+            pieces.append(value.ljust(widths[cell_index]))
+        lines.append("  ".join(pieces).rstrip())
+
+    return lines
+
+
 def print_table(report: ScanReport) -> None:
     sensitive_paths = sum(
         1 for finding in report.findings if finding.type == "sensitive_path"
@@ -772,10 +1059,7 @@ def print_table(report: ScanReport) -> None:
         for finding in report.findings
     ]
 
-    widths = [len(header) for header in headers]
-    for row in rows:
-        for index, cell in enumerate(row):
-            widths[index] = max(widths[index], len(cell))
+    widths = table_column_limits(headers)
 
     def format_row(row: list[str]) -> str:
         return "  ".join(cell.ljust(widths[index]) for index, cell in enumerate(row))
@@ -783,7 +1067,8 @@ def print_table(report: ScanReport) -> None:
     print(format_row(headers))
     print("  ".join("-" * width for width in widths))
     for row in rows:
-        print(format_row(row))
+        for line in format_wrapped_row(row, widths):
+            print(line)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -806,6 +1091,7 @@ def main(argv: list[str] | None = None) -> int:
         root,
         include_minified=args.include_minified,
         include_ignored=args.include_ignored,
+        workers=args.workers,
     )
     if args.format == "table":
         print_table(report)

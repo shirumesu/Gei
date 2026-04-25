@@ -1,6 +1,6 @@
 ---
 name: using-gei
-description: "Use when starting any conversation that may involve the Gei bundle. This is the first-hop router for the Gei-skill series."
+description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
 This is the entry router for Gei, a collection of skills such as `design`, `consider`, `see`, `memo`, and `work`.
