@@ -2,6 +2,8 @@ name: Release Skills
 
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*"
 
@@ -15,13 +17,39 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
 
+      - name: Prepare release from main
+        id: release_main
+        if: startsWith(github.ref, 'refs/heads/')
+        run: |
+          python .github/scripts/extract_latest_release_notes.py CHANGELOG.md release-notes.md --mode auto
+
+      - name: Prepare release from tag
+        id: release_tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          python .github/scripts/extract_latest_release_notes.py CHANGELOG.md release-notes.md --mode tag --tag "${GITHUB_REF_NAME}"
+
+      - name: Stop when no release is needed
+        if: startsWith(github.ref, 'refs/heads/') && steps.release_main.outputs.release_needed != 'true'
+        run: |
+          echo "No release needed for this push."
+
+      - name: Create version tag
+        if: startsWith(github.ref, 'refs/heads/') && steps.release_main.outputs.release_needed == 'true'
+        run: |
+          git tag "${{ steps.release_main.outputs.version }}"
+          git push origin "${{ steps.release_main.outputs.version }}"
+
       - name: Build release archive
+        if: startsWith(github.ref, 'refs/tags/') || steps.release_main.outputs.release_needed == 'true'
         run: |
           rm -rf package Gei.zip
           mkdir -p package
@@ -29,15 +57,16 @@ jobs:
           cd package
           zip -r ../Gei.zip .
 
-      - name: Extract README release notes
-        run: |
-          python .github/scripts/extract_latest_release_notes.py README.md release-notes.md
-
       - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/') || steps.release_main.outputs.release_needed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" Gei.zip \
-            --title "${GITHUB_REF_NAME}" \
-            --notes-file release-notes.md \
-            --generate-notes
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME}"
+          else
+            VERSION="${{ steps.release_main.outputs.version }}"
+          fi
+          gh release create "${VERSION}" Gei.zip \
+            --title "${VERSION}" \
+            --notes-file release-notes.md

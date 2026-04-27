@@ -48,66 +48,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ## 更新日志 / 新发现
 
-### v0.2.2 - 2026-04-25
-
-- 重构：
-	- `Work\script\ship_scan` 完整解耦确保后续可维护性 & 增强性能 & 修复部分误报 & 修复显示错误 & 新增 [readme](./skills/work/scripts/README.md) 确保以后我还看得懂在干什么
-- 修复：
-	- `using-gei` 在 *description* 部分强调必须优先加载，确保为第一个被加载的 SKILL
-
-<details>
-<summary>历史版本</summary>
-
-### v0.2.1 - 2026-04-23
-
-- 重构：
-	- `consider` 现在会更明确地停在设计阶段：先恢复最小必要上下文、澄清边界并输出可审批方案，批准前不进入实现
-	- `memo` 拆分为事件引用与文档契约，入口只负责选择当前事件，后续只读取本次写入需要的规则
-- 修复：
-	- `using-gei` 现在会更准确地区分最终目标和支撑动作，只选择第一个下游 skill，避免为了搜集上下文提前加载不合适的 skill
-	- 安装文档的完整安装示例补回 `see` 目录
-	- `work` 现在会遵循 `memo` 的指引维护spec文档而不是在 `work` 中定义
-- 文档：
-	- 新增 `consider/references/read-spec.md`，明确有 spec 项目中的最小读取顺序
-	- 补齐 v0.2.1 发布说明，覆盖 `v0.2` 后的 `consider`、`memo`、`using-gei` 更新
-
-### v0.2 - 2026-04-23
-
-- 新增：
-	- `using-gei` 作为 Gei 的总路由 skill，用于在 `design`、`consider`、`memo`、`work` 之间分流
-	- `see` skill，支持对比、事实核查、主题探索、教程检索、舆情采样和多源总结
-	- `see` 的 `tool.md` 与 `health_check.py`，补充 Jina、Reddit、Twitter/X、小红书工具指引和本地环境检查
-	- `work`的`ship_check`额外覆盖垃圾和缓存文件
-	- `memo`新增显式调用的归档功能
-- 更名：将 `kickoff` 统一更名为 `consider`，同步仓库路径、文档和路由表述
-- 重构：`work` 改为路由入口，拆分轻量流程与 spec 驱动流程
-- 修复：
-	- `memo`未能正确写入work文件
-	- `work`的`ship_check`误报
-- 文档：更新安装说明，补齐 `using-gei` 与按需安装的说明
-
-### v0.1 - 2026-04-21
-
-- 首个公开发布版本：提供 `consider`、`memo`、`work`、`design` 四个 skill
-- 新增：可直接给 Agent 拉取的安装文档 `docs/install.md`
-- 新增：tag 触发的 GitHub Release Action，会自动打包 `Gei.zip`
-- 文档：修正安装入口到远端实际的 `main` 分支，并整理安装说明
-- 
-### v0.0.3 - 2026-04-21
-
-- 新增：tag 触发的 GitHub Release Action，会自动打包 `Gei.zip`
-- 新增：`docs/install.md`
-- 文档：补全 README 安装说明，明确多 skill 的安装方式
-
-### v0.0.2 - 2026-04-21
-
-- 新增：`work` skill，补齐执行、review 和 ship gate
-
-### v0.0.1 - 2026-04-21
-
-- 新增：初始化 `spec/` 系统，补齐 `consider` 和 `memo` 的项目内上下文
-
-</details>
+最新公开版本日志见 [CHANGELOG.md](./CHANGELOG.md)。
 
 ## 感谢
 

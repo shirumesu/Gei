@@ -76,16 +76,16 @@ If there is no active spec-backed task, mark spec parity as `not applicable` and
 
 ### 5. Check version alignment
 
-Use the four-part version rule:
+Use SemVer tags:
 
-- `MAJOR.MINOR.PATCH.MICRO`
+- `vMAJOR.MINOR.PATCH`
 
 Default bump policy:
 
 - `MAJOR`: breaking change or intentional compatibility break
-- `MINOR`: new user-facing capability
-- `PATCH`: backward-compatible fix or meaningful behavior correction
-- `MICRO`: docs, tests, internal-only cleanup, or tiny maintenance change
+- `MINOR`: new project-level capability that deserves a visible feature-line release
+- `PATCH`: backward-compatible fix, meaningful behavior correction, user-visible `perf`, or small `feat`
+- no release by default: `docs`, `chore`, `test`, `ci`, `build`, and `style`
 
 Confirm the chosen version is consistent across:
 
