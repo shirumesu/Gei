@@ -10,6 +10,12 @@ Future agents should be able to answer three questions from it before reading mu
 2. What is changing now?
 3. What hard-won knowledge must not be rediscovered?
 
+## Version Control Boundary
+
+By default, `spec/` is internal agent and project memory, not product source. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in.
+
+If `spec/` needs recovery history, use a separate Git repository inside `spec/` or an external local/private backup remote. Keep the product repository and the spec repository as separate version-control surfaces.
+
 ## Folder Contract
 
 ```text

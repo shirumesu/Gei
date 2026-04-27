@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Use when initializing, maintaining, or pruning a project's spec system; when a bounded task needs spec tracking; when spec docs, TODO state, architecture context, reusable pitfalls, durable rejections, catch-up notes, archive cleanup, or shipped outcomes must be recorded for future agents.
+description: Use when maintaining system spec documents or durable project memory; when a workflow points to Memo; when spec docs, TODO state, architecture context, reusable pitfalls, durable rejections, catch-up notes, archive cleanup, or shipped outcomes must be recorded for future agents.
 ---
 
 # Memo
@@ -8,6 +8,12 @@ description: Use when initializing, maintaining, or pruning a project's spec sys
 Memo owns the durable project memory system under `spec/`.
 
 Its job is to keep future agents productive without forcing a fresh deep read of the whole repo. It does that through stable spec structure, event-driven updates, and strict progressive disclosure.
+
+## Version Control Boundary
+
+By default, `spec/` is internal agent and project memory. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in.
+
+If durable versioning is needed, prefer a separate Git repository inside `spec/` or an external local/private backup remote. Treat the product repo and the spec repo as separate version-control surfaces.
 
 ## Core Rule
 

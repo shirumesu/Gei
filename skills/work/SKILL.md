@@ -18,7 +18,9 @@ It decides whether the task should use the lightweight main-thread flow or the s
 - Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
 - Before any destructive action such as force push, production mutation, irreversible migration, deploy, publish, or delete-heavy command, get a second human confirmation.
 - Do not claim `done`, `fixed`, or `verified` without command evidence in the current conversation.
+- If the user asks to inspect, rely on, update, reconcile, or commit against `spec/` or project documentation state, invoke `memo` before continuing Work.
 - If the task exposes durable routing, command, top-level structure, TODO, shipped-outcome, or repeatable-pitfall information, tell the user what should be recorded and ask whether to invoke `memo`. Do not update spec documents by default.
+- Before staging or committing, check whether `spec/` files are staged or would be added. Exclude them from product commits unless the user explicitly approved tracking `spec/` in the product repository.
 
 ## Routing
 
