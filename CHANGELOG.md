@@ -2,6 +2,27 @@
 
 This file records public release notes for Gei.
 
+## v0.2.4 - 2026-4-30
+
+### 新功能
+
+- 打包为 codex plugin 样式
+
+### 修复
+
+- 优化安装说明
+
+## v0.2.3 - 2026-4-27
+
+### Features
+
+- 修改CI
+- consider增加提问与拆分
+
+### Fixes
+
+- memo更好的自行调用 & git排除
+
 ## v0.2.2 - 2026-04-25
 
 ### Changed

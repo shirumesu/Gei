@@ -1,0 +1,38 @@
+{
+  "name": "gei",
+  "version": "0.2.4",
+  "description": "A compact, progressive-disclosure skill collection for agent work, research, design, and durable project memory.",
+  "author": {
+    "name": "shirumesu",
+    "url": "https://github.com/shirumesu"
+  },
+  "homepage": "https://github.com/shirumesu/gei",
+  "repository": "https://github.com/shirumesu/gei",
+  "license": "MIT",
+  "keywords": [
+    "agent",
+    "skills",
+    "workflow",
+    "codex"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Gei",
+    "shortDescription": "Progressive skill routing for practical agent workflows.",
+    "longDescription": "Gei packages a small set of skills for routing work, planning, research, design, and project memory.",
+    "developerName": "shirumesu",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/shirumesu/gei",
+    "defaultPrompt": [
+      "Use Gei to route this task.",
+      "Use Gei Work for this coding task.",
+      "Use Gei Memo to update project memory."
+    ],
+    "brandColor": "#2563EB"
+  }
+}

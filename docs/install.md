@@ -1,72 +1,166 @@
-# Installing Gei Skills for Agent
+# Install Gei
 
-## Installation
+This document is for the installing Agent. Execute the steps, verify the final layout, then report the result to the user.
 
-1. Download the latest packaged archive named `Gei.zip` from this repository's latest release. If you are installing directly from the repository, copy the skill folders from `skills/` on the `main` branch instead.
-2. If you are using the packaged archive, extract it directly into the directory your agent scans for installed skills. The archive is built so that each skill folder is already at the archive root, so do not create an extra `Gei/` or `skills/` wrapper first.
-3. If you are installing manually from the repository, copy the folders you want from `skills/` into the skills directory and keep their folder names unchanged.
-4. Confirm that every installed skill keeps `SKILL.md` at the root of its own folder.
+## Inputs
 
-A full install can look like this:
+Before installing, determine:
 
-```text
-<skills-dir>/
-  design/
-    SKILL.md
-  consider/
-    SKILL.md
-  memo/
-    SKILL.md
-    references/
-    scripts/
-  see/
-    SKILL.md
-    references/
-    scripts/
-  using-gei/
-    SKILL.md
-  work/
-    SKILL.md
-    references/
-    scripts/
+- `<install-dir>`: the directory scanned by the host for skills or plugins.
+- `<method>`: one of `codex-plugin`, `skills-zip`, or `git`.
+
+If `<install-dir>` cannot be determined from the host environment, ask the user for the target directory before writing files.
+
+## Method: Codex Plugin
+
+Use this when the user wants the Codex plugin package.
+
+1. Download `Gei-codex-plugin.zip` from the latest release:
+
+```shell
+curl -L -o Gei-codex-plugin.zip https://github.com/shirumesu/gei/releases/latest/download/Gei-codex-plugin.zip
 ```
 
-If you only want part of the bundle, install only the folders you need. If you want the Gei router layer, install `using-gei` together with every downstream skill it should dispatch to. A common coding-focused install can look like this:
+2. Extract the archive into `<install-dir>`:
 
-```text
-<skills-dir>/
-  consider/
-    SKILL.md
-  memo/
-    SKILL.md
-    references/
-    scripts/
-  using-gei/
-    SKILL.md
-  work/
-    SKILL.md
-    references/
-    scripts/
+```shell
+unzip Gei-codex-plugin.zip -d <install-dir>
 ```
 
-## Finish
+3. Verify this layout:
 
-Once each installed skill folder contains `SKILL.md` at its root, the installation is complete.
+```text
+<install-dir>/
+  gei/
+    .codex-plugin/
+      plugin.json
+    skills/
+      using-gei/
+        SKILL.md
+      work/
+        SKILL.md
+      memo/
+        SKILL.md
+      see/
+        SKILL.md
+      consider/
+        SKILL.md
+      design/
+        SKILL.md
+```
 
-Restart the host after copying the files so it reloads the updated skill set.
+Termination condition: `<install-dir>/gei/.codex-plugin/plugin.json` exists and every listed skill directory contains `SKILL.md`.
 
-## Updating
+## Method: Skills Zip
 
-Replace the existing skill folders with a newer package, or overwrite the files you installed manually from the repository.
+Use this when the host can recursively detect skill folders under a grouped directory.
 
-If you made local edits, back them up before replacing files.
+1. Download `Gei-skills.zip` from the latest release:
 
-After updating, restart your agent so it loads the new version.
+```shell
+curl -L -o Gei-skills.zip https://github.com/shirumesu/gei/releases/latest/download/Gei-skills.zip
+```
+
+2. Extract the archive into `<install-dir>`:
+
+```shell
+unzip Gei-skills.zip -d <install-dir>
+```
+
+3. Verify this layout:
+
+```text
+<install-dir>/
+  Gei/
+    using-gei/
+      SKILL.md
+    work/
+      SKILL.md
+    memo/
+      SKILL.md
+    see/
+      SKILL.md
+    consider/
+      SKILL.md
+    design/
+      SKILL.md
+```
+
+Termination condition: `<install-dir>/Gei/using-gei/SKILL.md` exists and every listed skill directory contains `SKILL.md`.
+
+## Method: Git
+
+Use this when the host can recursively detect skill folders under a repository checkout.
+
+1. Clone the repository under `<install-dir>`:
+
+```shell
+git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
+```
+
+2. For updates, run:
+
+```shell
+git -C <install-dir>/Gei pull
+```
+
+3. Verify this layout:
+
+```text
+<install-dir>/
+  Gei/
+    skills/
+      using-gei/
+        SKILL.md
+      work/
+        SKILL.md
+      memo/
+        SKILL.md
+      see/
+        SKILL.md
+      consider/
+        SKILL.md
+      design/
+        SKILL.md
+```
+
+Termination condition: `<install-dir>/Gei/skills/using-gei/SKILL.md` exists and every listed skill directory contains `SKILL.md`.
 
 ## Troubleshooting
 
-- If a skill is not detected, check that the final path is `<skills-dir>/work/SKILL.md` or `<skills-dir>/memo/SKILL.md`, not an extra nested path such as `<skills-dir>/Gei/skills/work/SKILL.md`.
-- If `using-gei` loads but does not route anywhere useful, confirm that the downstream Gei skill folders were installed alongside it.
-- If only part of the bundle is detected, confirm that you copied the skill folders themselves instead of the parent `skills/` directory.
-- If the old behavior is still active, fully restart the host instead of only opening a new chat inside the same running process.
+If the host does not recursively detect skills under `Gei/`, move or copy the skill folders so the final layout is:
 
+```text
+<skills-dir>/
+  using-gei/
+    SKILL.md
+  work/
+    SKILL.md
+  memo/
+    SKILL.md
+  see/
+    SKILL.md
+  consider/
+    SKILL.md
+  design/
+    SKILL.md
+```
+
+After moving files, verify that `<skills-dir>/using-gei/SKILL.md` exists and that every installed skill directory contains `SKILL.md`.
+
+## Completion Message
+
+When installation is verified, tell the user:
+
+1. Gei is installed.
+2. They need to restart the host application so it reloads the skills or plugin.
+3. The `see` skill needs social-tool login state before first use.
+
+Then ask the user whether they want to initialize the `see` tools now. Offer exactly these two options:
+
+- Continue in this window. If the user chooses this, read `see/SKILL.md` and `see/references/tool.md` explicitly. Do not search for unrelated or unregistered skills.
+- Continue in a new window. give them this prompt to copy:
+
+```text
+Using the `see` skill and `see/references/tool.md`, initialize and install the required social tools.
+```

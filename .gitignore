@@ -32,3 +32,6 @@ dist/
 
 #spec
 spec/
+
+# workflow comment
+docs/release.md

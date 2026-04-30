@@ -35,7 +35,38 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ### 免 Token 手动安装
 
-请在 [release](https://github.com/shirumesu/gei/releases/latest) 这里下载 `Gei.zip`，把里面需要的 skill 目录解压到你的 skills 目录里即可。
+> 预计节省约 10000 Token
+
+#### Codex 插件
+
+在 [release](https://github.com/shirumesu/gei/releases/latest) 下载 `Gei-codex-plugin.zip`。
+
+#### Skills
+
+在 [release](https://github.com/shirumesu/gei/releases/latest) 下载 `Gei-skills.zip`，把需要的 skill 目录解压到你的 skills 目录里。  
+大部分Agent可以接受子目录递归寻找，因此你的安装目录也可以看起来像这样:  
+```text
+<skills-dir>/
+  Gei/
+    using-gei/
+      SKILL.md
+    work/
+      SKILL.md
+    memo/
+      SKILL.md
+    see/
+      SKILL.md
+    consider/
+      SKILL.md
+    design/
+      SKILL.md
+```
+
+甚至再套一层 `Gei/skills/<skill>` 也可以
+
+#### git 安装
+
+也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新，反而会更方便？
 
 ## 已知问题
 
