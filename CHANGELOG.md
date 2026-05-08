@@ -2,6 +2,11 @@
 
 This file records public release notes for Gei.
 
+## v0.2.5 - 2026-5-9
+
+### 优化
+- 减轻 `memo` 体量，压缩和下沉重复内容
+
 ## v0.2.4 - 2026-4-30
 
 ### 新功能
