@@ -43,7 +43,7 @@ Keep `ARCHITECTURE.md` focused on:
 - command or document routing rules
 - known structural risks
 
-When a flow is complex, include ASCII diagrams. Diagrams are part of the contract. If code changes invalidate a diagram, update the diagram in the same maintenance pass.
+When a flow is complex, include ASCII diagrams. If code changes invalidate a diagram, update it in the same maintenance pass.
 
 ## Completion Check
 

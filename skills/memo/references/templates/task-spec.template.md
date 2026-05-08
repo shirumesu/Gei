@@ -103,50 +103,7 @@ git commit -m "[type]: [summary]"
 
 #### Task 2: [Concrete task name]
 
-**Files:**
-- Create: `exact/path/to/new-file`
-- Modify: `exact/path/to/existing-file`
-- Test: `spec/test/exact-path-to-test-file`
-- Docs: `spec/...` or `none`
-
-- [ ] **Step 1: Write the failing test**
-
-```text
-[Insert the exact test case, fixture, and assertion here]
-```
-
-- [ ] **Step 2: Run the test and confirm the failure**
-
-Run: `[exact command]`
-Expected: `FAIL with [exact error or failure mode]`
-
-- [ ] **Step 3: Write the minimal implementation**
-
-```text
-[Insert the exact code or logic change here]
-```
-
-- [ ] **Step 4: Run the targeted test and confirm it passes**
-
-Run: `[exact command]`
-Expected: `PASS`
-
-- [ ] **Step 5: Run broader verification**
-
-Run: `[exact command]`
-Expected: `[exact passing signal]`
-
-- [ ] **Step 6: Sync spec and memo if required**
-
-Update: `[exact files to update or "none"]`
-Expected: `[what changed and why]`
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add [exact files]
-git commit -m "[type]: [summary]"
-```
+Repeat the full task block above for each additional atomic task. Keep exact files, commands, expected outputs, implementation details, verification, and memo sync instructions.
 
 ## Section 2: [Milestone state]
 
@@ -156,47 +113,4 @@ git commit -m "[type]: [summary]"
 
 #### Task 3: [Concrete task name]
 
-**Files:**
-- Create: `exact/path/to/new-file`
-- Modify: `exact/path/to/existing-file`
-- Test: `spec/test/exact-path-to-test-file`
-- Docs: `spec/...` or `none`
-
-- [ ] **Step 1: Write the failing test**
-
-```text
-[Insert the exact test case, fixture, and assertion here]
-```
-
-- [ ] **Step 2: Run the test and confirm the failure**
-
-Run: `[exact command]`
-Expected: `FAIL with [exact error or failure mode]`
-
-- [ ] **Step 3: Write the minimal implementation**
-
-```text
-[Insert the exact code or logic change here]
-```
-
-- [ ] **Step 4: Run the targeted test and confirm it passes**
-
-Run: `[exact command]`
-Expected: `PASS`
-
-- [ ] **Step 5: Run broader verification**
-
-Run: `[exact command]`
-Expected: `[exact passing signal]`
-
-- [ ] **Step 6: Sync spec and memo if required**
-
-Update: `[exact files to update or "none"]`
-Expected: `[what changed and why]`
-
-- [ ] **Step 7: Commit**
-
-```bash
-git add [exact files]
-git commit -m "[type]: [summary]"
-```
+Repeat the full task block above.

@@ -26,10 +26,7 @@ Read only what is needed:
 1. Allocate the next spec id by scanning `spec/docs/#*.md`.
 2. Map the smallest coherent set of files, tests, and doc changes that can satisfy the task.
 3. Create or update `spec/docs/#NNN-{work-description}.md`.
-4. Group work into sections, phases, and tasks:
-   - sections mark reviewable milestone states
-   - phases are independent worker-sized units with stated files, constraints, and expected change
-   - tasks are indivisible instructions that can share local phase context
+4. Group work into sections, phases, and tasks: sections are reviewable milestones, phases are independent worker-sized units, and tasks are indivisible instructions.
 5. Link related TODO ids.
 6. Reserve or update files under `spec/test/` only when the task needs spec-managed tests.
 7. Move active work into `In Progress` only when execution truly begins.

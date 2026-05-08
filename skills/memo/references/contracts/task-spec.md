@@ -10,10 +10,7 @@ The file may be long when a future agent needs detailed instructions to execute 
 
 ## Naming
 
-- Spec docs use zero-padded ids: `#001`, `#002`, `#003`.
-- Task files use `#NNN-{work-description}.md`.
-- `work-description` is a lowercase hyphen-case task slug.
-- Preserve the repo's existing stable pattern if it already differs.
+Follow the repo's existing stable pattern. Otherwise use zero-padded spec ids, `#NNN-{work-description}.md`, and lowercase hyphen-case slugs.
 
 ## Required Shape
 
@@ -74,11 +71,11 @@ The full starter template is `references/templates/task-spec.template.md`.
 Organize the execution plan with three levels:
 
 1. **Section**
-   A milestone checkpoint owned by the main thread. Use a section when several phases together move the project into a meaningful new state such as "project skeleton is ready for first review" or "main feature set is complete". A section is the right boundary for an intermediate review, mid-task commit, or documentation sync.
+   A milestone checkpoint owned by the main thread. Use it when several phases move the project into a meaningful reviewable state such as "project skeleton is ready for first review" or "main feature set is complete".
 2. **Phase**
-   One independent worker-sized unit inside a section. A phase may start after an earlier phase finishes, but it must not depend on that earlier phase's hidden or detailed context. Write each phase so one worker can execute it from the spec file itself, using only the stated files, constraints, and expected change.
+   One independent worker-sized unit inside a section. It may depend on stated results from earlier phases, but not on hidden context. Write it so one worker can execute from the spec file itself.
 3. **Task**
-   The smallest indivisible planning unit. A task should already be concrete enough to execute directly. Tasks inside one phase may share local context and should follow the same concrete task-writing style as the project uses for execution plans.
+   The smallest indivisible planning unit. A task should be concrete enough to execute directly. Tasks inside one phase may share local context.
 
 Do not use sections as decorative grouping. Each section should correspond to a real state transition in the project. Do not use phases as loose buckets.
 

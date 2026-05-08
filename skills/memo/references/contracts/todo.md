@@ -4,7 +4,7 @@ Use this contract when creating or updating `spec/TODO.md`.
 
 ## Responsibility
 
-`TODO.md` is the live work ledger. It tracks accepted work, backlog ideas, active work, and recently completed items.
+`TODO.md` is the live work ledger for accepted work, backlog ideas, active work, and recently completed items.
 
 ## Required Sections
 
@@ -41,7 +41,7 @@ For completed work:
 - `TODO` holds accepted work that is not active yet.
 - `In Progress` holds only currently active work.
 - `Done` holds completed items with the spec or changelog reference that closed them.
-- During archive cleanup, move older closed items out of `Done` and into `spec/archive/TODO.md`.
+- During archive cleanup, move older closed items into `spec/archive/TODO.md`.
 
 Within `TODO`, use priorities `P0` through `P4`.
 

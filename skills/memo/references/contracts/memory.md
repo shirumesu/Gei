@@ -4,7 +4,7 @@ Use this contract when creating or updating `spec/MEMORY.md`.
 
 ## Responsibility
 
-`MEMORY.md` is a do-not-repeat ledger. It records repeatable pitfalls, durable rejected directions, version-specific hazards, and checks that prevent those mistakes from happening again.
+`MEMORY.md` is a do-not-repeat ledger for repeatable pitfalls, durable rejected directions, version-specific hazards, and checks that prevent those mistakes from happening again.
 
 Do not keep one-off file-local notes here.
 
@@ -19,7 +19,7 @@ Valid entry types:
 - User Rejection
 - Version-Specific
 
-Skip:
+Skip one-off or non-reusable material:
 
 - routine progress notes
 - ordinary design choices

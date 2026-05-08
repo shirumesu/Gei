@@ -2,9 +2,7 @@
 
 ## Purpose
 
-Use this reference when memo work is about trimming stale history out of the active spec system.
-
-The goal is not to re-document the project. The goal is to keep `spec/` readable by moving closed or low-value history into `spec/archive/`.
+Use this reference when memo work is about trimming stale history out of the active spec system. The goal is not to re-document the project; it is to keep `spec/` readable by moving closed or low-value history into `spec/archive/`.
 
 ## Scope Rule
 

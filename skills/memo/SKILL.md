@@ -9,25 +9,19 @@ Memo owns the durable project memory system under `spec/`.
 
 Its job is to keep future agents productive without forcing a fresh deep read of the whole repo. It does that through stable spec structure, event-driven updates, and strict progressive disclosure.
 
-`spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and quickly understand what the project does, where a task should start, which files and modules may be affected, what boundaries must be preserved, and how to verify the change.
+`spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, and how to verify the change.
 
 ## Version Control Boundary
 
-By default, `spec/` is internal agent and project memory. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in.
-
-If durable versioning is needed, prefer a separate Git repository inside `spec/` or an external local/private backup remote. Treat the product repo and the spec repo as separate version-control surfaces.
+By default, `spec/` is internal agent and project memory. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in. If durable versioning is needed, prefer a separate repository or private backup surface.
 
 ## Core Rule
 
-Write only what the current event requires.
+Write only what the current event requires. Do not bulk-rewrite unrelated documents, refresh every file because a task happened, or invoke Memo for ordinary code edits that do not change durable project knowledge. Update the smallest correct surface, with exact ids and links.
 
-Do not bulk-rewrite unrelated documents. Do not refresh every file because a task happened. Update the smallest correct surface, with exact ids and links.
+Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess, and do not write long documents as diaries.
 
-Do not invoke Memo for ordinary code edits that do not change durable project knowledge.
-
-Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess.
-
-Do not write long documents as diaries. A long Memo document must remain structured as a working manual: exact goals, boundaries, files, interfaces, impact paths, commands, examples, expected outputs, and verification steps.
+A long Memo document must remain structured as a working manual: exact goals, boundaries, files, interfaces, impact paths, commands, examples, expected outputs, and verification steps.
 
 ## Source Of Truth
 
@@ -84,7 +78,7 @@ Templates remain available under `references/templates/`. Use them when creating
 
 ## Spec Layout
 
-Memo maintains this layout:
+Memo maintains this default layout:
 
 ```text
 spec/
@@ -105,23 +99,11 @@ spec/
 
 ## Naming Rules
 
-Apply these rules unless the repo already follows a different stable scheme:
-
-- Spec docs use zero-padded ids: `#001`, `#002`, `#003`
-- Task files use `#NNN-{work-description}.md`, where `work-description` is the task slug
-- TODO ids use `#TOD-001`, `#TOD-002`, `#TOD-003`
-- Slugs use lowercase hyphen-case
-- Inline references reuse the same ids exactly
-
-When the repo already has a numbering pattern, preserve it instead of renaming old files.
+Preserve the repo's existing stable scheme. Otherwise use zero-padded spec ids (`#001`), task files named `#NNN-{work-description}.md`, TODO ids (`#TOD-001`), lowercase hyphen-case slugs, and exact id reuse in inline references.
 
 ## Global Writing Rules
 
-All Memo-managed documents must be written in English.
-
-Write facts, constraints, decisions, file paths, commands, ids, evidence, and durable risks. Do not write diary updates, full chains of thought, vague filler, or invented metrics.
-
-Never invent evidence. If coverage, completion rate, or other metrics are unavailable, write `not measured` or `not instrumented`.
+All Memo-managed documents must be written in English. Write facts, constraints, decisions, file paths, commands, ids, evidence, and durable risks. Do not write diary updates, full chains of thought, vague filler, or invented metrics. If coverage, completion rate, or other metrics are unavailable, write `not measured` or `not instrumented`.
 
 ## Self-Review
 

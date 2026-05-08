@@ -18,7 +18,7 @@ project-root/
   path-c/
 ```
 
-Explain the responsibility of each top-level area.
+Explain each top-level area's responsibility.
 
 ## Runtime Flow
 

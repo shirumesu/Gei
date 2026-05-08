@@ -1,6 +1,6 @@
 # Init Event
 
-Use this event when the project has no complete working spec system.
+Use this event when the project has no complete working spec system. Initialization creates a usable navigation layer, not a full project encyclopedia.
 
 ## Trigger
 
@@ -25,7 +25,7 @@ Use templates from `references/templates/` when creating files from scratch.
 
 1. Prefer `scripts/init-spec.py <project-path>` to create the `spec/` tree from bundled templates.
 2. If the script reports existing spec-management markers, stop and surface the exact conflicting paths unless the user explicitly approves `--force`.
-3. Scan the repo, docs, and recent history only as much as needed to seed the first spec pass.
+3. Scan the repo, docs, and recent history only enough to seed the first spec pass.
 4. Write the first pass of `ARCHITECTURE.md`.
 5. Seed `TODO.md` with known backlog items and immediate work.
 6. Ensure `MEMORY.md`, `CHANGELOG.md`, `spec/test/`, and `spec/docs/` exist.
@@ -38,9 +38,8 @@ Use `scripts/init-spec.py` for fresh bootstrap when possible.
 
 Rules:
 
-- Refuse to initialize when the target project already contains `spec/` or other likely plan-management markers.
-- Surface the exact conflicting paths in the error.
-- Continue only when the user explicitly wants `--force`.
+- Refuse to initialize when the target project already contains `spec/` or other likely plan-management markers; surface the exact conflicting paths.
+- Continue with `--force` only when the user explicitly wants it.
 - If `git` is unavailable, skip all git-related work.
 - If `.gitignore` exists, append the `spec/` ignore block without overwriting the file.
 

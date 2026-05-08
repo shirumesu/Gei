@@ -1,8 +1,6 @@
 # Catch-Up Event
 
-Use this event when work already happened outside Memo and the facts must be captured before full reconciliation.
-
-Catch-up prevents expensive reconstruction. It records enough evidence for a later formal update without forcing the agent to read the whole project immediately.
+Use this event when work already happened outside Memo and the facts must be captured before full reconciliation. Catch-up prevents expensive reconstruction by recording enough evidence for a later formal update without forcing the agent to read the whole project immediately.
 
 ## Trigger
 

@@ -12,9 +12,7 @@ Future agents should be able to answer three questions from it before reading mu
 
 ## Version Control Boundary
 
-By default, `spec/` is internal agent and project memory, not product source. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in.
-
-If `spec/` needs recovery history, use a separate Git repository inside `spec/` or an external local/private backup remote. Keep the product repository and the spec repository as separate version-control surfaces.
+By default, `spec/` is internal agent and project memory, not product source. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in. If `spec/` needs recovery history, use a separate repository or private backup surface.
 
 ## Folder Contract
 
@@ -84,9 +82,7 @@ If the project already uses another stable pattern, preserve the old pattern.
 
 ## Event Routing
 
-`SKILL.md` owns event selection. Use this file for full spec layout, read order, write order, ids, and routing contracts.
-
-Do not use this file as a substitute for the per-event instructions under `references/events/`. Routine updates should read the selected event file and only the contracts for documents being written.
+`SKILL.md` owns event selection. Use this file only for spec layout, read order, write order, ids, and routing contracts. Routine updates must still read the selected event file and the contracts for documents being written.
 
 ## Routing Rules
 
@@ -153,15 +149,4 @@ Bad pattern:
 
 ## Trigger Source
 
-The complete trigger map lives in `SKILL.md`. The detailed action rules live in one file per event:
-
-- `references/events/init.md`
-- `references/events/task-start.md`
-- `references/events/active-work.md`
-- `references/events/memory-entry.md`
-- `references/events/todo-change.md`
-- `references/events/architecture-change.md`
-- `references/events/ship.md`
-- `references/events/deferred-work.md`
-- `references/events/catch-up.md`
-- `references/archive.md`
+The complete trigger map lives in `SKILL.md`. Detailed action rules live in `references/events/` and `references/archive.md`.

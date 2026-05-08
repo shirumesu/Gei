@@ -48,7 +48,7 @@ Each entry should answer:
 
 Prefer user-visible or architecture-visible language over commit-diff narration.
 
-Keep the active changelog focused on recent history. During archive cleanup, keep only the latest five version entries in `spec/CHANGELOG.md` and move older ones into `spec/archive/CHANGELOG.md`.
+Keep the active changelog focused on recent history. During archive cleanup, keep only the latest five version entries active and move older ones into `spec/archive/CHANGELOG.md`.
 
 ## Completion Check
 

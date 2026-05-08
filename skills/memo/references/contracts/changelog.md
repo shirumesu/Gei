@@ -37,12 +37,7 @@ Each shipped entry should answer:
 
 ## Write Rules
 
-- Record outcomes first, then impact.
-- Prefer user-visible or architecture-visible language over commit-diff narration.
-- Reference spec docs and resolved or deferred TODO ids.
-- Never invent metrics.
-- If evidence is unavailable, write `not measured` or `not instrumented`.
-- Keep only the latest five version entries in active `CHANGELOG.md` during archive cleanup; move older entries to `spec/archive/CHANGELOG.md`.
+Record outcomes first, then impact. Prefer user-visible or architecture-visible language over commit-diff narration. Reference spec docs and resolved or deferred TODO ids. Never invent metrics; if evidence is unavailable, write `not measured` or `not instrumented`. During archive cleanup, keep only the latest five version entries active and move older entries to `spec/archive/CHANGELOG.md`.
 
 ## Completion Check
 

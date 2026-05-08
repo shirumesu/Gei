@@ -4,7 +4,7 @@
 
 Write project memory like a precise engineer handing work to another precise engineer.
 
-The text should read as calm, direct, and useful. It should not sound excited, vague, inflated, or machine-generated.
+The text should read as calm, direct, and useful, not excited, vague, inflated, or machine-generated.
 
 ## Baseline
 
@@ -42,7 +42,7 @@ Replace:
 - `ecosystem` -> `project`, `tooling`, or the exact field
 - `deep dive` -> `analysis`
 
-Cut empty intensifiers:
+Cut empty intensifiers when the sentence still works without them:
 
 - `really`
 - `very`
@@ -51,8 +51,6 @@ Cut empty intensifiers:
 - `clearly`
 - `obviously`
 - `significantly`
-
-If the sentence still works after removing the word, keep it removed.
 
 ## Sentence Patterns To Avoid
 
@@ -91,19 +89,7 @@ Better:
 
 ## Structure
 
-Use headings and bullets only when they help scanning.
-
-Prefer:
-
-- short sections
-- sentence-based bullets
-- stable section order across documents
-
-Avoid:
-
-- bold-first bullets for every line
-- repeated summaries
-- long introductions before the actual point
+Use headings and bullets only when they help scanning. Prefer short sections, sentence-based bullets, and stable section order. Avoid bold-first bullets for every line, repeated summaries, and long introductions before the actual point.
 
 ## Document-Specific Guidance
 

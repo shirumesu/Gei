@@ -6,7 +6,7 @@ Use this contract when creating or updating `spec/ARCHITECTURE.md`.
 
 `ARCHITECTURE.md` is the stable system map and project work manual. It records modules, responsibilities, data flow, routing rules, diagrams, integration boundaries, commands, maintenance notes, task-entry routes, and likely impact paths.
 
-It must stay useful for context recovery and task routing. A future agent should be able to understand what the project does, where to start for a specific class of change, which files to inspect, which downstream areas may be affected, and what must be verified before reading much code.
+A future agent should be able to understand what the project does, where to start for a class of change, which files to inspect, which downstream areas may be affected, and what must be verified before reading much code.
 
 ## Required Content
 
@@ -26,7 +26,7 @@ Keep it focused on:
 
 When a flow is complex, include ASCII diagrams. Diagrams are part of the contract.
 
-Architecture content may be long when the project is large. Do not force brevity at the cost of losing file routes, impact analysis, or task boundaries. Keep long sections scannable with stable headings, tables, diagrams, and exact paths.
+Architecture content may be long when the project is large. Do not force brevity at the cost of file routes, impact analysis, or task boundaries. Keep long sections scannable with stable headings, tables, diagrams, and exact paths.
 
 ## Template Shape
 
