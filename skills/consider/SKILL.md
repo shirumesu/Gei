@@ -11,8 +11,10 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 ### User First
 
-- If the user's request conflicts with any part of this skill, say which part you are ignoring and why, then continue with the user's request for every non-conflicting part.
-- The user keeps full control. Provide options, boundaries, and recommendations, not silent decisions on the user's behalf.
+- If the user's request conflicts with producing a complete, defensible design, say which part you cannot accept and why, then continue only with the non-conflicting parts.
+- You may refuse the user at any stage when continuing would preserve ambiguity, skip necessary design work, or produce a weak plan.
+- The goal of this skill is not to help the user finish quickly. The goal is to collaborate with the user until the plan is explicit, complete, and approved.
+- The user keeps full control over goals and decisions. Provide options, boundaries, and recommendations, not silent decisions on the user's behalf.
 
 ### Design First
 
@@ -27,10 +29,11 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 - Do not silently choose the user's goal, product direction, priority, system boundary, or success standard.
 - If a meaningful decision depends on an assumption you are making, expose the assumption and ask before continuing.
+- Treat every unresolved ambiguity as blocking unless it is a trivial implementation detail that follows from existing context and would not affect the design.
 - If the request is ambiguous, complex, or likely inaccurate, ask a question or decompose the work before proposing a full design.
 - Even when the user asks for a plan or solution, ask first if a missing answer would materially change the result.
 - Ask only one question at a time.
-- When the answer should be a choice, provide 2-3 options, explain the tradeoffs, recommend one option, and state the likely downside or risk.
+- When asking a blocking question, provide 2-3 options, explain why each option matters, recommend one option, and state the likely downside or risk.
 - Prefer a dedicated question tool when one is available instead of simulating the format in plain text.
 
 ### Match The Scale
@@ -47,7 +50,7 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 - Consider is for design, not implementation; do not write the full implementation here.
 - Work on one bounded problem at a time.
 - You may use examples, partial core code, local code fragments, implementation notes, or pseudocode to make the design concrete.
-- After approval, continue only through the user-selected mode: implementation in the current thread, delegated execution, plan persistence, or a handoff prompt for a new thread.
+- After approval, enter `memo` and persist the plan by default. Follow a different next step only when the user explicitly requested it.
 
 ## Process
 
@@ -109,11 +112,13 @@ If the user is not yet clear about the exact implementation shape, carry the unc
 
 ### 4. Explore feasibility
 
-Use comparable products and similar implementations to test whether the design is realistic. When external context is needed, search mature commercial products and open-source projects.
+Use comparable products and similar implementations to test whether the design is realistic. Once the user's requirement is clear enough to enter detailed design, search the web before writing the proposal.
 
-- Study their visual presentation, usage pattern, chosen technical stack, and concrete implementation shape.
+- Study mainstream commercial or closed-source products, open-source projects, and similar implementations.
+- Inspect their feature set, visual presentation, usage pattern, chosen technical stack, public implementation details, and concrete implementation shape.
+- Research every design topic you are about to discuss: product behavior, framework choice, integration style, storage model, security boundary, deployment shape, verification method, and any other decision that may affect the plan.
 - Stop only when information, not memory, proves you understand the mainstream architecture and implementation pattern for this problem.
-- Do not research full-system architecture for a simple feature. If local context is enough, say why and continue.
+- Scope the research to the specific design being considered. Do not research full-system architecture for a simple feature unless that architecture would affect the decision.
 - Research a full product or architecture only when the user's choice depends on product shape, technical stack, or long-term system direction.
 
   - **Good example:** Building a login page -> study how comparable products present the page visually, what buttons they include, how they communicate with the backend, and how they protect passwords.
@@ -170,23 +175,13 @@ Review the information and check this list:
 
 ### 7. Request approval
 
-When the discussion is already sufficient and further discussion is unlikely to change the design much, present the explicit design, ask for approval, and ask how the user wants to continue. Do this in one round, not two.
-
-**Continue in the current thread:** enter implementation based on the approved design, or stay in the current thread and delegate work with subagents.
-
-**Continue in a new thread:** persist the plan by writing a Plan file, or provide a clean prompt for the user to use in a new thread.
+When the discussion is already sufficient and further discussion is unlikely to change the design much, present the explicit design and ask for approval.
 
 ### 8. Continue the task
 
-After approval and after the user chooses a mode, continue according to that choice:
+After approval:
 
-**Enter implementation:** tell the user that you are now entering implementation, rescan for any skill that should now be loaded, reread the matching skills once, and continue the task.
+**Enter Memo:** tell the user that you are now entering `memo`, and you **MUST** read `memo` to continue the task.
 
-**Subagent delegation / handoff prompt:**
-
-- The prompt must describe the design, list every step clearly, and include detailed example code where needed.
-- Assume the new agent is weak, has no context, and can only complete mechanical tasks; the prompt must let that agent execute accurately.
-
-**Write a Plan file:**
-
-- Read the `memo` skill and maintain the system documents according to its guidance
+- The plan must describe the design, list every step clearly, and include detailed example code or simple code block.
+- Assume the plan reader is weak, has no context, and can **only** complete mechanical tasks; the plan must let that reader execute accurately.

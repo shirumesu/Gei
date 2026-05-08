@@ -9,6 +9,8 @@ Memo owns the durable project memory system under `spec/`.
 
 Its job is to keep future agents productive without forcing a fresh deep read of the whole repo. It does that through stable spec structure, event-driven updates, and strict progressive disclosure.
 
+`spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and quickly understand what the project does, where a task should start, which files and modules may be affected, what boundaries must be preserved, and how to verify the change.
+
 ## Version Control Boundary
 
 By default, `spec/` is internal agent and project memory. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in.
@@ -22,6 +24,22 @@ Write only what the current event requires.
 Do not bulk-rewrite unrelated documents. Do not refresh every file because a task happened. Update the smallest correct surface, with exact ids and links.
 
 Do not invoke Memo for ordinary code edits that do not change durable project knowledge.
+
+Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess.
+
+Do not write long documents as diaries. A long Memo document must remain structured as a working manual: exact goals, boundaries, files, interfaces, impact paths, commands, examples, expected outputs, and verification steps.
+
+## Source Of Truth
+
+The product code, tests, configuration, build scripts, and Git history are the source of truth. Memo documents are navigation, planning, and durable project memory.
+
+If Memo conflicts with repository state, do not silently trust Memo. Verify against the repo, update the smallest affected Memo surface, and record the mismatch only when it is durable and useful for future work.
+
+## Retrieval-Friendly Writing
+
+Prefer stable headings, exact paths, symbols, commands, ids, links, and task-entry routes. A future agent should be able to search for a feature, module, route, command, or TODO id and land near the right context.
+
+When recording architecture or task context, include where to start reading, which files may be affected, which interfaces or flows may break, and which documents or directories are derived or stale. Do not use broad prose when a path, symbol, command, or decision id would guide the next agent faster.
 
 ## Loading Rule
 

@@ -6,6 +6,8 @@ Use this contract when creating or updating `spec/docs/#NNN-{work-description}.m
 
 The combined spec-task file holds scoped context, chosen direction, and concrete execution plan for one bounded task. It is not a diary.
 
+The file may be long when a future agent needs detailed instructions to execute correctly. Prefer enough detail to remove guesswork over artificial brevity. Long task specs must stay structured, searchable, and executable.
+
 ## Naming
 
 - Spec docs use zero-padded ids: `#001`, `#002`, `#003`.
@@ -97,6 +99,8 @@ Apply these rules:
 
 - Replace every bracketed slot before execution.
 - A live plan must contain exact files, commands, code or logic descriptions, and expected outputs.
+- Include detailed examples, pseudocode, or small code blocks when they prevent implementation ambiguity.
+- For complex work, include impacted files, call paths, interfaces, rollback notes, edge cases, and verification commands.
 - Use spec-managed tests under `spec/test/` only when the task needs durable fixtures or verification assets.
 - Do not store ordinary progress updates or full decision history here.
 - Update status as the task moves from Draft to Approved, In Progress, and Shipped.

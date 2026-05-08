@@ -59,6 +59,18 @@ Describe the states that matter and how data moves across boundaries.
 - Read this before touching production code:
 - Commands that prove the system still works:
 
+## Task Entry Map
+
+| Task type | Start reading | Likely files | Verification | Notes |
+|-----------|---------------|--------------|--------------|-------|
+| | | | | |
+
+## Impact Map
+
+| If this changes | Also inspect | Reason | Verification |
+|-----------------|--------------|--------|--------------|
+| | | | |
+
 ## Known Risks
 
 - Risk 1
