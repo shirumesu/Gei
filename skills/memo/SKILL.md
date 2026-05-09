@@ -72,6 +72,7 @@ Read a contract only when the selected event will create or modify that document
 Pure catch-up capture does not require a document contract. It writes only `spec/INBOX.md`; after capture, reroute to a formal event before reconciling into canonical spec files.
 
 - `spec/ARCHITECTURE.md`: `references/contracts/architecture.md`
+- `spec/OVERVIEW.md`: `references/contracts/overview.md`
 - `spec/TODO.md`: `references/contracts/todo.md`
 - `spec/MEMORY.md`: `references/contracts/memory.md`
 - `spec/CHANGELOG.md`: `references/contracts/changelog.md`
@@ -88,6 +89,7 @@ Memo maintains this default layout:
 
 ```text
 spec/
+  OVERVIEW.md
   ARCHITECTURE.md
   TODO.md
   MEMORY.md

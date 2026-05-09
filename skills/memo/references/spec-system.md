@@ -18,6 +18,7 @@ By default, `spec/` is internal agent and project memory, not product source. Do
 
 ```text
 spec/
+  OVERVIEW.md
   ARCHITECTURE.md
   TODO.md
   MEMORY.md
@@ -40,12 +41,13 @@ spec/
 
 For a new task in an established project, use this order:
 
-1. `spec/ARCHITECTURE.md`
-2. `spec/TODO.md`
-3. the newest relevant combined spec-task file in `spec/docs/`
-4. related test files in `spec/test/` when the task includes verification work
-5. related `MEMORY.md` entries
-6. the latest related `CHANGELOG.md` entries
+1. `spec/OVERVIEW.md`
+2. `spec/ARCHITECTURE.md`
+3. `spec/TODO.md`
+4. the newest relevant combined spec-task file in `spec/docs/`
+5. related test files in `spec/test/` when the task includes verification work
+6. related `MEMORY.md` entries
+7. the latest related `CHANGELOG.md` entries
 
 Read code after that only where the docs are insufficient or possibly stale.
 
@@ -63,12 +65,13 @@ During archive cleanup, do not read code unless the user asked for it or the doc
 
 When creating the system for the first time:
 
-1. `ARCHITECTURE.md`
-2. `TODO.md`
-3. `MEMORY.md`
-4. `CHANGELOG.md`
-5. `test/`
-6. the first combined spec-task file at `spec/docs/#001-{work-description}.md`
+1. `OVERVIEW.md`
+2. `ARCHITECTURE.md`
+3. `TODO.md`
+4. `MEMORY.md`
+5. `CHANGELOG.md`
+6. `test/`
+7. the first combined spec-task file at `spec/docs/#001-{work-description}.md`
 
 When updating during normal work, touch only the files required by the current event.
 
@@ -88,6 +91,8 @@ If the project already uses another stable pattern, preserve the old pattern.
 `SKILL.md` owns event selection. Use this file only for spec layout, read order, write order, ids, and routing contracts. Routine updates must still read the selected event file and the contracts for documents being written.
 
 ## Routing Rules
+
+Every `OVERVIEW.md` should include a short document map that tells future agents which spec file to read for project context, structure, current work, hazards, and shipped outcomes.
 
 Every `ARCHITECTURE.md` should include a short routing section that tells future agents:
 

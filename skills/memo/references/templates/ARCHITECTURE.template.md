@@ -7,7 +7,7 @@
 
 ## System Purpose
 
-State what the project does and who it serves.
+Briefly state what the project does as needed to understand the structure. Put cold-start project context, core capabilities, and technology baseline in `spec/OVERVIEW.md`.
 
 ## Top-Level Map
 
