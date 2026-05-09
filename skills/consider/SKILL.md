@@ -50,7 +50,7 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 - Consider is for design, not implementation; do not write the full implementation here.
 - Work on one bounded problem at a time.
 - You may use examples, partial core code, local code fragments, implementation notes, or pseudocode to make the design concrete.
-- After approval, enter `memo` and persist the plan by default. Follow a different next step only when the user explicitly requested it.
+- After approval, hand off through the lifecycle started by `using-gei`. Do not hard-code `memo` as the next step for every approved design.
 
 ## Process
 
@@ -181,7 +181,10 @@ When the discussion is already sufficient and further discussion is unlikely to 
 
 After approval:
 
-**Enter Memo:** tell the user that you are now entering `memo`, and you **MUST** read `memo` to continue the task.
+Choose the next step from these explicit options:
 
-- The plan must describe the design, list every step clearly, and include detailed example code or simple code block.
-- Assume the plan reader is weak, has no context, and can **only** complete mechanical tasks; the plan must let that reader execute accurately.
+1. **Durable or complex plan:** enter `memo`, read `memo`, and persist a task plan or relevant durable memory before execution.
+2. **Implementation-only change:** enter `work`. If files will be edited, ensure `spec/current-work.md` exists or let `work` create the required micro-anchor before the first edit.
+3. **No implementation:** stop after the approved design and state the next available action.
+
+When entering `memo`, the plan must describe the design, list every step clearly, and include detailed examples or simple code blocks. Assume the plan reader is weak, has no context, and can **only** complete mechanical tasks; the plan must let that reader execute accurately.

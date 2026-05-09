@@ -8,6 +8,8 @@ This skill is for the main thread. Keep orchestration here. Send low-level execu
 
 `memo` is the authority for `spec/` read order, document contracts, lifecycle events, and write rules. Work consumes the active task context and decides execution mechanics; it does not define a parallel spec system.
 
+`spec/current-work.md` is lifecycle state, not a spec-task. Use it to preserve current intent and reduce later reconstruction from git diff.
+
 ## Entry Gate
 
 Before execution, confirm all of the following:
@@ -16,6 +18,8 @@ Before execution, confirm all of the following:
 2. The task has enough context to execute after recovering spec context according to Memo's current standard.
 3. The work is running in an isolated git worktree, an isolated branch, or another explicitly approved workspace.
 4. The current branch is not `main` or `master` unless the user explicitly approved using it for implementation risk.
+
+Before the first file edit, confirm the current-work checkpoint from `work/SKILL.md` is satisfied. If the task is spec-backed, the anchor should point to the active spec-task in `Expected scope` or `Notes`.
 
 If the repo lacks usable `spec/` context or the task is not actually spec-backed heavy work, return to `references/light.md`. Do not initialize, repair, or create spec documents from Work.
 
@@ -81,7 +85,7 @@ Follow this loop unless the active spec-task explicitly requires a different ord
 
    If the review agent is asked to fix issues, it may only fix the approved list.
 8. **Sync durable memory**
-   After the approved fixes land and the affected tests pass, call `memo` only for the relevant triggered event. Then create one atomic commit for the section checkpoint when commits are part of the task.
+   After the approved fixes land and the affected tests pass, call `memo` only for the relevant triggered event. Use `spec/current-work.md` as intent evidence when reconciling. Then create one atomic commit for the section checkpoint when commits are part of the task.
 9. **Re-open tests for the next section**
    Before the next section starts, re-check whether the current test surface still matches the task. If the section changed assumptions, rewrite or extend the tests first, then continue from step 3.
 10. **Enter the ship gate**
@@ -118,8 +122,9 @@ Treat the task as complete only when all of the following are true:
 2. All new tests and all affected existing tests are green.
 3. The current branch or worktree is clean apart from intentionally staged release actions.
 4. Any Memo-triggering event has been handled through `memo`.
-5. The ship gate ran and returned a clear release status.
-6. The main thread has stopped and handed the next decision back to the user.
+5. `spec/current-work.md` was closed, cleared, or handed off to `memo`.
+6. The ship gate ran and returned a clear release status.
+7. The main thread has stopped and handed the next decision back to the user.
 
 ## Dispatch Prompts
 

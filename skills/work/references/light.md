@@ -17,6 +17,8 @@ Before execution, confirm all of the following:
 3. You know how the result will be verified before you start coding.
 4. If the task touches release, versioning, or deployment operations, note that extra release confirmation will be required.
 
+Before the first file edit, confirm the current-work checkpoint from `work/SKILL.md` is satisfied. A light task is still anchored when it writes files unless a valid no-anchor exemption was stated.
+
 If a blocking requirement is still unclear after a small context read, stop and ask one precise question. Do not force the task into a heavier planning flow by default.
 
 ## Iron Laws
@@ -30,9 +32,9 @@ If a blocking requirement is still unclear after a small context read, stop and 
 
 Light does not create, initialize, read-order, or maintain `spec/` by default.
 
-If the work reveals information that may belong in durable project memory, such as a routing change, required command, TODO movement, architecture change, shipped outcome, or repeatable pitfall, tell the user exactly what you noticed and ask whether they want it recorded through `memo`.
+`spec/current-work.md` is not a durable Memo document. Light may create, overwrite, close, or clear it as lifecycle state.
 
-If the user says yes, invoke `memo` and follow Memo's event rules. If the user says no or does not answer before the current task can finish safely, complete the light task without spec changes and mention the unrecorded durable note in the handoff.
+If the work reveals information that may belong in durable project memory, such as a routing change, required command, TODO movement, architecture change, shipped outcome, or repeatable pitfall, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists and invoke `memo` for the triggered event before final handoff. If the user explicitly declines Memo persistence, finish the light task and state the unrecorded durable note.
 
 ## Default Loop
 
@@ -80,4 +82,5 @@ Do not treat the task as complete until all of the following are true:
 3. The broader affected verification passed when the blast radius required it.
 4. The main thread completed its own task-fit and code-quality review.
 5. Release checks ran and passed if the task was a release task.
-6. The next decision is handed back to the user with clear evidence.
+6. `spec/current-work.md` was closed, cleared, or handed off to `memo`.
+7. The next decision is handed back to the user with clear evidence.

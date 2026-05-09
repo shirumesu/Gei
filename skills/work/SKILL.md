@@ -13,14 +13,38 @@ It decides whether the task should use the lightweight main-thread flow or the s
 
 `memo` owns the `spec/` document system. Work may use `spec/` as execution context, but it must not duplicate Memo's document contracts, lifecycle events, or maintenance rules.
 
+`using-gei` starts lifecycle state. Work enforces the file-changing checkpoints through `spec/current-work.md`.
+
 ## Always-On Rules
 
 - Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
 - Before any destructive action such as force push, production mutation, irreversible migration, deploy, publish, or delete-heavy command, get a second human confirmation.
 - Do not claim `done`, `fixed`, or `verified` without command evidence in the current conversation.
 - If the user asks to inspect, rely on, update, reconcile, or commit against `spec/` or project documentation state, invoke `memo` before continuing Work.
-- If the task exposes durable routing, command, top-level structure, TODO, shipped-outcome, or repeatable-pitfall information, tell the user what should be recorded and ask whether to invoke `memo`. Do not update spec documents by default.
+- If the task exposes durable routing, command, top-level structure, TODO, shipped-outcome, or repeatable-pitfall information, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists, then invoke `memo` only for the triggered event. Do not update spec documents from Work-specific rules.
 - Before staging or committing, check whether `spec/` files are staged or would be added. Exclude them from product commits unless the user explicitly approved tracking `spec/` in the product repository.
+
+## Current Work Checkpoints
+
+Before the first file edit, Work **MUST** check `spec/current-work.md`.
+
+- If it exists and matches the current task, continue.
+- If it exists but describes old or unrelated work, overwrite it with a new micro-anchor before editing.
+- If it is missing and the task may write files, create a micro-anchor before editing or state a valid no-anchor exemption from `using-gei`.
+- Use the current-work shape defined by `using-gei`. Do not add extra fields unless the task needs them.
+
+Work **MUST** re-check the anchor:
+
+1. after scope expands beyond `Expected scope`
+2. before verification commands
+3. before final response
+4. before commit, release, publish, or handoff
+
+At final response, close, clear, or hand off the anchor:
+
+- small verified task with no durable value -> set `Status: closed` or clear the file
+- durable outcome or unresolved reconciliation -> invoke `memo`
+- unrelated next task -> overwrite the anchor before starting that task
 
 ## Routing
 

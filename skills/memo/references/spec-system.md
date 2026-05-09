@@ -22,6 +22,7 @@ spec/
   TODO.md
   MEMORY.md
   CHANGELOG.md
+  current-work.md
   archive/
     TODO.md
     MEMORY.md
@@ -32,6 +33,8 @@ spec/
 ```
 
 `spec/archive/` is optional. Create it only when an archive cleanup pass actually moves content out of the active files.
+
+`current-work.md` is optional lifecycle state. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies.
 
 ## Read Order
 
