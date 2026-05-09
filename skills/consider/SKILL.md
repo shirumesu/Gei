@@ -1,6 +1,6 @@
 ---
 name: consider
-description: Use before any creative work begins, when a user has an idea, wants help brainstorming, needs to clarify scope or feasibility, or needs an approved design before implementation. Use when Codex should recover project context, challenge ambiguity, research comparable solutions, define the full technical path and boundaries, and stop until the user explicitly approves the design.
+description: Use before any creative work begins, when a user has an idea, wants help brainstorming, needs to clarify scope or feasibility, or needs an approved design before implementation. Use when Codex should recover project context, challenge ambiguity, research comparable solutions, define the full technical path and boundaries, and stop until the user gives full-design approval.
 ---
 
 # Consider
@@ -23,7 +23,7 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 ### No Implementation Before Approval
 
-- Do not take implementation action, scaffold, or write the full implementation until the user explicitly approves the design.
+- Do not take implementation action, scaffold, or write the full implementation until the user gives full-design approval.
 
 ### Ask Before Deciding
 
@@ -36,6 +36,18 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 - When asking a blocking question, provide 2-3 options, explain why each option matters, recommend one option, and state the likely downside or risk.
 - Prefer a dedicated question tool when one is available instead of simulating the format in plain text.
 
+### Decision Ownership
+
+Before expanding an idea, classify each unresolved point:
+
+1. **User-owned decision:** ask before continuing.
+2. **Researchable fact:** inspect local or external context before asking.
+3. **Codex-owned detail:** decide later and disclose in the design.
+
+A decision is user-owned when it affects the goal, scope, priority, user workflow, data boundary, risk tolerance, compatibility, success standard, or whether Codex may choose among alternatives. **NEVER** replace a user-owned decision with a reasonable assumption.
+
+Codex may decide only low-cost, reversible details that follow from existing project conventions and do not change user-visible behavior, data handling, architecture, or long-term maintenance.
+
 ### Match The Scale
 
 - Keep simple parts short.
@@ -43,148 +55,177 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 ### Exit Rule
 
-- The only valid end condition is explicit user approval of the design. There are no exceptions.
+- The only valid end condition before handoff is full-design approval. There are no exceptions.
 
 ## Boundary
 
 - Consider is for design, not implementation; do not write the full implementation here.
 - Work on one bounded problem at a time.
 - You may use examples, partial core code, local code fragments, implementation notes, or pseudocode to make the design concrete.
-- After approval, hand off through the lifecycle started by `using-gei`. Do not hard-code `memo` as the next step for every approved design.
+- After full-design approval, hand off through the lifecycle started by `using-gei`. Do not hard-code `memo` as the next step for every approved design.
 
 ## Process
 
-### 0. Precondition
+### Phase 0: Start And Scope
 
-- Check whether the `memo` skill exists in the environment. Do not tell the user about this check. If it exists, continue.
+- Decide whether the request is one bounded problem before exploring details.
+- Ask or decompose first when the real goal, success standard, priority, key constraint, product direction, technical boundary, or build order is unclear.
+- If the request contains several independent subsystems, split it into subprojects first. Explain how they relate, recommend the build order, and ask which subproject to design first.
+- Give each subproject its own design, approval, plan, and implementation cycle.
 
-### 1. Scope gate
+**Exit only when:**
 
-Before exploring details, decide whether the request is one bounded problem. Ask or decompose first if any of these are true:
+- The task is one bounded problem, or the user has selected the first subproject.
+- Codex is not about to choose the goal, scope, priority, product direction, technical boundary, or build order silently.
 
-- The user's real goal, success standard, or priority is unclear
-- The request contains several independent subsystems
-- The request can reasonably be solved in several incompatible ways
-- A key constraint is missing and would materially change the design
-- You are about to choose a product direction, technical boundary, or build order on the user's behalf
+**Good example:** "Build a platform with chat, file storage, billing, and analytics." First decompose it into chat, storage, billing, and analytics subprojects. Explain dependencies and ask which subproject to design first.
 
-If the request is too large, do not refine details inside the oversized project. Split it into smaller subprojects first, then continue the Consider process for the first approved subproject. When decomposition is required:
+**Bad example:** Ask detailed questions about chat retention, invoice tax rules, storage quotas, and analytics dashboards in one round.
 
-- Identify the independent subprojects
-- Explain how they relate, recommend the build order, and ask which subproject to design first
-- Give each subproject its own design, approval, plan, and implementation cycle
-
-- **Good example:** "Build a platform with chat, file storage, billing, and analytics." First decompose it into separate chat, storage, billing, and analytics subprojects. Explain their dependencies and recommend which one to design first.
-- **Bad example:** Ask detailed questions about chat retention, invoice tax rules, storage quotas, and analytics dashboards in one round.
-
-### 2. Explore context
+### Phase 1: Context Recovery
 
 - Check whether the project already has clear Spec documents.
-  - Yes: follow `consider/references/read-spec.md` to recover context
-  - No: if the project is not empty, inspect the files, documents, and recent commits
+  - Yes: follow `consider/references/read-spec.md` to recover context.
+  - No: if the project is not empty, inspect the files, documents, and recent commits.
+- Check researchable local facts before asking the user.
+- Do not propose a design that conflicts with existing architecture, conventions, or durable project constraints unless the user explicitly wants that change.
 
-### 3. Explore boundaries
+**Exit only when:**
 
-Think and ask questions so the user clarifies any risk, ambiguity, or hidden requirement.
+- Existing project constraints are known enough to avoid an incompatible design.
+- Researchable local facts have been checked before asking the user to decide.
 
-**Passing standard:**
+### Phase 2: Clarification
 
-The user's request must be expanded until it is clear and detailed enough to include at least:
+Ask questions so the user clarifies user-owned decisions, risks, ambiguities, and hidden requirements. Ask exactly one blocking question at a time, then **STOP** and wait for the response.
 
-- **What:** a clear, explicit, and complete idea of what should be built
-- **Why:** who the user is, why they need it, whether the current workflow already has pain points, what is still unresolved for them, and whether the feature is important
-- **How:** examples for how it should work, using code fragments, local core logic, direct explanation, or pseudocode instead of full code
+The request must be clear enough to include:
 
-If the user is not yet clear about the exact implementation shape, carry the uncertainty into step 5 and refine it there.
+- **What:** what should be built, changed, or decided.
+- **Why:** who needs it, what pain exists, what remains unresolved, and why it matters now.
+- **How:** examples of how it should work, using code fragments, local core logic, direct explanation, or pseudocode instead of full code.
+- **Success:** how the user will judge that the result is good enough.
 
-- **Good example:** The user often uses several similar applications whose configuration items are already known to be compatible. They want a feature that can sync configuration across those applications, and the accepted values, key names, and operating behavior of each target application are already confirmed to match, so no special compatibility layer is needed.
-- **Bad example:** "I want a configuration sync feature."
+When asking, prefer 2-3 options with a recommendation, tradeoff, and downside. Do not ask "Can you clarify?" by itself.
 
-**Common patterns:**
+**Exit only when:**
 
-- The user ran into a problem and wants the most direct possible fix
-  - Apply YAGNI: implement only when the requirement is clear and important enough now. Do not build early for future possibilities.
-  - Assume you only have three chances to change the system. If the feature cannot fit, explain the impact, offer a reduced core unit, or say that the feature seems unnecessary.
-- The user has a good idea, but it is still unvalidated
-  - Check whether implementation will be hard. Reading the target environment counts as part of context exploration.
-- The user wants a feature but does not know how it should be built, so they unconsciously skipped design
-  - Ask enough to confirm the user's goal, constraints, and preferred direction before providing the design for approval.
+- The user's goal, constraints, and success standard can be stated without guessing.
+- All blocking user-owned decisions are answered or explicitly deferred by the user.
+- Remaining uncertainty can be safely carried into alternatives or design.
 
-### 4. Explore feasibility
+### Phase 3: Feasibility And Alternatives
 
 Use comparable products and similar implementations to test whether the design is realistic. Once the user's requirement is clear enough to enter detailed design, search the web before writing the proposal.
 
 - Study mainstream commercial or closed-source products, open-source projects, and similar implementations.
 - Inspect their feature set, visual presentation, usage pattern, chosen technical stack, public implementation details, and concrete implementation shape.
-- Research every design topic you are about to discuss: product behavior, framework choice, integration style, storage model, security boundary, deployment shape, verification method, and any other decision that may affect the plan.
-- Stop only when information, not memory, proves you understand the mainstream architecture and implementation pattern for this problem.
+- Research only the design topics that affect the current decision: product behavior, framework choice, integration style, storage model, security boundary, deployment shape, verification method, or other material design choices.
 - Scope the research to the specific design being considered. Do not research full-system architecture for a simple feature unless that architecture would affect the decision.
-- Research a full product or architecture only when the user's choice depends on product shape, technical stack, or long-term system direction.
+- If visible replacement products already cover the user's real need, show them with links so the user can judge whether to build anything.
 
-  - **Good example:** Building a login page -> study how comparable products present the page visually, what buttons they include, how they communicate with the backend, and how they protect passwords.
-  - **Bad example:** Building a login page -> study the entire site architecture, explore every other page, investigate all user permissions, and read the full user rules. Even if the project truly lacks those parts, do not expand into them unless the user explicitly asked. Treat them as future TODOs instead.
+When the design can reasonably go in multiple directions, present 2-3 approaches with tradeoffs and your recommendation. The user is choosing a direction here, **not** approving implementation. Ask which approach to use, then **STOP**.
 
-**Compare against the request:**
+**Exit only when:**
 
-- If the user's request already has visible replacement products, show them to the user with links so they can judge whether those products already cover the real need.
+- Feasibility has been checked enough for the design scale.
+- Incompatible approaches have been separated.
+- The user has approved one direction, or only one direction is credible and that assumption has been stated.
 
-### 5. Detailed design rules
+### Phase 4: Design
 
-Clarify the full design: the complete technical path, explicit boundaries, and possible risks or failures.
+Present the full design. Clarify the complete technical path, explicit boundaries, unit responsibilities, risks, failure behavior, and verification method.
 
-- **Good design:** Configuration sync feature -> use symbolic links so different applications share one configuration source. Store the source configuration in this project. When the user switches configuration, update the target application's config file through the symbolic link automatically. Present the switching control as a Segmented Control UI. Use shadcn/ui for the interface style. Support only manual switching. Support only one-way sync from this project's source configuration into the target applications. If a switch fails, show failure toast at the bottom-right of the interface. In the current version, only maintain this project's source configurations and switch symbolic links between them. Do not support reading configuration values back from the target applications.
+The design must define:
 
-- **Bad design:**
-  - It does not define which applications need to be synced
-  - It does not define the implementation technology
-  - It does not define the UI
-  - It does not define the boundaries
-  - It does not define system-scale impact, rollback cost, or failure and attack angles such as prerequisite collapse
-  - It does not define possible failure cases
+- What will be built or changed.
+- What is explicitly out of scope.
+- Which approach was selected and why.
+- The main units, their purpose, inputs, outputs, dependencies, and interfaces.
+- User workflow and system behavior, including failure cases.
+- Data handling, compatibility constraints, and rollback cost when relevant.
+- Test and verification method, including known edge cases.
+- Whether the demand is temporary or durable over the next 6-12 months.
 
-**Unit boundaries:**
+**Good design:** Configuration sync feature -> use symbolic links so different applications share one configuration source. Store the source configuration in this project. Support only manual switching and one-way sync from this project's source configuration into target applications. If a switch fails, show a failure toast. Do not read configuration values back from target applications.
 
-- Break the system into units with clear purpose, inputs, outputs, dependencies, and explicit interfaces.
-- Each unit should answer: what it does, how it is used, and what it depends on.
-- A user of the unit should understand its responsibility without reading internals, and internals should change without breaking consumers.
-- Treat large files, mixed responsibilities, or unclear dependencies as signs that the boundary needs improvement.
+**Bad design:** It does not define target applications, technology, UI, boundaries, system impact, rollback cost, failure cases, or unsupported behavior.
 
-**Consider long-term usefulness:**
+Before approval, self-review:
 
-- Is this demand temporary or durable? If the system runs for 6-12 months, will this become a discarded workaround or something the project should keep?
+- Could someone with no context explain each part without drifting?
+- Are there placeholders, contradictions, or ignored details from earlier discussion?
+- Would the three most important remaining questions still change the design decisively?
+- Can success be verified concretely?
 
-**Validate architectural consistency:**
+If self-review finds a blocking hole, ask the next blocking question or revise the design. Do not continue to approval.
 
-- Check that the design still fits the project's existing architecture and conventions.
-- Do not let the discussion drift into a design that cannot be integrated, such as switching from SQL to file storage when the system is already built around SQL, unless the user explicitly wants that architectural change.
+**Exit only when:**
 
-### 6. Self-review
+- The full design is explicit and internally consistent.
+- No unresolved user-owned decision is hidden inside the design.
+- The design is ready to be approved or rejected as a whole.
 
-Review the information and check this list:
+### Phase 5: Approval
 
-- Is the design explicit enough that someone with no context, domain knowledge, or technical background could explain each part without drifting?
-- Is the test and verification method explicit, including at least some known edge cases?
-- Are there still placeholders, ambiguity, or contradictions introduced by later discussion?
-- Can the result be verified in a concrete and measurable way, such as with test files or other quantifiable checks?
+Request approval for the complete design as its own step. Do not combine final approval with implementation steps, file edits, scaffolding, commits, or handoff.
 
-**Expand the discussion when needed:**
+Before asking, label the design:
 
-- Was anything previously unclear, later mentioned, and then ignored?
-- If you had to ask the three most important remaining questions, would the answers still change the design decisively?
-- If either answer is yes, first list the current full design, point out the likely holes, and ask whether the user wants to continue discussing.
+- **User-decided:** decisions the user explicitly made.
+- **Codex-recommended:** recommendations Codex is proposing for approval.
+- **Assumptions:** facts or defaults being assumed.
+- **Deferred:** decisions intentionally left for implementation, with why they are safe to defer.
+- **Out of scope:** behavior that will not be built in this cycle.
+- **Acceptance check:** how the user and Codex will verify success.
 
-### 7. Request approval
+Ask a final approval question that is only about the complete design:
 
-When the discussion is already sufficient and further discussion is unlikely to change the design much, present the explicit design and ask for approval.
+```text
+Do you approve this complete design for implementation?
+```
 
-### 8. Continue the task
+Only full-design approval allows handoff. Full-design approval means the user clearly approves the complete labeled design, including scope, exclusions, selected approach, risks, and acceptance checks.
 
-After approval:
+**Valid full approval examples:**
 
-Choose the next step from these explicit options:
+- "I approve this complete design."
+- "Use this full design and proceed."
+- "This design is approved; start implementation."
 
-1. **Durable or complex plan:** enter `memo`, read `memo`, and persist a task plan or relevant durable memory before execution.
-2. **Implementation-only change:** enter `work`. If files will be edited, ensure `spec/current-work.md` exists or let `work` create the required micro-anchor before the first edit.
-3. **No implementation:** stop after the approved design and state the next available action.
+**NOT full approval:**
 
-When entering `memo`, the plan must describe the design, list every step clearly, and include detailed examples or simple code blocks. Assume the plan reader is weak, has no context, and can **only** complete mechanical tasks; the plan must let that reader execute accurately.
+- "This part is fine."
+- "The direction is right."
+- "Sounds reasonable."
+- "Let's consider it."
+- "Yes" after a narrow clarification question.
+- Choosing one alternative in Phase 3.
+- Approving a mockup, example, or single section only.
+
+When the user gives partial approval, acknowledge the approved part, update or continue the design, and stay in the current phase. **NEVER** treat partial approval as permission to implement.
+
+**Exit only when:**
+
+- The user explicitly approves the complete labeled design.
+- The approval is not merely agreement with one point, one section, one option, or one recommendation.
+
+### Phase 6: Handoff
+
+Enter this phase only after full-design approval.
+
+Start with a visible transition sentence:
+
+```text
+Approved design received. I am now leaving `consider` and returning to the Gei lifecycle for the next step.
+```
+
+Hand off only these items:
+
+- The complete approved design.
+- The intended next objective: durable planning, implementation, or no implementation.
+- Any known constraints that the next skill must preserve.
+
+Do **not** decide the next skill's internal workflow here. Do **not** create implementation plans, file anchors, commits, scaffolding, or edits inside `consider`.
+
+After this point, follow `using-gei` lifecycle routing and load the next skill only when needed. Do not introduce new design decisions during handoff. If a new user-owned decision appears, return to Phase 2, Phase 3, or Phase 4.
