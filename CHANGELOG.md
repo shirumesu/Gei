@@ -2,6 +2,14 @@
 
 This file records public release notes for Gei.
 
+## v0.3.0 - 2026-5-9
+
+### 新功能
+- `memo`、`work`、`consider`任务体系现在由`using-gei`统一管理
+- 新增轻量无文档任务记录`spec/current-work.md`
+- 增强`consider`描述，现在对模糊点提问了
+- `memo`新增 `OVERVIEW.md`，强化文档对系统上下文的记录能力。
+
 ## v0.2.5 - 2026-5-9
 
 ### 优化
