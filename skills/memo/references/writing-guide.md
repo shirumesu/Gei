@@ -2,7 +2,7 @@
 
 ## Goal
 
-Write project memory like a precise engineer handing work to another precise engineer.
+Write project state like a precise engineer handing work to another precise engineer.
 
 The text should read as calm, direct, and useful, not excited, vague, inflated, or machine-generated.
 
@@ -11,7 +11,7 @@ The text should read as calm, direct, and useful, not excited, vague, inflated, 
 - Write in English.
 - Use plain, direct sentences.
 - Use active voice when the actor matters.
-- Name the file, command, function, constraint, or hazard instead of gesturing at it.
+- Name the file, command, function, or constraint instead of gesturing at it.
 - Prefer exact facts over broad claims.
 
 ## Tone
@@ -21,7 +21,7 @@ Keep the tone restrained.
 Good:
 
 - "The queue worker retries network failures three times."
-- "This task defers OAuth provider support to `#TOD-014`."
+- "This task records closed work under `CHANGELOG.md` `Unreleased`."
 
 Bad:
 
@@ -100,34 +100,18 @@ Use headings and bullets only when they help scanning. Prefer short sections, se
 - Record invariants, interfaces, and structural risks.
 - Keep commentary factual. Do not sell the design.
 
-### `TODO.md`
-
-- Write each item as a concrete unit of work.
-- Include id, priority, and a short reason.
-- Link to the owning spec doc when possible.
-- Do not hide multiple tasks inside one sentence.
-- Treat `Done` as a short-lived close-out section. Move older completed items into `spec/archive/TODO.md` during archive cleanup.
-
-### `MEMORY.md`
-
-- Record only repeatable pitfalls, rejected directions, and version-specific hazards.
-- Keep only entries that are reusable across multiple tasks, files, or sessions.
-- Name the trigger, the failure, and the safe pattern that avoids it next time.
-- Include the relevant file path, command, error text, or spec id when known.
-- Skip ordinary progress notes, one-off file-local instructions, and full decision histories.
-- When an entry looks too local or too stale to keep active, surface it to the user as an archive candidate instead of silently treating it as durable memory.
-
 ### `CHANGELOG.md`
 
-- Record outcome first, then impact.
-- Reference the spec doc and resolved TODO ids.
+- Record closed outcomes under `Unreleased` first.
+- Use concise conventional type headings such as `feat`, `fix`, `docs`, and `chore`.
+- Include commit ids when available and `Commit: pending` when not.
 - Prefer user-visible or architecture-visible language.
 - Do not copy commit messages line by line.
-- Keep only the latest five version entries in the active file. Move older entries into `spec/archive/CHANGELOG.md` without changing their meaning.
+- Keep `Unreleased` plus the latest five version/checkpoint sections in the active file. Move older sections into `spec/archive/CHANGELOG.md` without changing their meaning.
 
 ### `spec/archive/*.md`
 
-- Preserve ids, dates, and source references.
+- Preserve dates, headings, and source references.
 - Keep archived wording close to the original text.
 - Add a short archive note only when the reason for removal is not obvious.
 - Organize the file so old entries stay easy to find.
@@ -136,7 +120,7 @@ Use headings and bullets only when they help scanning. Prefer short sections, se
 
 - Keep the first section about context, goals, and chosen direction.
 - Keep the later section about execution, if present, concrete and testable.
-- Maintain consistent ids, filenames, and linked TODO items.
+- Maintain consistent ids, filenames, and changed-file references.
 
 ## Quick Editing Checks
 
@@ -147,6 +131,5 @@ Before saving, check:
 3. Did any sentence announce structure instead of delivering content?
 4. Are ids, file paths, and commands exact?
 5. Did you leave any filler such as `TBD`, `later`, or `appropriate`?
-6. Would each active `MEMORY.md` entry still help on another similar task, or should it move to archive instead?
 
 If the answer to any check is yes, rewrite the line.

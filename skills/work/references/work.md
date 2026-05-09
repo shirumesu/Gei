@@ -2,7 +2,7 @@
 
 ## Overview
 
-Work owns the spec-aware heavy production loop. Its job is to turn an approved spec-backed task into verified code, then close the loop through review, Memo maintenance, and a final ship gate.
+Work owns the spec-aware heavy production loop. Its job is to turn an approved spec-backed task into verified code, then close the loop through review, Memo reconciliation, and a final ship gate.
 
 This skill is for the main thread. Keep orchestration here. Send low-level execution, review, and ship behavior through the reference files in `references/`.
 
@@ -27,7 +27,7 @@ If the repo lacks usable `spec/` context or the task is not actually spec-backed
 
 Recover spec context by using Memo as the operating standard. Read the Memo entry point when you need to know which spec files to read or which event applies; do not copy Memo's contracts into this file.
 
-During execution, invoke `memo` only when a Memo event is actually triggered, such as active scope drift, TODO movement, architecture changes, reusable pitfalls, deferred work, or a ship checkpoint. Let Memo choose the event and document contracts. Do not directly maintain `spec/` from Work-specific rules.
+During execution, invoke `memo` only when a Memo event is actually triggered, such as active scope drift, architecture changes, closed file-changing work, or a ship checkpoint. Let Memo choose the event and document contracts. Do not directly maintain `spec/` from Work-specific rules.
 
 ## Iron Laws
 
@@ -81,11 +81,11 @@ Follow this loop unless the active spec-task explicitly requires a different ord
 7. **Decide the fix list**
    The main thread decides which findings must be fixed now.
    - Fix immediately: task-related findings, high-blast-radius issues, correctness gaps, or simple material fixes.
-   - Defer through `memo`: warnings, low-impact polish, or non-essential follow-ups.
+   - Defer by telling the user: warnings, low-impact polish, or non-essential follow-ups that should not land in this task.
 
    If the review agent is asked to fix issues, it may only fix the approved list.
-8. **Sync durable memory**
-   After the approved fixes land and the affected tests pass, call `memo` only for the relevant triggered event. Use `spec/current-work.md` as intent evidence when reconciling. Then create one atomic commit for the section checkpoint when commits are part of the task.
+8. **Reconcile spec state**
+   After the approved fixes land and the affected tests pass, call `memo` for the relevant triggered event. Use `spec/current-work.md` as intent evidence when reconciling. Then create one atomic commit for the section checkpoint when commits are part of the task.
 9. **Re-open tests for the next section**
    Before the next section starts, re-check whether the current test surface still matches the task. If the section changed assumptions, rewrite or extend the tests first, then continue from step 3.
 10. **Enter the ship gate**

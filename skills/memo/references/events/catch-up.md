@@ -1,69 +1,48 @@
-# Catch-Up Event
+# Catch-up Event
 
-Use this event when work already happened outside Memo and the facts must be captured before full reconciliation. Catch-up prevents expensive reconstruction by recording enough evidence for a later formal update without forcing the agent to read the whole project immediately.
+Use this event when work already happened outside Memo and must be captured before full reconciliation.
 
-If `spec/current-work.md` exists, prefer `anchor-reconciliation.md` before catch-up. Catch-up is for missing or insufficient anchors.
+Catch-up is a temporary evidence capture. It should not become a second spec system.
 
 ## Trigger
 
 Trigger this event when any of these are true:
 
-- The user says they completed work manually and did not update spec docs.
-- The current session inherited code or document changes with unclear Memo coverage.
-- There is not enough time or context to reconcile every affected spec file safely.
-- A durable event likely happened, but the correct final destination is uncertain.
-- There is no reliable `spec/current-work.md` anchor for the changed files.
+- useful work already happened, but the intent or scope is unclear
+- changed files exist without a usable `spec/current-work.md`
+- the user asks to capture state before deciding how to reconcile it
+- there is not enough evidence to safely update `ARCHITECTURE.md`, `CHANGELOG.md`, or a task spec
 
-Do not use catch-up to avoid required ship, architecture, TODO, or memory updates when the target files and evidence are already clear.
+Do not use catch-up to avoid required ship, architecture, or changelog updates when the target files and evidence are already clear.
 
 ## Required Reading
 
-Read the smallest available evidence set:
+Read only:
 
-1. The user's summary.
-2. `spec/current-work.md` if it exists but appears stale or insufficient.
-3. Changed file list or recent commit summary if available.
-4. Existing `spec/INBOX.md` if it exists.
-5. The target spec file only when needed to avoid duplicating an existing pending item.
+1. the user statement
+2. the smallest changed-file list needed to understand the capture boundary
+3. existing `spec/INBOX.md` if it exists
 
-Do not read the full repo or all spec documents just to create a catch-up note.
-Do not infer a complete task plan from diff alone.
+Do not read broad source files just to fill in a perfect history.
 
-No document contract is required for pure catch-up capture. If you have enough evidence to update a canonical spec file, stop using catch-up and reroute to the formal event for that update.
+## Actions
 
-## Target File
+Append a short entry to `spec/INBOX.md`:
 
-Use `spec/INBOX.md` for pending catch-up notes.
+```md
+## YYYY-MM-DD - Short capture title
 
-`INBOX.md` is a temporary capture surface. It is not a replacement for `ARCHITECTURE.md`, `TODO.md`, `MEMORY.md`, `CHANGELOG.md`, or active task specs.
+- Trigger:
+- Known files:
+- Known intent:
+- Unknowns:
+- Suggested next event: anchor reconciliation | architecture change | ship | task start
+```
 
-## Entry Shape
-
-Each entry must include:
-
-- Date:
-- Event:
-- Evidence:
-- Candidate destination:
-- Needs reconciliation:
-- Notes:
-
-Keep entries short. Record facts and evidence, not analysis chains.
-
-## Reconciliation Rule
-
-Before ship, handoff, archive cleanup, or a deliberate Memo sync, each `INBOX.md` entry must be:
-
-- moved into the correct spec file,
-- converted into a TODO item,
-- archived with a reason, or
-- kept with an explicit reason and next reconciliation condition.
+`INBOX.md` is a temporary capture surface. It is not a replacement for `ARCHITECTURE.md`, `CHANGELOG.md`, or active task specs.
 
 ## Completion Check
 
-Before finishing:
-
-- `INBOX.md` contains only pending facts.
-- Every entry has evidence and a candidate destination.
-- No formal spec file was guessed into existence without enough context.
-- The user can later ask Memo to reconcile the pending notes.
+- The capture states what is known and unknown.
+- The suggested next event is explicit.
+- No canonical spec document was updated from uncertain evidence.

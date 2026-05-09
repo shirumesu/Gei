@@ -21,7 +21,8 @@ It decides whether the task should use the lightweight main-thread flow or the s
 - Before any destructive action such as force push, production mutation, irreversible migration, deploy, publish, or delete-heavy command, get a second human confirmation.
 - Do not claim `done`, `fixed`, or `verified` without command evidence in the current conversation.
 - If the user asks to inspect, rely on, update, reconcile, or commit against `spec/` or project documentation state, invoke `memo` before continuing Work.
-- If the task exposes durable routing, command, top-level structure, TODO, shipped-outcome, or repeatable-pitfall information, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists, then invoke `memo` only for the triggered event. Do not update spec documents from Work-specific rules.
+- If the task changes files, reconcile `spec/current-work.md` through `memo` before closing so `spec/CHANGELOG.md` records the work under `Unreleased`.
+- If the task exposes durable routing, command, top-level structure, architecture, shipped-outcome, or checkpoint information, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists, then invoke `memo` only for the triggered event. Do not update spec documents from Work-specific rules.
 - Before staging or committing, check whether `spec/` files are staged or would be added. Exclude them from product commits unless the user explicitly approved tracking `spec/` in the product repository.
 
 ## Current Work Checkpoints
@@ -42,7 +43,8 @@ Work **MUST** re-check the anchor:
 
 At final response, close, clear, or hand off the anchor:
 
-- small verified task with no durable value -> set `Status: closed` or clear the file
+- verified task with no relevant file changes -> set `Status: closed` or clear the file
+- verified task with relevant file changes -> invoke `memo` for anchor reconciliation before closing or clearing
 - durable outcome or unresolved reconciliation -> invoke `memo`
 - unrelated next task -> overwrite the anchor before starting that task
 
@@ -63,7 +65,7 @@ If either requirement is false, follow `references/light.md`.
 
 Lightweight tasks may use `references/light.md` even when `spec/` exists. Do not force a small patch, routine docs edit, or simple config change into the heavy flow just because the project has spec documents.
 
-If no usable `spec/` exists, follow `references/light.md`. Do not initialize or create spec documents from Work; `memo` owns that decision when the user asks for durable project memory.
+If no usable `spec/` exists, follow `references/light.md`. Do not initialize or create spec documents from Work; `memo` owns that decision when the user asks for durable project state.
 
 If the task shape changes while you are working, stop and run this routing check again instead of drifting across modes.
 

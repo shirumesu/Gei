@@ -4,7 +4,9 @@ Use this contract when creating or updating `spec/CHANGELOG.md`.
 
 ## Responsibility
 
-`CHANGELOG.md` records shipped outcomes and durable checkpoints. It is not a diary and not a commit log.
+`CHANGELOG.md` records closed file-changing work and durable release or checkpoint history. It is not a diary and not a raw git log.
+
+Every closed task that produced relevant file changes must add a concise entry under `## Unreleased`. Release or checkpoint events compress `Unreleased` into a named version or checkpoint.
 
 ## Entry Shape
 
@@ -13,35 +15,71 @@ Use this shape when creating the file:
 ```md
 # Changelog
 
-## V0.0.1
+## Unreleased
 
-### [#001](docs/#001-work.md)
+### Summary
+Pending.
 
-- Summary:
-- Impact:
-- Resolved TODOs:
-- Deferred TODOs:
-- Evidence:
-- Git Commit: `ID` (optional)
+### feat
+- Add the new workflow. Commit: `pending`
+
+### fix
+- Correct stale anchor reconciliation. Commit: `abc1234`
 ```
 
-## Required Content
+Use conventional type headings such as `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, and `breaking`. Omit empty type headings.
 
-Each shipped entry should answer:
+## Release Or Checkpoint Shape
 
-- what changed
-- why it mattered
-- which spec doc tracked it
-- which TODO ids it resolved or deferred
-- what evidence exists
+For projects with versions, rename `Unreleased` to:
+
+```md
+## v1.0.0 - YYYY-MM-DD
+```
+
+For projects without a fixed version scheme, use:
+
+```md
+## Checkpoint YYYY-MM-DD
+```
+
+A released or checkpointed section may include:
+
+```md
+### Summary
+- Short outcome summary.
+
+### Changed Files
+- `path/to/file`
+
+### Commits
+- `abc1234`
+```
+
+Keep the typed entries if they are still useful. Compress noisy entries into the summary when the section is too long.
+
+## Checkpoint Rules
+
+Do not let `Unreleased` grow without bound. Create a checkpoint when any of these are true:
+
+- `Unreleased` has more than 20 entries.
+- The current active work cycle has been stable for 7-14 days.
+- The user asks to organize, close, release, publish, or archive work.
+- The accumulated entries are making recent history hard to scan.
+
+Keep `Unreleased` plus the latest five version or checkpoint sections active. Move older sections into `spec/archive/CHANGELOG.md` during archive cleanup.
 
 ## Write Rules
 
-Record outcomes first, then impact. Prefer user-visible or architecture-visible language over commit-diff narration. Reference spec docs and resolved or deferred TODO ids. Never invent metrics; if evidence is unavailable, write `not measured` or `not instrumented`. During archive cleanup, keep only the latest five version entries active and move older entries to `spec/archive/CHANGELOG.md`.
+- Record the outcome in one concise bullet.
+- Include `Commit: pending` until a short commit id exists.
+- Mention exact paths only when they help future agents find the changed area.
+- Do not require task specs, evidence blocks, or release metrics for ordinary task close entries.
+- Never invent metrics. If a release/checkpoint summary needs evidence and none exists, write `not measured` or `not instrumented`.
 
 ## Completion Check
 
-- The entry references the owning spec doc.
-- Resolved and deferred TODO ids are present or explicitly none.
-- Evidence is concrete or marked unavailable.
-- The entry describes the outcome, not raw implementation noise.
+- `Unreleased` exists after every update.
+- Closed file-changing work has one concise typed entry.
+- Commit ids are present or explicitly `pending`.
+- Version/checkpoint sections are scan-friendly and not raw implementation diaries.

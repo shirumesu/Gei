@@ -1,6 +1,6 @@
 # Ship Event
 
-Use this event when a task reaches a durable checkpoint.
+Use this event when a task reaches a durable checkpoint, release, publication, or formal handoff.
 
 Ship is also a lifecycle boundary. Reconcile and clear, close, or replace `spec/current-work.md` before finishing the ship event.
 
@@ -13,54 +13,53 @@ Trigger this event when any of these are true:
 - a task was shipped
 - a user-visible checkpoint was reached
 - a formal handoff happened and the result should be part of durable history
+- `CHANGELOG.md` `Unreleased` should be compressed into a version or checkpoint section
 
 ## Required Reading
 
 Read:
 
-1. `references/contracts/task-spec.md`
-2. `references/contracts/changelog.md`
-3. `references/contracts/todo.md`
-4. `references/contracts/work-anchor.md` and `spec/current-work.md` if the anchor exists
-5. The active spec-task file
-6. `spec/TODO.md`
-7. `spec/CHANGELOG.md`
-8. `references/contracts/architecture.md` and `spec/ARCHITECTURE.md` only for the stale diagram audit or when architecture changed
+1. `references/contracts/changelog.md`
+2. `references/contracts/work-anchor.md` and `spec/current-work.md` if the anchor exists
+3. `spec/CHANGELOG.md`
+4. The active spec-task file only when this is spec-backed work
+5. `references/contracts/task-spec.md` only when updating the active spec-task file
+6. `references/contracts/architecture.md` and `spec/ARCHITECTURE.md` only for the stale diagram audit or when architecture changed
 
 ## Actions
 
-1. Update the combined spec-task file with the final outcome.
-2. Update `CHANGELOG.md` with the shipped change.
-3. Move resolved TODO items into `Done` with references.
-4. Run a stale diagram audit against `ARCHITECTURE.md`.
-5. Reconcile `spec/current-work.md` and clear or close it.
-6. Add metrics only when evidence exists.
+1. Reconcile `spec/current-work.md`; if changed files exist, ensure `CHANGELOG.md` `Unreleased` has a typed entry.
+2. If the project has a version scheme or the user asked for a version, rename `Unreleased` to `## vX.Y.Z - YYYY-MM-DD`.
+3. If the project has no fixed version scheme, rename `Unreleased` to `## Checkpoint YYYY-MM-DD` or `## Checkpoint YYYY-MM`.
+4. Add or compress `Summary`, `Changed Files`, and `Commits` inside the version/checkpoint section.
+5. Recreate a fresh `## Unreleased` section at the top.
+6. Update the active spec-task file only when this work is explicitly spec-backed.
+7. Run a stale diagram audit against `ARCHITECTURE.md` only when architecture changed or the release depends on diagram accuracy.
+8. Clear or close `spec/current-work.md`.
 
 Never invent metrics. If coverage, completion rate, or other evidence is unavailable, write `not measured` or `not instrumented`.
 
 ## Changelog Standard
 
-`CHANGELOG.md` records shipped outcomes, not raw diary noise.
+`CHANGELOG.md` records closed outcomes and release/checkpoint summaries, not raw diary noise.
 
-Each entry should answer:
+Each checkpoint should answer:
 
 - what changed
-- why it mattered
-- which spec doc tracked it
-- which TODO ids it resolved or deferred
-- what evidence exists
+- which files or areas changed
+- which commits belong to the checkpoint, when available
 
 Prefer user-visible or architecture-visible language over commit-diff narration.
 
-Keep the active changelog focused on recent history. During archive cleanup, keep only the latest five version entries active and move older ones into `spec/archive/CHANGELOG.md`.
+Keep the active changelog focused on recent history. During archive cleanup, keep only `Unreleased` plus the latest five version/checkpoint sections active and move older ones into `spec/archive/CHANGELOG.md`.
 
 ## Completion Check
 
 Before finishing:
 
-- The active task spec records final outcome and evidence.
-- `CHANGELOG.md` has a checkpoint entry with spec and TODO references.
-- Resolved TODOs moved to `Done`.
-- Deferred work has TODO references.
+- `CHANGELOG.md` has a fresh `Unreleased` section.
+- The shipped work is represented by a version or checkpoint section.
+- Changed files and related commits are listed or marked unavailable.
+- The active task spec records final outcome only when the task was spec-backed.
 - Architecture diagrams were checked when relevant.
 - `spec/current-work.md` no longer contains stale active work.

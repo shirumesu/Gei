@@ -2,6 +2,21 @@
 
 This file records public release notes for Gei.
 
+## v0.3.1 - 2026-5-9
+
+### 新功能
+- `memo` 移除默认待办 / 记忆文档体系，改为围绕 `current-work`、`CHANGELOG`、`ARCHITECTURE` 和显式 task spec 工作。
+- `CHANGELOG` 支持 `Unreleased`、版本发布和无固定版本项目的 checkpoint 整理。
+
+### 优化
+- `work` 关闭有文件更改的任务时，会通过 `memo` 将更改写入 `CHANGELOG.md#Unreleased`。
+- `consider` 读取 spec 时不再默认读取待办 / 记忆文档，只按需读取 `current-work` 和 `CHANGELOG`。
+- `using-gei`、`work`、`memo` 的路由说明同步为新的精简 spec 模型。
+
+### 清理
+- 删除 Memo 中待办 / 记忆文档的事件、契约、模板和初始化输出。
+- 同步 Gei 自身 `spec/`，移除旧待办 / 记忆文档。
+
 ## v0.3.0 - 2026-5-9
 
 ### 新功能

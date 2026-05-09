@@ -6,7 +6,7 @@ The goal is to recover the minimum context that lets you answer these questions 
 - What technology stack does it use?
 - How is the system structured?
 - Where should a new feature in this area probably be added?
-- Is there already related planned work, active work, or recently shipped work?
+- Is there active work or recent closed work that affects this design?
 
 ## Core Rule
 
@@ -15,8 +15,8 @@ Start with `spec/ARCHITECTURE.md`.
 - Do not start with `spec/docs/`.
 - Do not bulk-read the whole `spec/` tree.
 - Treat `ARCHITECTURE.md` as the primary entry point for understanding the product, the stack, the system boundaries, and the likely extension points.
-- Treat `TODO.md` and `CHANGELOG.md` as secondary context.
-- Open `spec/docs/#NNN-{work-description}.md` only when one of those files points you there or when the requested feature clearly overlaps that exact work area.
+- Treat `current-work.md` and `CHANGELOG.md` as conditional context.
+- Open `spec/docs/#NNN-{work-description}.md` only when `ARCHITECTURE.md`, `current-work.md`, or the requested feature clearly points to that exact work area.
 - Read code only after the Spec surface tells you which exact area matters.
 
 ## Quick Check
@@ -26,23 +26,23 @@ Confirm that the project has a usable Spec surface:
 ```text
 spec/
   ARCHITECTURE.md
-  TODO.md
-  MEMORY.md
   CHANGELOG.md
+  current-work.md
   docs/
   test/
 ```
+
+`current-work.md`, `docs/`, and `test/` may be absent in a fresh or lightweight project. Their absence is not a reason to initialize or repair Memo from `consider`.
 
 ## Reading Order
 
 Use this order unless the user gives a stronger reason to do something narrower.
 
 1. Read `spec/ARCHITECTURE.md`.
-2. Read `spec/TODO.md` only after you understand the architecture.
-3. Read `spec/CHANGELOG.md` only after you understand the architecture.
-4. Open a `spec/docs/#NNN-{work-description}.md` file only when `ARCHITECTURE.md`, `TODO.md`, or `CHANGELOG.md` gives you a direct reason to open it.
-5. Read `spec/MEMORY.md` only when the relevant feature area may contain repeatable pitfalls, rejected directions, or version-specific hazards.
-6. Read code only after the Spec surface has narrowed the likely files or modules.
+2. Read `spec/current-work.md` only when active or recent work may overlap the request.
+3. Read `spec/CHANGELOG.md` only when recent closed behavior might matter for the new feature.
+4. Open a `spec/docs/#NNN-{work-description}.md` file only when `ARCHITECTURE.md`, `current-work.md`, `CHANGELOG.md`, or the requested feature gives you a direct reason to open it.
+5. Read code only after the Spec surface has narrowed the likely files or modules.
 
 ## Step 1. Read Architecture First
 
@@ -76,29 +76,32 @@ You should be able to name:
 
 If you cannot do this after reading `ARCHITECTURE.md`, do not jump straight into every work record. Read only the exact architecture sections or linked source files needed to close that gap.
 
-## Step 3. Read TODO For Current Reality
+## Step 3. Read Current Work Only When It May Overlap
 
-Read `spec/TODO.md` only after you already understand the high-level system shape.
+Read `spec/current-work.md` only when:
+
+- it exists and has `Status: active` or `Status: paused`
+- the current request might touch the same files or area
+- you need to avoid interrupting or overwriting an active task
 
 Use it to learn:
 
-- whether the requested feature or adjacent work is already planned
-- whether related work is in `Backlog`, `TODO`, `In Progress`, or `Done`
-- which `#TOD-###` or `#NNN` ids are directly relevant
-- whether there is already active work in the same area that should constrain the design
+- the current task intent
+- the expected scope
+- whether the current task is active, paused, or closed
 
-Do not treat `TODO.md` as the first place to understand the project. It tells you current work state, not the overall system.
+Do not treat `current-work.md` as a design document, backlog, or changelog.
 
-## Step 4. Read Changelog For Recent Reality
+## Step 4. Read Changelog For Recent Closed Reality
 
-Read `spec/CHANGELOG.md` only when recent shipped behavior might matter for the new feature.
+Read `spec/CHANGELOG.md` only when recent closed behavior might matter for the new feature.
 
 Use it to learn:
 
 - what changed recently in the same area
-- how the project usually describes shipped changes
-- whether there is already a nearby shipped feature that reveals the normal integration path
-- which `#NNN` or `#TOD` ids are worth following
+- whether `Unreleased` contains relevant closed work
+- whether there is a nearby version or checkpoint that reveals the normal integration path
+- which files, commits, or spec-task ids are worth following
 
 Do not use `CHANGELOG.md` as the main design document. It is a recent-history surface, not the architecture source of truth.
 
@@ -107,8 +110,8 @@ Do not use `CHANGELOG.md` as the main design document. It is a recent-history su
 Open `spec/docs/#NNN-{work-description}.md` only when at least one of these is true:
 
 - `ARCHITECTURE.md` points to a relevant work record
-- `TODO.md` links a directly relevant `#NNN` id
-- `CHANGELOG.md` links a directly relevant `#NNN` id
+- `current-work.md` points to a relevant work record
+- `CHANGELOG.md` links a directly relevant spec id
 - the requested feature clearly overlaps an existing feature area and you need the prior file list, constraints, or verification plan
 
 When you do open a work record, use it for targeted context:
@@ -121,22 +124,9 @@ When you do open a work record, use it for targeted context:
 
 Do not bulk-read every work record under `spec/docs/`.
 
-## Step 6. Read Memory Only When The Area Is Risky
+## Step 6. Read Code Only After The Spec Surface Narrows It
 
-`spec/MEMORY.md` is not the first-stop context file for a fresh feature request.
-
-Read it only when:
-
-- the area has known repeatable pitfalls
-- the project has durable rejected directions that may block the proposed feature
-- there are version-specific or tool-specific hazards that could affect the design
-- a linked work record or architecture note points to a known trap
-
-Use it to avoid repeating old mistakes, not to understand the whole product from scratch.
-
-## Step 7. Read Code Only After The Spec Surface Narrows It
-
-Once `ARCHITECTURE.md`, `TODO.md`, `CHANGELOG.md`, and any directly relevant work record have narrowed the target area, then read code.
+Once `ARCHITECTURE.md`, optional `current-work.md`, optional `CHANGELOG.md`, and any directly relevant work record have narrowed the target area, then read code.
 
 At that point you should already know:
 
@@ -155,7 +145,7 @@ Stop the Spec-reading pass once you can explain all of the following in plain te
 - what the major stack choices are
 - where the requested feature most likely belongs
 - what existing boundaries or conventions the feature must follow
-- whether there is related planned, active, or shipped work
+- whether active or recent closed work affects the request
 - which files or modules should be inspected next in code
 
 If you cannot explain those points, do not read more at random. Identify the exact missing answer and read the one file that is most likely to answer it.
@@ -165,7 +155,8 @@ If you cannot explain those points, do not read more at random. Identify the exa
 Stop this guide and invoke `memo` when any of these are true:
 
 - `ARCHITECTURE.md` is missing or too stale to explain the system
-- `TODO.md` and `CHANGELOG.md` clearly disagree with the current architecture
+- `current-work.md` clearly conflicts with the current repo state
+- `CHANGELOG.md` clearly disagrees with the current architecture
 - the relevant area has no usable task history even though the Spec surface implies it should
 - a new feature request exposes that the current Spec surface no longer explains how the project should be extended
 
@@ -176,8 +167,8 @@ Use targeted reads instead of broad scans.
 ```powershell
 Get-Content spec/ARCHITECTURE.md
 Select-String -Path spec/ARCHITECTURE.md -Pattern '^#|^##|module|flow|route|interface|stack|runtime|database|service|command'
-Select-String -Path spec/TODO.md -Pattern '#NNN|#TOD-|Backlog|TODO|In Progress|Done'
-Select-String -Path spec/CHANGELOG.md -Pattern '#NNN|#TOD-|shipped|released|deferred|feature'
+Get-Content spec/current-work.md
+Select-String -Path spec/CHANGELOG.md -Pattern '^##|^###|Commit:|Checkpoint|Unreleased|feat|fix|docs|chore'
 Get-ChildItem spec/docs -File | Sort-Object Name
 ```
 

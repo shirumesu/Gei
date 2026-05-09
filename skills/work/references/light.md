@@ -34,7 +34,9 @@ Light does not create, initialize, read-order, or maintain `spec/` by default.
 
 `spec/current-work.md` is not a durable Memo document. Light may create, overwrite, close, or clear it as lifecycle state.
 
-If the work reveals information that may belong in durable project memory, such as a routing change, required command, TODO movement, architecture change, shipped outcome, or repeatable pitfall, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists and invoke `memo` for the triggered event before final handoff. If the user explicitly declines Memo persistence, finish the light task and state the unrecorded durable note.
+If the work changes relevant files, invoke `memo` for anchor reconciliation before final handoff so `spec/CHANGELOG.md` records the closed work under `Unreleased`.
+
+If the work reveals information that changes routing, required commands, architecture, shipped outcome, or checkpoint state, mark `Durable record needed: yes` in `spec/current-work.md` when an anchor exists and invoke `memo` for the triggered event before final handoff. If the user explicitly declines Memo persistence, finish the light task and state the unrecorded durable note.
 
 ## Default Loop
 
@@ -82,5 +84,5 @@ Do not treat the task as complete until all of the following are true:
 3. The broader affected verification passed when the blast radius required it.
 4. The main thread completed its own task-fit and code-quality review.
 5. Release checks ran and passed if the task was a release task.
-6. `spec/current-work.md` was closed, cleared, or handed off to `memo`.
+6. `spec/current-work.md` was reconciled through `memo` when relevant files changed, then closed, cleared, or handed off.
 7. The next decision is handed back to the user with clear evidence.

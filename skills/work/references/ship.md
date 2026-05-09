@@ -68,7 +68,7 @@ Make sure:
 
 - completed items are actually complete
 - unchecked items are either finished or explicitly changed/deferred with a reason
-- deferred work is reflected through Memo when the user approved or the spec-backed task requires that update
+- any intentionally unfinished scope is stated in the release notes or final handoff
 
 Do not ship with silent drift between code and spec.
 
@@ -76,7 +76,7 @@ If there is no active spec-backed task, mark spec parity as `not applicable` and
 
 ### 5. Check version alignment
 
-Use SemVer tags:
+Use SemVer tags when the project has a version scheme or the user asks for a version:
 
 - `vMAJOR.MINOR.PATCH`
 
@@ -94,7 +94,7 @@ Confirm the chosen version is consistent across:
 - package metadata
 - docs or changelog entries that expose the version
 
-If the repo has no version files, say so explicitly and recommend the tag action only.
+If the repo has no fixed version scheme, do not invent one. Recommend a changelog checkpoint such as `Checkpoint YYYY-MM-DD` instead of a version tag unless the user explicitly asks for a tag.
 
 ### 6. Return the release decision to the user
 

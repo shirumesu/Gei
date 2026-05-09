@@ -63,7 +63,7 @@ The full starter template is `references/templates/OVERVIEW.template.md`.
 - Keep the file short enough to read before `ARCHITECTURE.md`.
 - State facts that explain the project before its structure.
 - Link to `ARCHITECTURE.md` for modules, flows, interfaces, and impact paths.
-- Link to `TODO.md`, `MEMORY.md`, `CHANGELOG.md`, and relevant `spec/docs/` files by role, not by copying their contents.
+- Link to `current-work.md`, `CHANGELOG.md`, and relevant `spec/docs/` files by role, not by copying their contents.
 - Keep `Technology Baseline` to stable maintenance facts: runtime, frameworks, package manager, build/test/typecheck commands, and platform assumptions.
 - Do not record long provider lists, full dependency inventories, implementation details, or task diary notes.
 

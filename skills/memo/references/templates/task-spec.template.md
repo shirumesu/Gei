@@ -5,7 +5,6 @@
 - Spec ID: [#NNN]
 - Status: Draft | Approved | In Progress | Shipped
 - Owner:
-- Related TODOs:
 
 ## Background
 
@@ -89,7 +88,7 @@ Expected: `PASS`
 Run: `[exact command]`
 Expected: `[exact passing signal]`
 
-- [ ] **Step 6: Sync spec and memo if required**
+- [ ] **Step 6: Sync spec if required**
 
 Update: `[exact files to update or "none"]`
 Expected: `[what changed and why]`
@@ -100,17 +99,3 @@ Expected: `[what changed and why]`
 git add [exact files]
 git commit -m "[type]: [summary]"
 ```
-
-#### Task 2: [Concrete task name]
-
-Repeat the full task block above for each additional atomic task. Keep exact files, commands, expected outputs, implementation details, verification, and memo sync instructions.
-
-## Section 2: [Milestone state]
-
-**Checkpoint:** [Describe the next reviewable or releasable project state this section reaches.]
-
-### Phase 2: [Independent worker-sized unit]
-
-#### Task 3: [Concrete task name]
-
-Repeat the full task block above.

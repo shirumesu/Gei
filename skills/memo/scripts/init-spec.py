@@ -10,8 +10,6 @@ from pathlib import Path
 TEMPLATE_MAP = {
     "OVERVIEW.template.md": "spec/OVERVIEW.md",
     "ARCHITECTURE.template.md": "spec/ARCHITECTURE.md",
-    "TODO.template.md": "spec/TODO.md",
-    "MEMORY.template.md": "spec/MEMORY.md",
     "CHANGELOG.template.md": "spec/CHANGELOG.md",
     "task-spec.template.md": "spec/docs/#001-work.md",
 }
@@ -39,8 +37,6 @@ CONFLICT_MARKERS = [
     "plandocs",
     "OVERVIEW.md",
     "ARCHITECTURE.md",
-    "TODO.md",
-    "MEMORY.md",
     "CHANGELOG.md",
 ]
 

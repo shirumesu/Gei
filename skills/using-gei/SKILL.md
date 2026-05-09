@@ -113,7 +113,7 @@ If no skill is explicitly requested, choose the first downstream skill by the us
 
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
-- Durable project memory, spec files, TODO state, documentation maintenance, or alignment checks -> `memo`
+- Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - Interface, visual artifact, layout, poster, deck, prototype, or visual direction -> `design`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
 - No matching skill -> exit Gei and answer normally, or use the appropriate non-skill if one applies.
@@ -131,7 +131,7 @@ Examples:
 - "I want to add a feature; check how another project designed it" -> `using-gei` -> `consider`
   - Feature planning is the primary objective. `consider` may invoke research if external examples are needed.
 - "Release a new version" -> `using-gei` -> `work`
-  - Release execution is the primary objective. `work` should gather project context first and may invoke `memo` if documentation, TODOs, specs, or durable memory need updates.
+  - Release execution is the primary objective. `work` should gather project context first and may invoke `memo` if current-work, changelog, spec, or architecture updates are needed.
 - "Check whether the current system matches the alignment docs" -> `using-gei` -> `memo`
   - Documentation alignment is the primary objective.
 - "Hi" -> exit Gei and answer normally.

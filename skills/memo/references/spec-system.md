@@ -2,17 +2,17 @@
 
 ## Purpose
 
-The `spec/` directory is the durable memory surface for the project.
+The `spec/` directory is the durable project state surface for agent work.
 
 Future agents should be able to answer three questions from it before reading much code:
 
 1. What does this project do?
 2. What is changing now?
-3. What hard-won knowledge must not be rediscovered?
+3. What changed recently?
 
 ## Version Control Boundary
 
-By default, `spec/` is internal agent and project memory, not product source. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in. If `spec/` needs recovery history, use a separate repository or private backup surface.
+By default, `spec/` is internal agent and project state, not product source. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in. If `spec/` needs recovery history, use a separate repository or private backup surface.
 
 ## Folder Contract
 
@@ -20,13 +20,9 @@ By default, `spec/` is internal agent and project memory, not product source. Do
 spec/
   OVERVIEW.md
   ARCHITECTURE.md
-  TODO.md
-  MEMORY.md
   CHANGELOG.md
   current-work.md
   archive/
-    TODO.md
-    MEMORY.md
     CHANGELOG.md
   test/
   docs/
@@ -37,27 +33,26 @@ spec/
 
 `current-work.md` is optional lifecycle state. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies.
 
+`spec/docs/` is optional execution context. Create task specs only for explicit plans, handoffs, or complex spec-backed work.
+
 ## Read Order
 
 For a new task in an established project, use this order:
 
 1. `spec/OVERVIEW.md`
 2. `spec/ARCHITECTURE.md`
-3. `spec/TODO.md`
-4. the newest relevant combined spec-task file in `spec/docs/`
-5. related test files in `spec/test/` when the task includes verification work
-6. related `MEMORY.md` entries
-7. the latest related `CHANGELOG.md` entries
+3. `spec/current-work.md` when it exists and may describe active or recent work in the same area
+4. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
+5. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
+6. related test files in `spec/test/` when the task includes verification work
 
 Read code after that only where the docs are insufficient or possibly stale.
 
 For an archive cleanup pass, read in this order:
 
-1. `spec/TODO.md`
-2. `spec/CHANGELOG.md`
-3. `spec/MEMORY.md`
-4. existing files in `spec/archive/`
-5. the current spec-task file only if it is needed to classify a borderline entry
+1. `spec/CHANGELOG.md`
+2. existing files in `spec/archive/`
+3. the current spec-task file only if it is needed to classify a borderline entry
 
 During archive cleanup, do not read code unless the user asked for it or the docs are too stale to classify an entry safely.
 
@@ -67,11 +62,9 @@ When creating the system for the first time:
 
 1. `OVERVIEW.md`
 2. `ARCHITECTURE.md`
-3. `TODO.md`
-4. `MEMORY.md`
-5. `CHANGELOG.md`
-6. `test/`
-7. the first combined spec-task file at `spec/docs/#001-{work-description}.md`
+3. `CHANGELOG.md`
+4. `test/`
+5. the first combined spec-task file at `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task
 
 When updating during normal work, touch only the files required by the current event.
 
@@ -81,7 +74,6 @@ When updating during archive cleanup, create `spec/archive/` only if content is 
 
 - Spec ids: `#001`, `#002`, `#003`
 - Task files: `#NNN-{work-description}.md`
-- TODO ids: `#TOD-001`, `#TOD-002`, `#TOD-003`
 - Slugs: lowercase hyphen-case
 
 If the project already uses another stable pattern, preserve the old pattern.
@@ -92,7 +84,7 @@ If the project already uses another stable pattern, preserve the old pattern.
 
 ## Routing Rules
 
-Every `OVERVIEW.md` should include a short document map that tells future agents which spec file to read for project context, structure, current work, hazards, and shipped outcomes.
+Every `OVERVIEW.md` should include a short document map that tells future agents which spec file to read for project context, structure, active work, and closed outcomes.
 
 Every `ARCHITECTURE.md` should include a short routing section that tells future agents:
 
@@ -103,7 +95,7 @@ Every `ARCHITECTURE.md` should include a short routing section that tells future
 
 ## Update Principle
 
-Keep the memory system event-driven.
+Keep the spec system event-driven.
 
 Bad pattern:
 
@@ -111,9 +103,9 @@ Bad pattern:
 
 Good pattern:
 
-- update the combined spec-task file when scope changes
-- update memory when a pitfall, rejection, or version-specific hazard becomes reusable
-- update the changelog when a task ships
+- update `current-work.md` for active file-changing work
+- update `CHANGELOG.md` when file-changing work closes
+- update a combined spec-task file when an explicit spec-backed task changes scope
 - update architecture only when structure changes
 - run an archive cleanup when closed history starts to hide current context
 
@@ -128,7 +120,7 @@ Use these rules:
 1. Start by mapping the minimum affected files.
 2. Prefer focused edits to existing files over broader rewrites.
 3. Expand into new files or larger refactors only when the smaller change cannot satisfy the requirement cleanly.
-4. If the work is still too large, split it into later phases or TODO items.
+4. If the work is still too large, split it into separate approved task specs or phases.
 
 ## Section Phase Task Hierarchy
 

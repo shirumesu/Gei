@@ -4,7 +4,7 @@ Use this contract when creating or updating `spec/docs/#NNN-{work-description}.m
 
 ## Responsibility
 
-The combined spec-task file holds scoped context, chosen direction, and concrete execution plan for one bounded task. It is not a diary.
+The combined spec-task file holds scoped context, chosen direction, and concrete execution plan for one bounded task. It is not a diary, backlog, changelog, or general-purpose notes ledger.
 
 The file may be long when a future agent needs detailed instructions to execute correctly. Prefer enough detail to remove guesswork over artificial brevity. Long task specs must stay structured, searchable, and executable.
 
@@ -24,7 +24,6 @@ Use this structure:
 - Spec ID: [#NNN]
 - Status: Draft | Approved | In Progress | Shipped
 - Owner:
-- Related TODOs:
 
 ## Background
 
@@ -88,7 +87,7 @@ Apply these rules:
 1. Prefer the smallest viable file set.
 2. Prefer modifying existing focused files before introducing new files, modules, or layers.
 3. Do not include unrelated refactors in the same task just because files are nearby.
-4. If the full goal is too large for one bounded change, split it into later phases or TODO items.
+4. If the full goal is too large for one bounded change, split it into separate approved task specs or phases.
 5. Within each phase, tasks should be atomic enough that an agent can execute them without further decomposition.
 6. If two work units do not need the same close context, they do not belong in the same phase.
 
@@ -107,4 +106,4 @@ Apply these rules:
 - Goal, constraints, relevant files, and verification are explicit.
 - Sections, phases, and tasks are meaningful.
 - The smallest coherent change is visible.
-- TODO links and evidence are current.
+- Evidence and status are current.
