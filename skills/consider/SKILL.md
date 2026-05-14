@@ -20,6 +20,8 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 - Spend roughly 80% of the effort on design. The simpler the project looks, the more likely hidden assumptions can waste the work.
 - Every project must go through enough design discussion to make the key decisions explicit.
+- Keep the design as broad and deep as the task truly requires, but do not expand it speculatively. Every added subsystem, abstraction, option, or future-proofing choice must be tied to a stated requirement, risk, constraint, or approved long-term direction.
+- When approaches conflict, separate them and recommend one instead of blending incompatible assumptions into a compromise design.
 
 ### No Implementation Before Approval
 
