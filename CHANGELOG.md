@@ -2,6 +2,15 @@
 
 This file records public release notes for Gei.
 
+## v0.3.2 - 2026-5-14
+
+### 新增
+- `AGENTS.md`：给出示例 `AGENTS.md`
+
+### 优化
+- `consider`：增强思考强度，新增输出前的自我审查。而不只是提供即刻想出的方案
+- `memo`: 重新安排 spec-plan 结构，提供明确的实现细节，具体代码，验证行为，不再以冗长的section/phase/task三部分区分，合并为 section
+
 ## v0.3.1 - 2026-5-9
 
 ### 新功能

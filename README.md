@@ -29,6 +29,10 @@
 | 想法讨论 | `using-gei` → `consider` → `work` | 可以显示用`consider`，会更明确 |
 | 对外搜索 | `using-gei` → `consider(可选)` → `see` | see要求澄清歧义、使用权威、主流的数据并要求一定的压力测试，提供更严谨的搜索结果 |
 
+## AGENTS.md
+
+个人的工作流，将会同步我自己使用的根目录级 `~/.codex/AGENTS.md`，用作参考和示例。  
+
 ## 安装
 
 ### 付费购买 Token 安装
@@ -73,6 +77,10 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 #### git 安装
 
 也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新，反而会更方便？
+
+#### AGENTS.md
+
+由于仅作参考示例，不会包含在发布 release 包，请[单独查看](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1)，如果有需要可以复制替换或者增强自己的 `AGENTS.md` 或是 `CLAUDE.md`  
 
 ## 已知问题
 
