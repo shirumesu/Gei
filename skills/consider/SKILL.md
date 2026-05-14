@@ -128,6 +128,8 @@ Use comparable products and similar implementations to test whether the design i
 
 When the design can reasonably go in multiple directions, present 2-3 approaches with tradeoffs and your recommendation. The user is choosing a direction here, **not** approving implementation. Ask which approach to use, then **STOP**.
 
+Before presenting a full design, notice which decisions actually shape the result. When a real fork would change the design, prefer turning it into a small set of credible options with a recommendation and tradeoff. Do not manufacture alternatives just to satisfy process; if only one direction is credible, say why and continue. Keep minor, reversible details as assumptions or implementation notes instead of making the user approve noise.
+
 **Exit only when:**
 
 - Feasibility has been checked enough for the design scale.
@@ -159,6 +161,10 @@ Before approval, self-review:
 - Are there placeholders, contradictions, or ignored details from earlier discussion?
 - Would the three most important remaining questions still change the design decisively?
 - Can success be verified concretely?
+
+Pressure-test the design before asking for approval. Look for likely user objections, scope drift, mechanical misreads by future agents, unjustified complexity, hidden coupling, missing failure behavior, and vague verification. This is thinking work, not a response template: in the response, focus on the points that change the design, require a user decision, or would materially affect implementation.
+
+For instruction, skill, template, prompt, spec, or agent-workflow designs, focus on the behavior the wording should reliably produce. Consider intended behavior, non-goals, likely over-application or under-application, interaction with existing rules, examples, and user burden when they matter. Avoid adding rigid required fields unless the absence of that field caused a real failure or is likely to cause repeated failure.
 
 If self-review finds a blocking hole, ask the next blocking question or revise the design. Do not continue to approval.
 
@@ -206,6 +212,8 @@ Only full-design approval allows handoff. Full-design approval means the user cl
 - Approving a mockup, example, or single section only.
 
 When the user gives partial approval, acknowledge the approved part, update or continue the design, and stay in the current phase. **NEVER** treat partial approval as permission to implement.
+
+After a full design has been presented, classify follow-up discussion by impact. If the user is revising one assumption, wording choice, section, rule, boundary, or example, keep the discussion focused on that point, state the exact delta, and say whether the rest of the design still stands. Avoid restating the full design unless the change affects the goal, scope, selected approach, architecture, success standard, or acceptance check, or the user asks for the complete revised design.
 
 **Exit only when:**
 
