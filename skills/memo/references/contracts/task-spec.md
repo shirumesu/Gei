@@ -4,7 +4,7 @@ Use this contract when creating or updating `spec/docs/#NNN-{work-description}.m
 
 ## Responsibility
 
-The combined spec-task file holds scoped context, chosen direction, and concrete execution plan for one bounded task. It is not a diary, backlog, changelog, or general-purpose notes ledger.
+The combined spec-task file holds scoped context, chosen direction, and a concrete execution plan for one bounded task. It is not a diary, backlog, changelog, or general-purpose notes ledger.
 
 The file may be long when a future agent needs detailed instructions to execute correctly. Prefer enough detail to remove guesswork over artificial brevity. Long task specs must stay structured, searchable, and executable.
 
@@ -41,42 +41,71 @@ Use this structure:
 
 # Execution Plan
 
-**Goal:**
-**Architecture:**
-**Tech Stack:**
-**Minimal Change Strategy:**
+## Plan Contract
 
-## Section 1: [Milestone state]
+- Execution mode:
+- Checkpoint unit:
+- Phase/Task:
+- Approval gates:
+
+## File Structure Map
+
+- `path/to/file`
+  Responsibility:
+  Interfaces:
+  Depends on:
+  Used by:
+
+## Section 1: [Reviewable state]
 
 **Checkpoint:**
 
-### Phase 1: [Independent worker-sized unit]
+### Implementation Details
 
-#### Task 1: [Concrete task name]
+#### [Implementation unit]
 
-**Files:**
-- Create:
-- Modify:
-- Test:
-- Docs:
+Files:
+- `path/to/file`
 
-- [ ] **Step 1:**
+Interfaces:
+- `symbolOrContract(input): output`
+
+Code:
+```text
+[Concrete code, type shape, mapping, branch logic, command, or pseudocode]
+```
+
+Failure behavior:
+- [Specific error, fallback, unsupported state, rollback path, or `none`.]
+
+### Verification
+
+- `[exact command or manual check]`
+  Expected: [behavior-specific result]
+
+### Spec Coverage Check
+
+- [Goal, constraint, gate, or risk]: covered by [implementation, verification, gate, or out-of-scope note].
+
+## Deferred Work
+
+- [Approval-dependent, optional, or future work item]: [condition required before it becomes executable].
 ```
 
 The full starter template is `references/templates/task-spec.template.md`.
 
 ## Planning Hierarchy
 
-Organize the execution plan with three levels:
+`Section` is the only required execution-plan level.
 
-1. **Section**
-   A milestone checkpoint owned by the main thread. Use it when several phases move the project into a meaningful reviewable state such as "project skeleton is ready for first review" or "main feature set is complete".
-2. **Phase**
-   One independent worker-sized unit inside a section. It may depend on stated results from earlier phases, but not on hidden context. Write it so one worker can execute from the spec file itself.
-3. **Task**
-   The smallest indivisible planning unit. A task should be concrete enough to execute directly. Tasks inside one phase may share local context.
+A section is a checkpoint owned by the main thread. Each section must move the current bounded task into a reviewable state that can be inspected before continuing, such as "provider is selectable", "English audio plays in app", or "default migration is approved and applied".
 
-Do not use sections as decorative grouping. Each section should correspond to a real state transition in the project. Do not use phases as loose buckets.
+`Phase` and `Task` are optional organization tools. Use them only when they reduce ambiguity inside a section:
+
+- Use a `Phase` when a section has a meaningful internal checkpoint.
+- Use a `Task` when a phase or section has several implementation units that are easier to scan separately.
+- Do not create `Phase`, `Task`, or `Step` wrappers just to satisfy a template.
+- If a phase or task only repeats the section goal, delete it and write the implementation details directly under the section.
 
 ## Minimal Change Rule
 
@@ -87,14 +116,51 @@ Apply these rules:
 1. Prefer the smallest viable file set.
 2. Prefer modifying existing focused files before introducing new files, modules, or layers.
 3. Do not include unrelated refactors in the same task just because files are nearby.
-4. If the full goal is too large for one bounded change, split it into separate approved task specs or phases.
-5. Within each phase, tasks should be atomic enough that an agent can execute them without further decomposition.
-6. If two work units do not need the same close context, they do not belong in the same phase.
+4. If the full goal is too large for one bounded change, split it into separate approved task specs or section checkpoints.
+5. Each section must produce a reviewable state. Do not split work below section level unless the split improves clarity.
+6. If two work units do not share close context or a checkpoint, they do not belong in the same section.
+
+## Live Plan Standard
+
+A Draft task spec may describe direction, constraints, and open implementation choices. Before a task spec becomes Approved or In Progress, its `Execution Plan` must be implementation-grade: an agent with no context beyond this file should be able to execute each section without redesigning the work.
+
+A live execution plan must include:
+
+- **Plan Contract:** execution mode, checkpoint unit, optional phase/task policy, and approval gates.
+- **File Structure Map:** every file that will be created or materially modified, with responsibility, interfaces, dependencies, and consumers.
+- **Section Checkpoints:** reviewable project states, not decorative headings.
+- **Implementation Details:** concrete code blocks, type shapes, mappings, branch logic, commands, or pseudocode for the core changes.
+- **Failure Behavior:** exact errors, fallbacks, unsupported states, rollback paths, or `none` where no failure behavior is relevant.
+- **Verification:** exact commands or manual checks with behavior-specific expected results.
+- **Spec Coverage Check:** each important goal, constraint, gate, or risk is covered by implementation, verification, an approval gate, or an out-of-scope note.
+- **Deferred Work:** approval-dependent, optional, or future work that is not part of the current bounded execution sections.
+
+Execution sections must belong to the current bounded task. Do not write deferred, optional, approval-dependent, or future expansion work as ordinary sections unless the current task is explicitly to execute that work. Put that material under `Deferred Work` with the condition required before it becomes executable.
+
+For code-changing implementation units, include concrete code blocks for the core change. Use pseudocode only when a third-party API, generated shape, or runtime behavior is still uncertain; name the uncertainty next to the pseudocode.
+
+Verification expected results must say what behavior was proven. Do not write low-signal expectations such as `exit code 0`, `PASS`, or `command succeeds` unless that exact signal is the contract being tested.
+
+## Plan Failure Patterns
+
+Do not leave these patterns in a live plan:
+
+- `TBD`, `TODO`, `later`, `if needed`, `as appropriate`, or other unresolved placeholders.
+- `handle edge cases` without naming the edge cases and expected behavior.
+- `write tests` without test names, fixtures, assertions, or a specific manual substitute.
+- `implement support` without interfaces, input/output behavior, implementation details, and verification.
+- `similar to previous`; repeat the required details because sections may be read out of order.
+- Optional architecture decisions hidden in execution work, such as `consider creating` or `choose whether to split`.
+- Steps that say what to do without showing enough code, pseudocode, commands, or expected results to do it.
+- Generic verification expectations such as `exit code 0` when a behavior-specific result is available.
+- Deferred, optional, approval-dependent, or future expansion work written as ordinary execution sections.
 
 ## Write Rules
 
 - Replace every bracketed slot before execution.
-- A live plan must contain exact files, commands, code or logic descriptions, and expected outputs.
+- Keep the spec context and execution plan aligned; if execution changes the selected direction, constraints, or gates, update the smallest affected part of the spec context.
+- Put file-boundary decisions in the `File Structure Map` before writing implementation details.
+- Prefer dense implementation details over protocol-heavy checklists.
 - Include detailed examples, pseudocode, or small code blocks when they prevent implementation ambiguity.
 - For complex work, include impacted files, call paths, interfaces, rollback notes, edge cases, and verification commands.
 - Use spec-managed tests under `spec/test/` only when the task needs durable fixtures or verification assets.
@@ -103,7 +169,14 @@ Apply these rules:
 
 ## Completion Check
 
-- Goal, constraints, relevant files, and verification are explicit.
-- Sections, phases, and tasks are meaningful.
+- Goal, constraints, relevant files, interfaces, failure behavior, and verification are explicit.
+- The file structure map explains file responsibilities and boundaries.
+- Each section has a reviewable checkpoint.
+- Phase and task levels are omitted unless they reduce ambiguity.
+- Code-changing implementation units include concrete code blocks or justified pseudocode.
+- Verification expectations are behavior-specific.
+- Spec coverage checks connect important goals, constraints, gates, and risks to implementation, verification, deferral, or out-of-scope notes.
+- Deferred, optional, approval-dependent, and future expansion work is separated from current execution sections.
 - The smallest coherent change is visible.
+- Live plans contain no plan failure patterns.
 - Evidence and status are current.

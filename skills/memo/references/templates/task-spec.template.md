@@ -8,7 +8,7 @@
 
 ## Background
 
-Describe the current situation and why this work exists.
+Describe the current situation and why this work exists. Include only facts, constraints, and evidence that affect the task.
 
 ## Goal
 
@@ -16,7 +16,7 @@ State the task outcome in one precise paragraph.
 
 ## Architecture Summary
 
-State the intended approach in two or three precise paragraphs. Name the affected boundaries, data flow, or module responsibilities.
+State the intended approach in two or three precise paragraphs. Name the affected boundaries, data flow, module responsibilities, and any important decision already made.
 
 ## Expected Changes
 
@@ -37,65 +37,74 @@ State the intended approach in two or three precise paragraphs. Name the affecte
 
 # Execution Plan
 
-> For agentic workers: replace every bracketed slot before execution. A live plan must contain exact files, commands, code, and expected outputs.
+## Plan Contract
 
-**Goal:** [One sentence describing what this work delivers]
+- Execution mode: single-thread Codex execution with section checkpoints.
+- Checkpoint unit: Section.
+- Phase/Task: optional; use only when they reduce ambiguity.
+- Approval gates: [User decision or `none`.]
 
-**Architecture:** [Two or three sentences about the implementation shape]
+## File Structure Map
 
-**Tech Stack:** [Key languages, frameworks, tools, and test runners]
+- `path/to/file.ts`
+  Responsibility: [What this file owns.]
+  Interfaces: [Exports, functions, config keys, commands, routes, or `none`.]
+  Depends on: [Important local files, assets, libraries, or `none`.]
+  Used by: [Callers, routes, UI surfaces, commands, or `none`.]
 
-**Minimal Change Strategy:** [Describe the smallest coherent file set and the smallest behavioral change that can satisfy the goal. Name what this task will not rewrite.]
+## Section 1: [Reviewable State]
 
-## Section 1: [Milestone state]
+**Checkpoint:** [Concrete project state that can be inspected before continuing.]
 
-**Checkpoint:** [Describe the reviewable project state reached when this section is complete.]
+### Implementation Details
 
-### Phase 1: [Independent worker-sized unit]
+#### [Implementation Unit]
 
-#### Task 1: [Concrete task name]
+Files:
+- `path/to/file.ts`
 
-**Files:**
-- Create: `exact/path/to/new-file`
-- Modify: `exact/path/to/existing-file`
-- Test: `spec/test/exact-path-to-test-file`
-- Docs: `spec/...` or `none`
+Interfaces:
+- `functionName(input): output`
+- `CONFIG_KEY`
 
-- [ ] **Step 1: Write the failing test**
-
-```text
-[Insert the exact test case, fixture, and assertion here]
+Code:
+```ts
+// Concrete code, type shape, mapping, branch logic, or focused pseudocode.
+// If this is pseudocode because an API is uncertain, name the uncertainty here.
 ```
 
-- [ ] **Step 2: Run the test and confirm the failure**
+Failure behavior:
+- [Specific error, fallback, unsupported state, rollback path, or `none`.]
 
-Run: `[exact command]`
-Expected: `FAIL with [exact error or failure mode]`
+#### [Another Implementation Unit]
 
-- [ ] **Step 3: Write the minimal implementation**
+Files:
+- `path/to/other-file.ts`
 
-```text
-[Insert the exact code or logic change here]
+Interfaces:
+- `anotherFunction(input): output`
+
+Code:
+```ts
+// Concrete code or focused pseudocode for the core change.
 ```
 
-- [ ] **Step 4: Run the targeted test and confirm it passes**
+Failure behavior:
+- [Specific behavior or `none`.]
 
-Run: `[exact command]`
-Expected: `PASS`
+### Verification
 
-- [ ] **Step 5: Run broader verification**
+- `[exact command]`
+  Expected: [Behavior-specific result. Do not write only `exit code 0`, `PASS`, or `command succeeds`.]
 
-Run: `[exact command]`
-Expected: `[exact passing signal]`
+- Manual: [Exact app path, UI flow, file check, or observable runtime check.]
+  Expected: [Observable result.]
 
-- [ ] **Step 6: Sync spec if required**
+### Spec Coverage Check
 
-Update: `[exact files to update or "none"]`
-Expected: `[what changed and why]`
+- [Goal or constraint]: covered by [implementation detail, verification item, approval gate, or out-of-scope note].
+- [Risk or gate]: covered by [implementation detail, verification item, approval gate, or out-of-scope note].
 
-- [ ] **Step 7: Commit**
+## Deferred Work
 
-```bash
-git add [exact files]
-git commit -m "[type]: [summary]"
-```
+- [Approval-dependent, optional, or future work item]: [condition required before it becomes executable].
