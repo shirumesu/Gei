@@ -25,8 +25,6 @@ If a blocking requirement is still unclear after a small context read, stop and 
 
 - **Prefer a failing test first.** If the repo already has a usable test harness and the behavior can be tested cleanly, write the failing test before code. If the task is docs, config, release work, or the repo has no practical test path for this change, define the smallest concrete verification first and state why.
 - Do not leave `TODO`, `TBD`, placeholder branches, or half-implemented logic in production code.
-- Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
-- Do not claim "done", "fixed", or "verified" without command evidence in the current conversation.
 
 ## Spec Boundary
 

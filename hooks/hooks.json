@@ -1,0 +1,18 @@
+{
+  "description": "Inject the Gei router at session start so skill routing is present from the first turn.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "statusMessage": "Loading Gei routing context",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

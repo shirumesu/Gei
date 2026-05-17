@@ -34,9 +34,6 @@ During execution, invoke `memo` only when a Memo event is actually triggered, su
 - **No production code without a failing test first.**
 - If code appears before the test, delete it and restart from RED.
 - Do not leave `TODO`, `TBD`, placeholder branches, or half-implemented logic in production code.
-- Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
-- Before any destructive action such as force push, production mutation, irreversible migration, or delete-heavy command, get a second human confirmation.
-- Do not claim "done", "fixed", or "verified" without command evidence in the current conversation.
 
 ## Execution Ledger
 

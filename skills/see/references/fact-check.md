@@ -33,27 +33,11 @@ Prefer these verdict labels:
 
 These labels are not decoration. They should reflect the evidence state, not just the tone of the answer.
 
-## Precision Levels
+## Precision Adjustments
 
-### Standard mode (`standard`)
-
-- Cross-check the core claim across multiple sources.
-- Collect the key material that directly supports or challenges the claim.
-- Keep any remaining uncertainty explicit if it does not change the main verdict.
-
-### Strict mode (`strict`)
-
-- Trace important points toward primary sources where possible.
-- Check whether the critical qualifiers are actually satisfied.
-- Run at least one reverse check against the most easily missed part of the claim.
-- If the support is mostly second-hand, do not assign an overconfident verdict.
-
-### Adversarial mode (`adversarial`)
-
-- Actively seek counterexamples and failure cases.
-- Check whether the authority chain is genuine or just another secondary summary.
-- Identify mirrored paraphrases, circular sourcing, recycled screenshots, and marketing copy presented as announcements.
-- Try to break the claim first. Increase confidence only after the counterevidence pass fails to break it.
+- `standard`: cross-check the core claim across multiple sources and keep remaining uncertainty explicit when it does not change the verdict.
+- `strict`: trace important points toward primary sources, verify critical qualifiers, and run at least one reverse check against the easiest-to-miss part of the claim.
+- `adversarial`: actively seek counterexamples, mirrored paraphrases, circular sourcing, recycled screenshots, and fake authority chains before increasing confidence.
 
 ## Answer-Specific Rules
 

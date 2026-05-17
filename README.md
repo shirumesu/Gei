@@ -1,4 +1,18 @@
-# Gei - 芸
+<p align="center">
+  <img width="160" src="assets/icon.svg" alt="Gei icon" />
+</p>
+
+<h1 align="center">Gei ~ 芸</h1>
+
+<p align="center">
+  面向 Codex 的全套 AI Skill。涵盖设计、文档维护、项目管理、测试、编码、审查、发布、搜索等各种场景。
+</p>
+
+<p align="center">
+  <a href="README.en.md">English</a>
+  |
+  <span>简体中文</span>
+</p>
 
 现在的很多工程 skill 都太重了，并且基于 Claude Code 生态有的时候对 Codex 兼容并不完善。  
 因此我写下了这个 skill  
@@ -47,11 +61,23 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 > 预计节省约 10000 Token
 
-#### Codex 插件
+#### Codex / Codex CLI
 
-在 [release](https://github.com/shirumesu/gei/releases/latest) 下载 `Gei-codex-plugin.zip`。
+对 `Codex` 和 `Codex CLI`，可以按 **plugin** 方式安装。  
 
-#### Skills
+```shell
+codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agents/plugins
+```
+
+之后在 Codex app 的 Plugins 页面，或 Codex CLI 的 `/plugins` 中安装并启用 `gei`。
+
+当前阶段如果你的 Codex 版本、marketplace 内容或环境暂时还不能完整走通这条路径，可以按顺序尝试：
+
+1. 更新 `~/.codex/config.toml` 中的 marketplace / plugin 配置；
+2. 把插件目录直接放到 `~/.codex/plugins/cache/gei/` 下，让 Codex 先识别本地插件；
+3. 最后再退回 release 包里的 `Gei-codex-plugin.zip` 手动解压。
+
+#### Codex非Plugin / Claude Code / 其他 Agent
 
 在 [release](https://github.com/shirumesu/gei/releases/latest) 下载 `Gei-skills.zip`，把需要的 skill 目录解压到你的 skills 目录里。  
 大部分Agent可以接受子目录递归寻找，因此你的安装目录也可以看起来像这样:  
@@ -74,7 +100,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 甚至再套一层 `Gei/skills/<skill>` 也可以
 
-#### git 安装
+#### git 安装（Claude Code / 其他 Agent）
 
 也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新，反而会更方便？
 

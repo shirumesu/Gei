@@ -120,32 +120,33 @@ Use these rules:
 1. Start by mapping the minimum affected files.
 2. Prefer focused edits to existing files over broader rewrites.
 3. Expand into new files or larger refactors only when the smaller change cannot satisfy the requirement cleanly.
-4. If the work is still too large, split it into separate approved task specs or phases.
+4. If the work is still too large, split it into separate approved task specs or section checkpoints.
 
-## Section Phase Task Hierarchy
+## Section-Centered Planning
 
-Structure each combined spec-task file with three levels:
+`Section` is the only required execution-plan level.
 
-1. **Section**
-   Use for a milestone checkpoint owned by the main thread. A section should mean the project can be reviewed at a meaningful intermediate state such as "skeleton complete" or "main feature set complete".
-2. **Phase**
-   Use for one independent worker-sized unit within that section. A phase may depend on the declared results of earlier phases, but it should not depend on their hidden context. Everything needed to execute the phase should be available from the spec file itself.
-3. **Task**
-   Use for the smallest indivisible instruction. Tasks inside one phase may share local context and should follow the same concrete task structure as `writing-plans`.
+A section is a reviewable checkpoint owned by the main thread. It should move the bounded task into a meaningful project state that can be inspected before continuing, such as "minimum language gate is proven", "provider is selectable", or "English frontend audio plays in app".
+
+`Phase` and `Task` are optional structure inside a section. Use them only when they reduce ambiguity:
+
+- Use a `Phase` when one section has a meaningful internal checkpoint.
+- Use a `Task` when a phase or section contains several implementation units that become easier to scan when named separately.
+- Omit both when the section already carries the work cleanly.
+- Delete wrappers that only repeat the section goal instead of adding executable clarity.
 
 Good pattern:
 
-- one section for "project skeleton ready for first review"
-- one phase for "initialize project"
-- one phase for "create placeholder files and complete the visible skeleton"
-- one task per indivisible instruction inside that phase, written with exact files and exact steps
+- one section for each reviewable state the project must reach
+- implementation details, failure behavior, verification, and coverage checks written directly inside that section
+- `Phase` or `Task` levels added only when they clarify a genuinely nested unit of work
 
 Bad pattern:
 
 - one section per tiny edit
-- one phase that mixes unrelated backend, frontend, and docs changes
-- one phase that only works if the worker already remembers detailed reasoning from another phase
-- one task that still says "and then handle the rest"
+- mandatory `Phase` or `Task` wrappers that only restate the section title
+- phases that mix unrelated backend, frontend, and docs changes
+- optional, approval-dependent, or future work written as ordinary executable sections
 
 ## Trigger Source
 

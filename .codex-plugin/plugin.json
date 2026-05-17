@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "description": "A compact, progressive-disclosure skill collection for agent work, research, design, and project state.",
   "author": {
     "name": "shirumesu",
@@ -9,30 +9,26 @@
   "homepage": "https://github.com/shirumesu/gei",
   "repository": "https://github.com/shirumesu/gei",
   "license": "MIT",
-  "keywords": [
-    "agent",
-    "skills",
-    "workflow",
-    "codex"
-  ],
+  "keywords": ["agent", "skills", "workflow", "codex"],
   "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Progressive skill routing for practical agent workflows.",
     "longDescription": "Gei packages a small set of skills for routing work, planning, research, design, and project state.",
     "developerName": "shirumesu",
     "category": "Productivity",
-    "capabilities": [
-      "Read",
-      "Write",
-      "Interactive"
-    ],
+    "capabilities": ["Read", "Write", "Interactive"],
     "websiteURL": "https://github.com/shirumesu/gei",
+    "privacyPolicyURL": "https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement",
+    "termsOfServiceURL": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
     "defaultPrompt": [
-      "Use Gei to route this task.",
-      "Use Gei Work for this coding task.",
-      "Use Gei Memo to update project state."
+      "How about adding a login feature for good?",
+      "Complete this plan and update the documentation.",
+      "update project state."
     ],
-    "brandColor": "#2563EB"
+    "brandColor": "#839f9f",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png"
   }
 }

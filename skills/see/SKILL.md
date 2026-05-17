@@ -1,6 +1,6 @@
 ---
 name: see
-description: "Use for search, reading, fact-checking, comparisons, exploratory summaries, how-to research, public-opinion sampling, cross-source synthesis, and writing research-backed notes or files. Trigger on requests such as 'compare ...', 'fact-check ...', 'look up ...', 'is there ...', 'can we confirm ...', 'how do I ...', 'what are people saying ...', 'check X / Reddit / Xiaohongshu ...', or 'summarize these sources ...'."
+description: "Use when the user wants external research or source-backed synthesis: search, reading, fact-checking, comparisons, exploratory summaries, how-to research, public-opinion sampling, cross-source synthesis, or research-backed notes/files. Trigger on requests such as 'compare ...', 'fact-check ...', 'look up ...', 'is there ...', 'can we confirm ...', 'how do I ...', 'what are people saying ...', 'check X / Reddit / Xiaohongshu ...', or 'summarize these sources ...'."
 ---
 
 # See

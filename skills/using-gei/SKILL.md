@@ -29,70 +29,17 @@ Only load one downstream skill at a time. If later context requires another skil
 
 `using-gei` starts lifecycle state; downstream skills enforce it. Do not ask a downstream skill to remember this file. Use `spec/current-work.md` as the short local state file.
 
-### Current Work Rule
+If the task may write files, publish, commit, or maintain project state, read `references/current-work.md` before the first file edit and satisfy that lifecycle contract. If the task cannot affect project state, no lifecycle reference is needed.
 
-If a task may write files, publish, commit, or maintain project state, it **MUST** have one of these before the first file edit:
-
-1. an existing `spec/current-work.md`
-2. a new micro-anchor in `spec/current-work.md`
-3. an explicit no-anchor exemption stated to the user
-
-User wording such as "small", "lightweight", "quick", "minor", or "ad hoc" does **not** bypass this rule when files may be changed.
-
-### Must Anchor
-
-Create or overwrite `spec/current-work.md` when any item is true:
-
-- the task changes existing project code, config, docs, skills, tests, or release files
-- more than one file may change
-- the user describes a goal instead of a mechanical one-line edit
-- the task may require tests, build, lint, release, commit, PR, or deployment
-- the workspace already has unclear uncommitted changes
-- the work may affect future agents' understanding
-- the user or AI is about to make a small, lightweight, quick, minor, or ad hoc file change
-
-### Allowed No-Anchor Exemptions
-
-Skip `spec/current-work.md` only when one item is true:
-
-- pure answer, explanation, translation, brainstorming, or summary with no file writes
-- pure inspect, read, or search with no file writes
-- one mechanical line edit in one temporary or personal file, with no project state impact
-- the user explicitly says not to record it, and the task does not touch release, commit, migration, deletion, configuration, or durable project docs
-
-When skipping, state the reason in this shape:
-
-```text
-No anchor: [specific exemption].
+- For the most part, following this life cycle: 
 ```
-
-### Micro-Anchor Format
-
-Use this minimum shape. Overwrite stale content at the start of a new anchored task unless the current task is explicitly resuming it.
-
-```md
-# Current Work
-
-- Id: `#W-YYYYMMDD-001`
-- Intent: <why this file-changing work is happening>
-- Started: YYYY-MM-DD
-- Expected scope: <files, directories, or "unknown until inspection">
-- Durable record needed: unknown | yes | no
-- Status: active | paused | closed
+1. recognizes user commands and loads only the most appropriate Skill
+2. Determine if you need access to current-work.md and maintain documentation for it
+3. Execute the task according to the Skill's requirements
+4. test, check, and verify that the task is complete
+5. if 2, close current-work.md
+6. use Skill $memo to maintain the documentation according to the task.
 ```
-
-Do not add `Author` or `Actor`.
-
-### Cleanup
-
-Close or clear `spec/current-work.md` at every phase boundary:
-
-- after a lightweight task finishes and verification is reported
-- before or after a release, publish, handoff, or version checkpoint
-- after Memo records a durable plan or shipped outcome
-- when starting an unrelated anchored task
-
-Prefer hard overwrite for a new task. Do not carry old current-work data forward by default.
 
 ## First-Hop Routing
 

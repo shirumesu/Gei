@@ -1,6 +1,6 @@
 ---
 name: work
-description: Use before any coding tasks. It routes the task into the correct execution flow and keeps only universal guardrails at the entry point.
+description: Use when the user wants coding execution such as implementation, bug fixing, tests, builds, refactors, reviews, releases, or other code-changing work; route the task into the correct execution flow while keeping only universal guardrails at the entry point.
 ---
 
 # Work

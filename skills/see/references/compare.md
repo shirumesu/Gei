@@ -21,28 +21,11 @@ The core job here is not "find the loudest opinion." Define the comparison dimen
 7. If the conclusion depends on weights or scenario, say so directly.
    Do not pretend there is one universal winner when the answer is really scenario-dependent.
 
-## Precision Levels
+## Precision Adjustments
 
-### Standard mode (`standard`)
-
-- Use the mainstream comparison dimensions.
-- Collect official material for each candidate.
-- Add one or a few representative independent tests or usage observations for the key dimensions.
-- Stop when the answer is stable and new material is mostly repeating the same strengths and weaknesses.
-
-### Strict mode (`strict`)
-
-- Cross-check the key dimensions.
-- Verify version, region, pricing tier, trial limits, and scope of applicability.
-- Trace decision-critical differences toward primary support where possible.
-- If official claims and independent tests disagree, keep the conflict visible instead of smoothing it away.
-
-### Adversarial mode (`adversarial`)
-
-- Actively seek evidence that cuts against the likely ranking.
-- Look for boundary cases, failure cases, low-rating reasons, and reverse recommendations.
-- Check for listicles or rankings that simply mirror each other.
-- If one option looks like the obvious winner, deliberately search for the cases where it is not.
+- `standard`: use the mainstream comparison dimensions, official material for each candidate, and representative independent tests or usage observations for the key dimensions.
+- `strict`: cross-check the key dimensions, verify version / region / pricing-tier qualifiers, and keep conflicts between official claims and independent tests visible.
+- `adversarial`: look for evidence that cuts against the likely ranking, including boundary cases, failure cases, low-rating reasons, mirrored listicles, and reverse recommendations.
 
 ## Answer-Specific Rules
 

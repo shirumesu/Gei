@@ -19,26 +19,11 @@ The goal is to build a reliable topic map, not to force a premature conclusion. 
 6. Separate established consensus from active debate.
    That separation is the main structure of a good exploratory answer.
 
-## Precision Levels
+## Precision Adjustments
 
-### Standard mode (`standard`)
-
-- Cover the mainstream views and representative sources.
-- Give the user a clear topic map, the main directions, and the core disputes.
-- Avoid overspending time on edge details.
-
-### Strict mode (`strict`)
-
-- Validate the key judgments with stronger sourcing.
-- Add the main contrary views or important exception cases.
-- Check whether a claim that looks mainstream is truly supported by multiple independent sources.
-
-### Adversarial mode (`adversarial`)
-
-- Challenge claims that look mainstream.
-- Check whether the apparent consensus is mostly a loud-source illusion.
-- Pay attention to quieter but higher-quality dissent and counterexamples.
-- When a claim looks too smooth, deliberately look for its failure conditions.
+- `standard`: cover the mainstream views, representative sources, and core disputes without overspending on edge detail.
+- `strict`: validate key judgments with stronger sourcing, add major contrary views or exception cases, and check whether apparent mainstream claims have genuinely independent support.
+- `adversarial`: challenge smooth-looking consensus, look for loud-source illusions, and actively seek quieter but higher-quality dissent or counterexamples.
 
 ## Answer-Specific Rules
 

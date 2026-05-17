@@ -2,6 +2,18 @@
 
 This file records public release notes for Gei.
 
+## v0.4.0 - 2026-5-17
+
+### 新增
+- 添加 marketplace 安装方式，完全支持 Codex plugin 形式
+- 新增 GitHub workflow，在 `CHANGELOG.md` 发布版本后自动同步 `.codex-plugin/plugin.json` 的 `version`
+
+### 优化
+- `using-gei`修改为 Hook，自动在会话开始时进入上下文
+- `using-gei`的 current-work 任务拆分为 `references/current-work.md`
+- `memo`部分文件存在旧版本残留，已清除
+- `see` 和 `work` 压缩部分内容；更新 description 为更适合 Agent 阅读的形式
+
 ## v0.3.2 - 2026-5-14
 
 ### 新增

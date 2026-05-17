@@ -21,25 +21,11 @@ This branch is about user voices, platform feedback, and public discussion sampl
 6. Use cross-platform sampling when the task needs stronger rigor.
    Check whether a loud viewpoint exists across platforms or mainly inside one echo chamber.
 
-## Precision Levels
+## Precision Adjustments
 
-### Standard mode (`standard`)
-
-- Summarize the main sentiment clusters and repeated experiences.
-- Include a few representative voices and say where they came from.
-- Make it clear that this is sample observation, not population statistics.
-
-### Strict mode (`strict`)
-
-- Sample across platforms.
-- Mark sample bias, platform limits, and time distribution.
-- Check whether a high-frequency viewpoint is broadly repeated or mainly amplified from a small set of posts.
-
-### Adversarial mode (`adversarial`)
-
-- Actively look for opposing user groups, opposing platforms, and lower-volume samples with different conclusions.
-- Check whether a loud viewpoint is mostly a magnified small sample.
-- Down-rank content that looks coordinated, marketing-driven, or heavily duplicated, and say why.
+- `standard`: summarize the main sentiment clusters and representative voices while stating that the result is a sample observation, not population statistics.
+- `strict`: sample across platforms, mark bias and time distribution, and test whether frequent viewpoints are broad or merely amplified.
+- `adversarial`: seek opposing user groups and quieter counter-samples, then down-rank coordinated, marketing-driven, or heavily duplicated material.
 
 ## Answer-Specific Rules
 

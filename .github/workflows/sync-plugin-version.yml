@@ -1,0 +1,39 @@
+name: Sync Plugin Version
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "CHANGELOG.md"
+      - ".github/scripts/sync_plugin_version.py"
+      - ".github/workflows/sync-plugin-version.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Sync plugin manifest version
+        run: |
+          python .github/scripts/sync_plugin_version.py CHANGELOG.md .codex-plugin/plugin.json
+
+      - name: Commit synced manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .codex-plugin/plugin.json
+          git diff --cached --quiet || git commit -m "chore: sync plugin version from changelog [skip ci]"
+          git push

@@ -21,25 +21,11 @@ The job is to give the user an executable path. Start with the official route, t
 7. Present the result as an executable explanation.
    Start with the recommended path, then add pitfalls, alternatives, and scope limits.
 
-## Precision Levels
+## Precision Adjustments
 
-### Standard mode (`standard`)
-
-- Give one executable main path.
-- Explain the main pitfalls and the most important prerequisites.
-- Optimize for the route the user can actually follow now.
-
-### Strict mode (`strict`)
-
-- Verify version, platform, and dependency conditions.
-- Confirm the boundary of each workaround.
-- If official docs and community experience conflict, keep the conflict visible and explain which side is stronger.
-
-### Adversarial mode (`adversarial`)
-
-- Actively check for outdated docs, dead steps, and old advice that conflicts with the current version.
-- Assume a popular guide may contain at least one stale step and verify it directly.
-- For widely copied old solutions, validate against the newest official material first.
+- `standard`: give one executable main path with the main prerequisites and pitfalls.
+- `strict`: verify version / platform / dependency conditions, confirm workaround boundaries, and keep conflicts between official docs and community experience visible.
+- `adversarial`: actively test for stale docs, dead steps, and widely copied old advice that no longer matches the current version.
 
 ## Answer-Specific Rules
 
