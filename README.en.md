@@ -9,11 +9,12 @@
 </p>
 
 <p align="center">
-  <span>English</span>.
+  <span>English</span>
+  |
   <a href="README.md">Simplified Chinese</a>.
 </p
 
-Many of the current project skills are too heavy and based on the Claude Code ecosystem which is sometimes not Codex-compatible.
+Many of the current project skills are too heavy and are based on the Claude Code ecosystem which is sometimes not fully Codex compliant.
 So I wrote this skill
 
 ## What does it do?
@@ -25,11 +26,11 @@ So I wrote this skill
 
 ## Skills
 
-| skill | when to use | what to do | skill ## Skills
-| ----- | ------- | ---- | `/using-gege' | `/using-ge' `/using-ge
-| `/using-gei` | Use before any session starts | Total Routing and Task Life Maintenance Layer |
-| `/consider` | for discussing any new ideas | he will help you shrink your requirements, especially if they are vague and give you a detailed design |
-| `/memo` | Project-wide documentation | Maintains the spec layer of the project, documenting the project architecture, current work, change logs, and schemas | `/work` | Maintains the spec layer of the project, documenting the project architecture, current work, change logs, and schemas
+| skill | when to use | use |
+| ----- | ------- | ---- |
+| `/using-gei` | Use before any session starts | General routing and task life maintenance layer |
+| `/consider` | for discussing any new ideas | he will help you shrink your needs, especially if they are vague and give you a detailed design |
+| `/memo` | Project-wide documentation | Maintains the spec layer of the project, documenting the project architecture, current work, change logs, and schematic design | `/work` | Maintains the project spec layer, documenting the project architecture, current work, change logs, and schematic design.
 | `/work` | Any code task | The complete process of coding, testing, reviewing, versioning, and releasing. | `/work` | Any code tasks
 | `/see` | Any external web access | Provides a comprehensive search process to ensure that information is accurate, reliable, and current. Search results are optimized through [Jina](https://jina.ai/). It also supports access to *reddit* / *twitter* / *reddit*, which is a wind-control platform.
 | `/design` | Experimental: visual tasks such as web page, PPT, document design | Extracted from [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), more suitable for Visual products such as interfaces, layouts, prototypes, presentations, etc. |
@@ -44,7 +45,8 @@ So I wrote this skill
 
 ## AGENTS.md
 
-A personal workflow that will synchronize the root level `~/.codex/AGENTS.md` that I use myself for reference and examples.
+For my personal workflow, I will synchronize my own root-level `~/.codex/AGENTS.md` for reference and examples.  
+As this is a reference example only, it will not be included in the release package, so please [view separately](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1), and copy and replace or enhance your own `AGENTS.md` or `CLAUDE.md` if you need to. CLAUDE.md
 
 ## Installation
 
@@ -58,7 +60,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ### Token-free manual installation
 
-> Expected to save about 10000 Token
+> Estimated savings of about 10000 Token
 
 #### Codex / Codex CLI
 
@@ -66,21 +68,21 @@ For `Codex` and `Codex CLI`, you can install them as **plugin**.
 
 ```shell
 codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agents/plugins
-``
+```
 
-After that, install and enable `gei` on the Plugins page of the Codex app, or `/plugins` in the Codex CLI.
+After that, install and enable `gei` on the Plugins page of the Codex app, or `/plugins` in the Codex CLI.  
 
 At this stage, if your Codex version, marketplace content, or environment doesn't allow you to follow this path in its entirety, you can try them in that order:
 
-1. Update the marketplace / plugin configuration in `~/.codex/config.toml`. 2;
-2. put the plugins directory directly under `~/.codex/plugins/cache/gei/`, so that Codex recognizes the local plugins first. 3. finally, go back to the release package;
+1. update the marketplace / plugin configuration in `~/.codex/config.toml`. 2. put the plugin directory directly under `~/.codex/plugins/cache/gei/`;
+2. Put the plugin directory directly under `~/.codex/plugins/cache/gei/` to let Codex recognize local plugins first. 3;
 3. Finally, return the `Gei-codex-plugin.zip` in the release package and extract it manually.
 
 #### Codex Non-Plugin / Claude Code / Other Agent
 
-Download `Gei-skills.zip` at [release](https://github.com/shirumesu/gei/releases/latest) and extract the required skills directories into your skills directory.
+Download `Gei-skills.zip` at [release](https://github.com/shirumesu/gei/releases/latest) and extract the desired skills directory into your skills directory.  
 Most Agents accept subdirectories for recursive searching, so your installation directory can also look like this.
-``text
+```text
 <skills-dir>/
   Gei/
     using-gei/
@@ -95,7 +97,7 @@ Most Agents accept subdirectories for recursive searching, so your installation 
       SKILL.md
     design/
       SKILL.md
-``
+```
 
 Or even a layer of `Gei/skills/<skill>` would work.
 
@@ -103,28 +105,24 @@ Or even a layer of `Gei/skills/<skill>` would work.
 
 Or you could just `git clone https://github.com/shirumesu/gei.git` and update it with `git pull` instead?
 
-#### AGENTS.md
-
-As this is just a reference example, it will not be included in the release package, so please [see it separately](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1), and copy and replace or enhance your own `AGENTS.md` or ` CLAUDE.md
-
 ## Known issues
 
-- `/See` relies on some [upstream tools] (# thanks), they are not very stable, occasionally you need to register and log in manually, the skill has been written to automatically install and guide, your Agent should guide you to complete the installation and log in.
-- Since upstream tools are mostly crawlers, cli automation, etc., the risk of blocking is not guaranteed, so if you don't want to use them, please explicitly mention it to the AI in the task.
+- `/See` relies on a portion of [upstream tools] (#Thanks to), they are not very stable, occasionally you need to manually register and log in state by yourself, the automatic installation as well as the guidelines have been written within the skill, your Agent should guide you through the installation and login.
+  - Since upstream tools are mostly crawlers, cli automation, etc., the risk of blocking is not guaranteed, so if you don't want to use them, please explicitly mention it to the AI in the task.
 
-## Update Log / New Discoveries
+## Changelog / New Discoveries
 
-The latest public version of the log is available at [CHANGELOG.md](. /CHANGELOG.md).
+The latest public release log is available at [CHANGELOG.md](. /CHANGELOG.md).
 
 ## Thanks to
 
 - Inspiration and references:
-- [superpowers](superpowers)
-- [gstack](https://github.com/garrytan/gstack)
-- [waza](https://github.com/tw93/waza)
+  - [superpowers](superpowers)
+  - [gstack](https://github.com/garrytan/gstack)
+  - [waza](https://github.com/tw93/waza)
 - Upstream Tools:
-- X Access Support: [twitter-cli](https://github.com/public-clis/twitter-cli)
-- Xiaohongshu Visit Support: [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
-- Reddit Visit Support: [rdt-cli](https://github.com/public-clis/rdt-cli)
+  - X Access Support: [twitter-cli](https://github.com/public-clis/twitter-cli)
+  - Xiaohongshu Visit Support: [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
+  - Reddit Visit Support: [rdt-cli](https://github.com/public-clis/rdt-cli)
 - Donors.
-- [myself](https://github.com/shirumesu) Donated a complete human brain, effectively reducing token costs during development.
+  - [myself](https://github.com/shirumesu) Donated a full human brain, effectively reducing token costs during development.

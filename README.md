@@ -46,6 +46,7 @@
 ## AGENTS.md
 
 个人的工作流，将会同步我自己使用的根目录级 `~/.codex/AGENTS.md`，用作参考和示例。  
+由于仅作参考示例，不会包含在发布 release 包，请[单独查看](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1)，如果有需要可以复制替换或者增强自己的 `AGENTS.md` 或是 `CLAUDE.md`  
 
 ## 安装
 
@@ -103,10 +104,6 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agen
 #### git 安装（Claude Code / 其他 Agent）
 
 也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新，反而会更方便？
-
-#### AGENTS.md
-
-由于仅作参考示例，不会包含在发布 release 包，请[单独查看](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1)，如果有需要可以复制替换或者增强自己的 `AGENTS.md` 或是 `CLAUDE.md`  
 
 ## 已知问题
 
