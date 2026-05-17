@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="160" src="assets/icon.svg" alt="Gei icon" />
+  <img width="160" src="assets/icon.png" alt="Gei icon" />
 </p>
 
 <h1 align="center">Gei ~ 芸</h1>
