@@ -24,7 +24,7 @@ git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
 2. Run the installer:
 
 ```shell
-node <install-dir>/Gei/install-claude.mjs
+node <install-dir>/Gei/hooks/install-claude.mjs
 ```
 
 3. Verify this layout:
