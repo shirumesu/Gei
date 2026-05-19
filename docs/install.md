@@ -7,9 +7,43 @@ This document is for the installing Agent. Execute the steps, verify the final l
 Before installing, determine:
 
 - `<install-dir>`: the directory scanned by the host for skills or plugins.
-- `<method>`: one of `codex-plugin`, `skills-zip`, or `git`.
+- `<method>`: one of `claude-plugin`, `codex-plugin`, `skills-zip`, or `git`.
 
 If `<install-dir>` cannot be determined from the host environment, ask the user for the target directory before writing files.
+
+## Method: Claude Plugin
+
+Use this when the host is Claude Code and you want plugin-style installation with automatic hook registration. Requires Node.js on PATH.
+
+1. Clone the repository to any location (recommended: `~/.agents/Gei`):
+
+```shell
+git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
+```
+
+2. Run the installer:
+
+```shell
+node <install-dir>/Gei/install-claude.mjs
+```
+
+3. Verify this layout:
+
+```text
+~/.claude/
+  skills/
+    using-gei/  -> <install-dir>/Gei/skills/using-gei
+    work/        -> <install-dir>/Gei/skills/work
+    memo/        -> <install-dir>/Gei/skills/memo
+    see/         -> <install-dir>/Gei/skills/see
+    consider/    -> <install-dir>/Gei/skills/consider
+    design/      -> <install-dir>/Gei/skills/design
+  settings.json  (contains SessionStart hook entry)
+```
+
+Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains a `SessionStart` hook entry pointing to `<install-dir>/Gei/hooks/session-start.mjs`.
+
+For updates, run `git pull` inside `<install-dir>/Gei`. No need to re-run the installer unless new skill directories are added.
 
 ## Method: Codex Plugin
 

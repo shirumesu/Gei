@@ -2,6 +2,13 @@
 
 This file records public release notes for Gei.
 
+## v0.4.1 - 2026-05-19
+
+### 新增
+- 新增 `.claude-plugin/plugin.json`，支持以 Claude Code plugin 形式识别和安装
+- 新增 `hooks/claude-hooks.json`，Claude Code 会话开始时自动注入 Gei 路由上下文（`SessionStart` hook，与 Codex 的 `hooks.json` 等价）
+- 新增 `install-claude.mjs`，一键为 Claude Code 配置 skill junction 和 hook，无需手动复制文件，`git pull` 后自动同步
+
 ## v0.4.0 - 2026-5-17
 
 ### 新增

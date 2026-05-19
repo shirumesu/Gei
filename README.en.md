@@ -78,7 +78,23 @@ At this stage, if your Codex version, marketplace content, or environment doesn'
 2. Put the plugin directory directly under `~/.codex/plugins/cache/gei/` to let Codex recognize local plugins first. 3;
 3. Finally, return the `Gei-codex-plugin.zip` in the release package and extract it manually.
 
-#### Codex Non-Plugin / Claude Code / Other Agent
+#### Claude Code Plugin Installation (with Hook)
+
+Requires Node.js on PATH. Clone the repo and run the built-in installer:
+
+```shell
+git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
+node ~/.agents/Gei/install-claude.mjs
+```
+
+The script automatically:
+
+- Creates directory junctions from `~/.claude/skills/` to this repo's `skills/`, keeping skills in sync with `git pull`
+- Writes the `SessionStart` hook to `~/.claude/settings.json` so Gei's routing context is injected at session start
+
+Restart Claude Code to apply. No need to re-run the script after `git pull`.
+
+#### Codex Non-Plugin / Other Agent
 
 Download `Gei-skills.zip` at [release](https://github.com/shirumesu/gei/releases/latest) and extract the desired skills directory into your skills directory.  
 Most Agents accept subdirectories for recursive searching, so your installation directory can also look like this.
@@ -101,7 +117,7 @@ Most Agents accept subdirectories for recursive searching, so your installation 
 
 Or even a layer of `Gei/skills/<skill>` would work.
 
-#### git installation (Claude Code / other agents)
+#### git installation (other agents)
 
 Or you could just `git clone https://github.com/shirumesu/gei.git` and update it with `git pull` instead?
 
