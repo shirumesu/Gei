@@ -84,7 +84,7 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agen
 
 ```shell
 git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
-node ~/.agents/Gei/install-claude.mjs
+node ~/.agents/Gei/hooks/install-claude.mjs
 ```
 
 脚本自动完成：
@@ -94,7 +94,7 @@ node ~/.agents/Gei/install-claude.mjs
 
 重启 Claude Code 后生效。后续只需 `git pull` 更新仓库，不需要重新运行脚本。
 
-#### Codex非Plugin / 其他 Agent
+#### 非Plugin / 其他 Agent
 
 在 [release](https://github.com/shirumesu/gei/releases/latest) 下载 `Gei-skills.zip`，把需要的 skill 目录解压到你的 skills 目录里。  
 大部分Agent可以接受子目录递归寻找，因此你的安装目录也可以看起来像这样:  
@@ -117,9 +117,9 @@ node ~/.agents/Gei/install-claude.mjs
 
 甚至再套一层 `Gei/skills/<skill>` 也可以
 
-#### git 安装（其他 Agent）
+#### git 安装
 
-也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新，反而会更方便？
+也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新
 
 ## 已知问题
 
