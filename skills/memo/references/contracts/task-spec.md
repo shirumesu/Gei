@@ -70,9 +70,9 @@ Files:
 Interfaces:
 - `symbolOrContract(input): output`
 
-Code:
+Implementation note:
 ```text
-[Concrete code, type shape, mapping, branch logic, command, or pseudocode]
+[Use concrete code, type shape, mapping, branch logic, command, or pseudocode only when it prevents ambiguity.]
 ```
 
 Failure behavior:
@@ -129,7 +129,7 @@ A live execution plan must include:
 - **Plan Contract:** execution mode, checkpoint unit, optional phase/task policy, and approval gates.
 - **File Structure Map:** every file that will be created or materially modified, with responsibility, interfaces, dependencies, and consumers.
 - **Section Checkpoints:** reviewable project states, not decorative headings.
-- **Implementation Details:** concrete code blocks, type shapes, mappings, branch logic, commands, or pseudocode for the core changes.
+- **Implementation Details:** enough file-boundary, interface, behavior, and sequencing detail to execute without redesigning the work.
 - **Failure Behavior:** exact errors, fallbacks, unsupported states, rollback paths, or `none` where no failure behavior is relevant.
 - **Verification:** exact commands or manual checks with behavior-specific expected results.
 - **Spec Coverage Check:** each important goal, constraint, gate, or risk is covered by implementation, verification, an approval gate, or an out-of-scope note.
@@ -137,7 +137,9 @@ A live execution plan must include:
 
 Execution sections must belong to the current bounded task. Do not write deferred, optional, approval-dependent, or future expansion work as ordinary sections unless the current task is explicitly to execute that work. Put that material under `Deferred Work` with the condition required before it becomes executable.
 
-For code-changing implementation units, include concrete code blocks for the core change. Use pseudocode only when a third-party API, generated shape, or runtime behavior is still uncertain; name the uncertainty next to the pseudocode.
+Use code blocks, type shapes, mappings, branch logic, command snippets, or pseudocode when they prevent ambiguity in a complex or high-risk change. They are especially useful for new public interfaces, cross-file contracts, data migrations, generated shapes, third-party API boundaries, security-sensitive behavior, or rollback paths.
+
+Do not require code blocks for routine or locally obvious edits when exact files, interfaces, behavior, failure handling, and verification already make the change executable. If pseudocode is used because an API, generated shape, or runtime behavior is uncertain, name the uncertainty next to the pseudocode.
 
 Verification expected results must say what behavior was proven. Do not write low-signal expectations such as `exit code 0`, `PASS`, or `command succeeds` unless that exact signal is the contract being tested.
 
@@ -151,7 +153,7 @@ Do not leave these patterns in a live plan:
 - `implement support` without interfaces, input/output behavior, implementation details, and verification.
 - `similar to previous`; repeat the required details because sections may be read out of order.
 - Optional architecture decisions hidden in execution work, such as `consider creating` or `choose whether to split`.
-- Steps that say what to do without showing enough code, pseudocode, commands, or expected results to do it.
+- Steps that say what to do without enough file-boundary, interface, behavior, command, code-shape, or expected-result detail to do it.
 - Generic verification expectations such as `exit code 0` when a behavior-specific result is available.
 - Deferred, optional, approval-dependent, or future expansion work written as ordinary execution sections.
 
@@ -161,7 +163,7 @@ Do not leave these patterns in a live plan:
 - Keep the spec context and execution plan aligned; if execution changes the selected direction, constraints, or gates, update the smallest affected part of the spec context.
 - Put file-boundary decisions in the `File Structure Map` before writing implementation details.
 - Prefer dense implementation details over protocol-heavy checklists.
-- Include detailed examples, pseudocode, or small code blocks when they prevent implementation ambiguity.
+- Include detailed examples, pseudocode, or small code blocks when they prevent implementation ambiguity; omit them when they merely restate a straightforward local edit.
 - For complex work, include impacted files, call paths, interfaces, rollback notes, edge cases, and verification commands.
 - Use spec-managed tests under `spec/test/` only when the task needs durable fixtures or verification assets.
 - Do not store ordinary progress updates or full decision history here.
@@ -173,7 +175,7 @@ Do not leave these patterns in a live plan:
 - The file structure map explains file responsibilities and boundaries.
 - Each section has a reviewable checkpoint.
 - Phase and task levels are omitted unless they reduce ambiguity.
-- Code-changing implementation units include concrete code blocks or justified pseudocode.
+- Code-changing implementation units include concrete code, type shapes, mappings, branch logic, or pseudocode only where needed to remove implementation ambiguity.
 - Verification expectations are behavior-specific.
 - Spec coverage checks connect important goals, constraints, gates, and risks to implementation, verification, deferral, or out-of-scope notes.
 - Deferred, optional, approval-dependent, and future expansion work is separated from current execution sections.

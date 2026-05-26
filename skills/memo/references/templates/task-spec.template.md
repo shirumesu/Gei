@@ -67,10 +67,11 @@ Interfaces:
 - `functionName(input): output`
 - `CONFIG_KEY`
 
-Code:
+Implementation note:
 ```ts
-// Concrete code, type shape, mapping, branch logic, or focused pseudocode.
-// If this is pseudocode because an API is uncertain, name the uncertainty here.
+// Add concrete code, a type shape, mapping, branch logic, or focused pseudocode
+// only when it prevents ambiguity. If this is pseudocode because an API is
+// uncertain, name the uncertainty here.
 ```
 
 Failure behavior:
@@ -84,9 +85,9 @@ Files:
 Interfaces:
 - `anotherFunction(input): output`
 
-Code:
+Implementation note:
 ```ts
-// Concrete code or focused pseudocode for the core change.
+// Concrete code, a type shape, or focused pseudocode only when needed.
 ```
 
 Failure behavior:
