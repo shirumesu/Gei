@@ -2,6 +2,14 @@
 
 This file records public release notes for Gei.
 
+## v0.4.2 - 2026-05-26
+
+### 新增
+- 新增Skill `create-skill`，用于创建和审核各种新的skill。
+
+### 优化
+- 依据 `create-skill` 审核各大skill，优化部分措辞
+
 ## v0.4.1 - 2026-05-19
 
 ### 新增
