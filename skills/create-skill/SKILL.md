@@ -11,7 +11,7 @@ Create, improve, and review Skills as reusable agent workflows, not long prompts
 
 - Treat a Skill as a reusable, triggerable, maintainable workflow.
 - Keep `SKILL.md` focused on entry routing, principles, core workflow, and essential constraints.
-- Move conditional, variant-specific, or lookup-style material into `references/` when it should be loaded only for some tasks. Do not split core instructions only because they are somewhat long.
+- Use `references/` to avoid loading conditional, variant-specific, or lookup-style material for every task. Keep always-needed workflow and constraints in `SKILL.md`.
 - Add scripts only for deterministic, repeated, or error-prone checks.
 - Define realistic use cases before writing broad instructions.
 - Apply review standards while creating the Skill; do not wait until a separate review step to catch prompt pileups, vague triggers, missing examples, or unverified behavior.
