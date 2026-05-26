@@ -27,26 +27,14 @@ It decides whether the task should use the lightweight main-thread flow or the s
 
 ## Current Work Checkpoints
 
-Before the first file edit, Work **MUST** check `spec/current-work.md`.
+Before the first file edit, Work **MUST** check `spec/current-work.md`:
+- If it matches the current task, continue.
+- If it describes old or unrelated work, overwrite it.
+- If it is missing and the task may write files, create a micro-anchor (shape defined by `using-gei`).
 
-- If it exists and matches the current task, continue.
-- If it exists but describes old or unrelated work, overwrite it with a new micro-anchor before editing.
-- If it is missing and the task may write files, create a micro-anchor before editing or state a valid no-anchor exemption from `using-gei`.
-- Use the current-work shape defined by `using-gei`. Do not add extra fields unless the task needs them.
+Re-check the anchor after scope expands, before verification, before final response, and before commit / release / handoff.
 
-Work **MUST** re-check the anchor:
-
-1. after scope expands beyond `Expected scope`
-2. before verification commands
-3. before final response
-4. before commit, release, publish, or handoff
-
-At final response, close, clear, or hand off the anchor:
-
-- verified task with no relevant file changes -> set `Status: closed` or clear the file
-- verified task with relevant file changes -> invoke `memo` for anchor reconciliation before closing or clearing
-- durable outcome or unresolved reconciliation -> invoke `memo`
-- unrelated next task -> overwrite the anchor before starting that task
+At final response: close or clear the anchor. If relevant files changed, invoke `memo` for anchor reconciliation first (see Always-On Rules). If the next task is unrelated, overwrite the anchor before starting.
 
 ## Routing
 

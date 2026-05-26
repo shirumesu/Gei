@@ -1,6 +1,6 @@
 ---
 name: see
-description: "Use when the user wants external research or source-backed synthesis: search, reading, fact-checking, comparisons, exploratory summaries, how-to research, public-opinion sampling, cross-source synthesis, or research-backed notes/files. Trigger on requests such as 'compare ...', 'fact-check ...', 'look up ...', 'is there ...', 'can we confirm ...', 'how do I ...', 'what are people saying ...', 'check X / Reddit / Xiaohongshu ...', or 'summarize these sources ...'."
+description: "Use when the user's primary deliverable is external research or source-backed synthesis — not when search, reading, or fact-checking is a supporting action for another task like implementation or design."
 ---
 
 # See
@@ -115,18 +115,6 @@ User-provided material enters the evidence pool by default. In the `summary / wr
 
 Verification is not only "find more support." Try to break the working conclusion and see whether it still stands.
 
-### Stop rule
-
-Stop when new results mostly repeat what is already known and no longer change any of these:
-
-- the main conclusion
-- the key disagreement
-- the scope of applicability
-- the important qualifiers
-- the confidence judgment
-
-If more searching would add decoration instead of changing the answer, stop.
-
 ## Shared Answer Obligations
 
 Do not force a rigid template, but make sure the answer lets the user see these things clearly:
@@ -176,9 +164,9 @@ If the user did not ask for outside supplementation and there is no key ambiguit
 Stop when all of the following are true:
 
 1. The task is routed correctly.
-2. The necessary one or two reference files were read.
-3. The current precision level has been satisfied.
+2. The necessary reference files were read.
+3. The current precision level has been satisfied (see routing step 2 for per-level stop signals).
 4. The key facts, inferences, and uncertainties are separated.
-5. More searching would probably add repetition without changing the main conclusion, key disagreement, or scope.
+5. New results mostly repeat what is already known and no longer change the main conclusion, key disagreement, scope of applicability, important qualifiers, or confidence judgment.
 
 If the task receives new material, changes task type, or escalates in risk, rerun the routing decision from the root.

@@ -49,7 +49,7 @@ Do not overload the user with questions. Ask only when the missing answer would 
 
 Start with the smallest structure that can work.
 
-Use only `SKILL.md` when:
+Default to one `SKILL.md` when:
 
 - the instructions are needed in most or all invocations
 - the workflow has one coherent path
@@ -60,9 +60,8 @@ Add `references/` when:
 - the Skill covers multiple scenarios, domains, frameworks, formats, or options and only one branch is needed for a given request
 - a detailed schema, API guide, policy, style guide, example set, or workflow branch is useful only in specific situations
 - a conditional process would distract from the root route if loaded every time
-- `SKILL.md` is approaching or exceeding roughly 500 lines after compression, and some content is not needed for every invocation
 
-Do not move core principles or required workflow steps into `references/` solely to shorten the root file. If most of a long root file is required every time, compress the wording or consider whether the idea should be split into separate Skills.
+Use the 500-line guideline as an audit trigger, not a filing rule. When `SKILL.md` is getting large, check for redundant wording, mixed responsibilities, conditional branches, and content that belongs to another Skill. Keep always-needed instructions in `SKILL.md`; move only conditionally needed material into `references/`.
 
 Add `scripts/` when:
 
@@ -130,8 +129,8 @@ Check:
 - Would the description trigger for the real use cases?
 - Would it stay quiet for adjacent tasks that need something else?
 - Does the body teach a workflow instead of stacking prompt instructions?
-- Are conditional branches, lookup material, and variant-specific details moved into `references/` instead of always loading?
-- Are core rules kept in `SKILL.md` even when they take space?
+- Does `SKILL.md` contain the instructions needed for the normal path?
+- Are conditional branches, lookup material, and variant-specific details loaded only when needed?
 - Are scripts limited to deterministic work?
 - Are examples concrete enough to guide behavior?
 - Does it state how success will be verified?

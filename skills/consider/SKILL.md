@@ -1,6 +1,6 @@
 ---
 name: consider
-description: Use before any creative work begins, when a user has an idea, wants help brainstorming, needs to clarify scope or feasibility, or needs an approved design before implementation. Use when Codex should recover project context, challenge ambiguity, research comparable solutions, define the full technical path and boundaries, and stop until the user gives full-design approval.
+description: Use before implementation begins, when a user has an idea that needs design before code — clarifying scope, feasibility, approach, and boundaries. Use when Codex should recover project context, challenge ambiguity, research comparable solutions, define the full technical path, and stop until the user gives full-design approval. Not for tasks that are already clearly scoped and ready to implement.
 ---
 
 # Consider
@@ -34,7 +34,6 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 - Treat every unresolved ambiguity as blocking unless it is a trivial implementation detail that follows from existing context and would not affect the design.
 - If the request is ambiguous, complex, or likely inaccurate, ask a question or decompose the work before proposing a full design.
 - Even when the user asks for a plan or solution, ask first if a missing answer would materially change the result.
-- Ask only one question at a time.
 - When asking a blocking question, provide 2-3 options, explain why each option matters, recommend one option, and state the likely downside or risk.
 - Prefer a dedicated question tool when one is available instead of simulating the format in plain text.
 

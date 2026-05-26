@@ -58,26 +58,20 @@ Create-time standards also apply during review. If a problem would have made a n
 
 ## 4. Review Progressive Disclosure
 
-Check whether content is in the right place.
+Check whether each part of the Skill is loaded at the right time.
 
-Keep in `SKILL.md`:
+Classify each content block by loading need:
 
-- trigger-adjacent principles
-- root workflow
-- route map
-- constraints that must always apply
-- minimum acceptance
+- **Always needed:** keep in `SKILL.md`. This includes trigger-adjacent principles, the normal workflow, route maps, constraints that must always apply, and minimum acceptance.
+- **Conditionally needed:** put in a directly linked reference file. This includes scenario, domain, framework, format, option-specific workflows, detailed style rules, schemas, API guides, policies, and example sets that only some requests need.
+- **Deterministic operation:** put in `scripts/` when code can check or perform the step more reliably than prose.
+- **Reusable output material:** put in `assets/` when the Skill needs templates, source files, images, or other reusable artifacts.
 
-Move to `references/`:
+Prefer a single `SKILL.md` when the task has one clear scenario and the workflow should be loaded end to end. Progressive disclosure is meant to reduce unnecessary context and noise, not to scatter a coherent workflow across files.
 
-- scenario, domain, framework, format, or option-specific workflows
-- detailed style rules, schemas, API guides, policies, or example sets that are only needed for some requests
-- complex review checklists that are only needed during review tasks
-- variant-specific instructions
+Use the 500-line guideline as an audit trigger. If `SKILL.md` is getting large, first look for redundant wording, mixed responsibilities, conditional branches, and multiple Skill concepts. Then choose the right fix: compress wording, keep core workflow inline, move conditionally needed material to references, or split the Skill when the task boundary is actually too broad.
 
-Do not move material solely because it is somewhat long. If every invocation needs the information, keep it in `SKILL.md` and make it concise. If `SKILL.md` is nearing or over roughly 500 lines, first decide whether the excess content is core, conditional, or evidence that the Skill should be split.
-
-Keep scripts only when the operation is deterministic, repeated, and easier to verify with code than prose.
+If a reference is needed almost every time, consider moving that material back into `SKILL.md`. If a reference is never used, either make its read condition clearer or remove it.
 
 ## 5. Improve From Evidence
 
@@ -90,7 +84,7 @@ If there is a concrete failure, map it to the smallest useful edit.
 | Agent read the Skill but skipped an important step | Move the step earlier, make it part of the workflow, or add a verification gate |
 | Agent followed the letter but not the intended behavior | Explain the reason behind the rule and add a concrete example |
 | User supplies new understanding | Update the relevant trigger, workflow, examples, and validation case |
-| Skill feels like a prompt dump | Compress the root file and move conditional scenario or lookup detail into references |
+| Skill feels like a prompt dump | Remove generic prompt text, keep the normal workflow clear, and separate only conditionally needed material |
 
 Avoid overfitting. Do not add a narrow rule unless it represents a recurring case, a known failure mode, or a stable user preference.
 

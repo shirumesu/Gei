@@ -31,15 +31,14 @@ Only load one downstream skill at a time. If later context requires another skil
 
 If the task may write files, publish, commit, or maintain project state, read `references/current-work.md` before the first file edit and satisfy that lifecycle contract. If the task cannot affect project state, no lifecycle reference is needed.
 
-- For the most part, following this life cycle: 
-```
-1. recognizes user commands and loads only the most appropriate Skill
-2. Determine if you need access to current-work.md and maintain documentation for it
-3. Execute the task according to the Skill's requirements
-4. test, check, and verify that the task is complete
-5. if 2, close current-work.md
-6. use Skill $memo to maintain the documentation according to the task.
-```
+The general lifecycle:
+
+1. Recognize user commands and load only the most appropriate Skill.
+2. Execute the task according to the Skill's requirements.
+3. Test, check, and verify that the task is complete.
+4. Before the first file edit, check `spec/current-work.md` (see `references/current-work.md`).
+5. If `spec/current-work.md` was created or reused, close or clear it at phase boundaries.
+6. Invoke `memo` to reconcile and maintain documentation for relevant file changes.
 
 ## First-Hop Routing
 
