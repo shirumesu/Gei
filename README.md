@@ -33,6 +33,7 @@
 | `/memo` | 全工程的文档维护 | 维护项目的 spec 层，记录项目架构、当前工作、更改日志和方案设计 |
 | `/work` | 任何代码任务 | 完整的编码、测试、审查、版本维护以及发布的流程。 |
 | `/see` | 任何对外的网络访问 | 提供了完善的搜索流程，确保信息准确，可靠，具时效性。透过[Jina](https://jina.ai/)优化搜索结果。并且支持访问 *reddit* / *twitter* / *小红书* 这类风控平台 |
+| `/create-skill` | skill相关操作时 | 用于创建和审核各种skill，会验证他们是否有什么可优化空间 |
 | `/design` | 实验性：网页、PPT、文档设计等视觉任务 | 提炼自 [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de)，更适合界面、版式、原型、演示文稿等视觉产物 |
 
 ### 常见使用路径

@@ -33,6 +33,7 @@ So I wrote this skill
 | `/memo` | Project-wide documentation | Maintains the spec layer of the project, documenting the project architecture, current work, change logs, and schematic design | `/work` | Maintains the project spec layer, documenting the project architecture, current work, change logs, and schematic design.
 | `/work` | Any code task | The complete process of coding, testing, reviewing, versioning, and releasing. | `/work` | Any code tasks
 | `/see` | Any external web access | Provides a comprehensive search process to ensure that information is accurate, reliable, and current. Search results are optimized through [Jina](https://jina.ai/). It also supports access to *reddit* / *twitter* / *reddit*, which is a wind-control platform.
+| `/create-skill` | When working with skills | Used to create and review various skills, verifying if they have room for optimization |
 | `/design` | Experimental: visual tasks such as web page, PPT, document design | Extracted from [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), more suitable for Visual products such as interfaces, layouts, prototypes, presentations, etc. |
 
 ### Commonly used paths
