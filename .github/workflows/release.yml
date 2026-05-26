@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v0.4.2)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -26,15 +32,23 @@ jobs:
       - name: Prepare tag release
         id: release
         run: |
-          python .github/scripts/extract_latest_release_notes.py CHANGELOG.md release-notes.md --tag "${GITHUB_REF_NAME}" --plugin-json .codex-plugin/plugin.json
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          fi
+          python .github/scripts/extract_latest_release_notes.py CHANGELOG.md release-notes.md --tag "${RELEASE_TAG}" --plugin-json .codex-plugin/plugin.json
 
       - name: Commit release metadata
         if: steps.release.outputs.changelog_changed == 'true' || steps.release.outputs.plugin_changed == 'true'
         run: |
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md .codex-plugin/plugin.json
-          git diff --cached --quiet || git commit -m "chore: sync release metadata ${GITHUB_REF_NAME} [skip ci]"
+          git diff --cached --quiet || git commit -m "chore: sync release metadata ${RELEASE_TAG} [skip ci]"
           git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
       - name: Build release archive
@@ -54,11 +68,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          RELEASE_TAG="${GITHUB_REF_NAME}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          fi
           if [ -s release-notes.md ]; then
-            gh release create "${GITHUB_REF_NAME}" Gei-skills.zip Gei-codex-plugin.zip \
+            gh release create "${RELEASE_TAG}" Gei-skills.zip Gei-codex-plugin.zip \
               --generate-notes \
               --notes "$(cat release-notes.md)"
           else
-            gh release create "${GITHUB_REF_NAME}" Gei-skills.zip Gei-codex-plugin.zip \
+            gh release create "${RELEASE_TAG}" Gei-skills.zip Gei-codex-plugin.zip \
               --generate-notes
           fi

@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "skills": "./skills/",
   "hooks": "./hooks/claude-hooks.json"
 }
