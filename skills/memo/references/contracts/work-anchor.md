@@ -1,64 +1,51 @@
 # Current Work Buffer Contract
 
-Use this contract when creating, checking, appending, closing, archiving, or cleaning `spec/current-work.md`.
+Use this contract when Memo is reading, validating, closing, archiving, or promoting entries in `spec/current-work.md`.
 
 ## Responsibility
 
 `current-work.md` records the intent and reconciliation state of active, paused, closed, and not-yet-archived file-changing tasks. It is a bounded work buffer, not a task spec, changelog, backlog, or diary.
 
-Memo uses it to avoid guessing task intent from git diff. Work uses it to keep small, lightweight, quick, minor, and ad hoc changes traceable.
+Memo uses it to avoid guessing task intent from git diff. Work uses it to keep tasks traceable across sessions.
 
-## Required Shape
+## Format Authority
 
-Validate the same minimum shape created by `using-gei` or `work`:
-
-```md
-# Current Work
-
-## `#W-YYYYMMDD-001` - <short task label>
-
-- Intent: <why this file-changing work is happening>
-- Started: YYYY-MM-DD
-- Expected scope: <files, directories, or "unknown until inspection">
-- Durable record needed: unknown | yes | no
-- Status: active | paused | closed | archived
-- Promotion: pending | none | `spec/CHANGELOG.md` | `spec/docs/#NNN-name.md` | `spec/ARCHITECTURE.md` | `spec/INBOX.md`
-- Promotion note: <optional short reason when promotion is none or delayed>
-```
-
-Do not add `Author` or `Actor`.
+The canonical anchor format and lifecycle rules live in `using-gei/references/current-work.md`. Read that file when you need the entry shape, field definitions, or exemption rules. Do not redefine the format here.
 
 ## Write Rules
 
-- **MUST NOT** overwrite `active`, `paused`, or `closed` entries when starting an unrelated task.
-- **MUST** append a new entry for unrelated work unless the file is empty or contains only archived entries being deliberately cleaned.
-- **MUST** update the existing entry when the current task is a direct continuation of that entry.
-- **MUST** keep `Intent` concrete enough to explain why changed files exist.
-- **MUST** keep `Expected scope` concrete enough to compare against changed files.
-- **MUST NOT** infer a full plan from git diff when the anchor is missing.
-- Use `Durable record needed: unknown` when unsure.
-- Keep entries short. If an entry needs a durable plan, promote the plan to a task spec instead of expanding `current-work.md`.
+Do not overwrite an `active` or `paused` entry when starting an unrelated task. Append a new entry instead and leave the old one in place until reconciliation marks it archived.
 
-## Close And Archive Rules
+Update the existing entry when the current task is a direct continuation of that entry.
 
-At phase end, choose one entry-level transition:
+Keep `Intent` concrete enough to explain why the changed files exist. Keep `Expected scope` concrete enough to compare against the actual changed files.
 
-- **Closed:** set `Status: closed` when the task or phase ended but durable promotion has not been decided.
-- **Archived without promotion:** set `Status: archived`, `Promotion: none`, and a short `Promotion note` when the task is complete and has no durable spec value.
-- **Archived after promotion:** update the correct Memo document, then set `Status: archived` and point `Promotion` at that document.
-- **Paused:** keep `Status: paused` only when work will resume from this exact anchor.
+Do not infer a full plan from git diff when the anchor is missing — surface the gap instead.
 
-Closing an entry never implies durable promotion. Promotion requires the promotion gate in the reconciliation event.
+Use `Durable record needed: unknown` when unsure at task start.
 
-Release, publish, handoff, checkpoint, and deliberate Memo sync are phase boundaries. Do not carry an old active entry across them; close, pause, or archive it explicitly.
+## Close and Archive Rules
 
-Cleanups may remove only entries already marked `archived`. Do not delete `active`, `paused`, or `closed` entries merely because a new task is starting.
+At every phase boundary, choose one of these transitions for each entry:
+
+- **Closed:** work or phase ended, but whether to promote has not been decided.
+- **Archived without promotion:** complete, no durable spec value. Set `Status: archived`, `Promotion: none`, add a short `Promotion note`.
+- **Archived after promotion:** update the target Memo document first, then set `Status: archived` and point `Promotion` at that document.
+- **Paused:** work will resume from this exact anchor.
+
+Closing an entry does not imply promotion. Promotion requires the promotion gate in the reconciliation event.
+
+Release, publish, handoff, and deliberate Memo sync are phase boundaries. Do not carry an old active entry across them without explicitly closing, pausing, or archiving it.
+
+Cleanups may remove only entries already marked `archived`. Do not delete `active`, `paused`, or `closed` entries because a new task is starting.
 
 ## Completion Check
 
+Before finishing a Memo update that touches `spec/current-work.md`:
+
 - Each unarchived entry describes one task only.
-- The buffer has no stale `active` entry for work that has clearly ended.
-- The close choice is explicit.
+- No stale `active` entry exists for work that has clearly ended.
+- The close or archive choice is explicit.
 - Durable work has a spec entry only when it passed the promotion gate.
 - Non-durable complete work is marked `Status: archived` with `Promotion: none`.
 - `spec/` remains excluded from product commits unless the user explicitly opted in.
