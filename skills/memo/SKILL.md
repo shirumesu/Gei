@@ -11,7 +11,7 @@ Its job is to keep future agents productive without forcing a fresh deep read of
 
 `spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, and how completed changes were recorded.
 
-`spec/current-work.md` is different: it is a lightweight lifecycle anchor for the current or most recent file-changing task. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone.
+`spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone.
 
 ## Version Control Boundary
 
@@ -19,7 +19,9 @@ By default, `spec/` is internal agent and project state. Do not stage, commit, p
 
 ## Core Rule
 
-Write only what the current event requires. Do not bulk-rewrite unrelated documents, refresh every file because a task happened, or invoke Memo for ordinary code edits except the required current-work-to-changelog reconciliation. Update the smallest correct surface, with exact ids and links.
+Write only what the current event requires. Do not bulk-rewrite unrelated documents, refresh every file because a task happened, or invoke Memo for ordinary code edits except required current-work reconciliation. Update the smallest correct surface, with exact ids and links.
+
+Closing a current-work entry never means it must enter durable spec documents. Promote closed work only when it has durable value for future agents, releases, architecture, handoff, or recovery. Otherwise mark the entry archived with `Promotion: none` and keep durable spec files lean.
 
 Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess, and do not write long documents as diaries.
 
@@ -58,7 +60,7 @@ When recording architecture or task context, include where to start reading, whi
 | Active work | Current task scope, constraints, affected files, interface, or verification plan changed | `references/events/active-work.md` |
 | Architecture change | Structure, routing, commands, module boundaries, data flow, or diagrams changed | `references/events/architecture-change.md` |
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |
-| Anchor reconciliation | `spec/current-work.md` must be closed, cleared, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
+| Anchor reconciliation | `spec/current-work.md` entries must be closed, archived, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
 | Catch-up | Work already happened outside Memo and must be captured into `spec/INBOX.md` before full reconciliation | `references/events/catch-up.md` |
 | Archive cleanup | The user asks to archive, or active spec files are noisy with stale history | `references/archive.md` |
 
@@ -97,7 +99,7 @@ spec/
 
 `spec/archive/` is optional. Create it only when archive cleanup actually moves content out of the active files.
 
-`current-work.md` is optional and temporary. Create it for anchored work; close, clear, or overwrite it at phase boundaries.
+`current-work.md` is optional and temporary-to-medium-term. Create it for anchored work; append entries for unrelated work; close or archive entries at phase boundaries; clean only entries already marked archived.
 
 ## Naming Rules
 

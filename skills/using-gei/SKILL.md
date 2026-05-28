@@ -3,7 +3,7 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-This is the entry router and lifecycle starter for Gei, a collection of skills such as `design`, `consider`, `see`, `memo`, and `work`.
+This is the entry router and lifecycle starter for Gei, a collection of skills such as `design`, `consider`, `see`, `memo`, `work`, and `create-skill`.
 
 If there is a real chance the task belongs to one of the skills, stop here first and choose the first downstream skill before you answer, explore, ask clarifying questions, or act.
 
@@ -37,8 +37,8 @@ The general lifecycle:
 2. Execute the task according to the Skill's requirements.
 3. Test, check, and verify that the task is complete.
 4. Before the first file edit, check `spec/current-work.md` (see `references/current-work.md`).
-5. If `spec/current-work.md` was created or reused, close or clear it at phase boundaries.
-6. Invoke `memo` to reconcile and maintain documentation for relevant file changes.
+5. If `spec/current-work.md` was created or reused, close, pause, or archive the relevant entry at phase boundaries.
+6. Invoke `memo` to reconcile current-work entries and conditionally promote durable changes into spec documents.
 
 ## First-Hop Routing
 
@@ -50,6 +50,7 @@ Examples:
 
 - `$memo` + "maintain docs" -> `using-gei` -> `memo`
 - `$work` + "release a new version" -> `using-gei` -> `work`
+- `$create-skill` + "revise this Skill" -> `using-gei` -> `create-skill`
 
 Do not second-guess the first hop just because another skill may also be useful later.
 
@@ -59,6 +60,7 @@ If no skill is explicitly requested, choose the first downstream skill by the us
 
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
+- Creating, improving, reviewing, or validating agent Skills -> `create-skill`
 - Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - Interface, visual artifact, layout, poster, deck, prototype, or visual direction -> `design`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
@@ -80,6 +82,8 @@ Examples:
   - Release execution is the primary objective. `work` should gather project context first and may invoke `memo` if current-work, changelog, spec, or architecture updates are needed.
 - "Check whether the current system matches the alignment docs" -> `using-gei` -> `memo`
   - Documentation alignment is the primary objective.
+- "Turn this repeated workflow into a Skill" -> `using-gei` -> `create-skill`
+  - Skill authoring quality is the final deliverable.
 - "Hi" -> exit Gei and answer normally.
 
 ### 4. Context Acquisition
@@ -91,6 +95,7 @@ The selected first-hop skill is responsible for gathering the context it needs:
 - `work` gathers project, Git, test, build, and release context before acting.
 - `consider` gathers project and external context when the design depends on it.
 - `design` gathers visual, product, and reference context needed for the artifact.
+- `create-skill` gathers source workflow, trigger, structure, and validation context needed to create or improve a Skill.
 - `memo` gathers system and document context needed to maintain durable records.
 - `see` gathers source context when research is the deliverable.
 

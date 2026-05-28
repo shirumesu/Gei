@@ -2,7 +2,7 @@
 
 Use this event when a task reaches a durable checkpoint, release, publication, or formal handoff.
 
-Ship is also a lifecycle boundary. Reconcile and clear, close, or replace `spec/current-work.md` before finishing the ship event.
+Ship is also a lifecycle boundary. Reconcile relevant `spec/current-work.md` entries before finishing the ship event.
 
 ## Trigger
 
@@ -28,14 +28,14 @@ Read:
 
 ## Actions
 
-1. Reconcile `spec/current-work.md`; if changed files exist, ensure `CHANGELOG.md` `Unreleased` has a typed entry.
+1. Reconcile relevant `spec/current-work.md` entries; if durable changed work exists, ensure `CHANGELOG.md` `Unreleased` has a typed entry.
 2. If the project has a version scheme or the user asked for a version, rename `Unreleased` to `## vX.Y.Z - YYYY-MM-DD`.
 3. If the project has no fixed version scheme, rename `Unreleased` to `## Checkpoint YYYY-MM-DD` or `## Checkpoint YYYY-MM`.
 4. Add or compress `Summary`, `Changed Files`, and `Commits` inside the version/checkpoint section.
 5. Recreate a fresh `## Unreleased` section at the top.
 6. Update the active spec-task file only when this work is explicitly spec-backed.
 7. Run a stale diagram audit against `ARCHITECTURE.md` only when architecture changed or the release depends on diagram accuracy.
-8. Clear or close `spec/current-work.md`.
+8. Archive promoted entries in `spec/current-work.md`; clean only entries already marked archived.
 
 Never invent metrics. If coverage, completion rate, or other evidence is unavailable, write `not measured` or `not instrumented`.
 
@@ -62,4 +62,4 @@ Before finishing:
 - Changed files and related commits are listed or marked unavailable.
 - The active task spec records final outcome only when the task was spec-backed.
 - Architecture diagrams were checked when relevant.
-- `spec/current-work.md` no longer contains stale active work.
+- `spec/current-work.md` no longer contains stale active work, and promoted shipped entries are archived.

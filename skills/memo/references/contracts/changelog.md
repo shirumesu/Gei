@@ -4,9 +4,11 @@ Use this contract when creating or updating `spec/CHANGELOG.md`.
 
 ## Responsibility
 
-`CHANGELOG.md` records closed file-changing work and durable release or checkpoint history. It is not a diary and not a raw git log.
+`CHANGELOG.md` records durable closed file-changing work and durable release or checkpoint history. It is not a diary and not a raw git log.
 
-Every closed task that produced relevant file changes must add a concise entry under `## Unreleased`. Release or checkpoint events compress `Unreleased` into a named version or checkpoint.
+Closed work enters `CHANGELOG.md` only when it passes the durable relevance gate: it changes behavior, release contents, rollback expectations, architecture, workflow rules, public files, or future-agent maintenance context. Release or checkpoint events compress `Unreleased` into a named version or checkpoint.
+
+Do not add entries for stage-only work, failed attempts, exploratory checks, temporary debugging, partial work with no durable outcome, or mechanical edits that future agents do not need to recover.
 
 ## Entry Shape
 
@@ -80,6 +82,6 @@ Keep `Unreleased` plus the latest five version or checkpoint sections active. Mo
 ## Completion Check
 
 - `Unreleased` exists after every update.
-- Closed file-changing work has one concise typed entry.
+- Durable closed file-changing work has one concise typed entry.
 - Commit ids are present or explicitly `pending`.
 - Version/checkpoint sections are scan-friendly and not raw implementation diaries.

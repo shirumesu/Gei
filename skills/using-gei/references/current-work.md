@@ -7,14 +7,14 @@ Read this file only when the task may write files, publish, commit, or maintain 
 Before the first file edit, the task **MUST** have one of these:
 
 1. an existing `spec/current-work.md`
-2. a new micro-anchor in `spec/current-work.md`
+2. a new work-buffer entry appended to `spec/current-work.md`
 3. an explicit no-anchor exemption stated to the user
 
 User wording such as "small", "lightweight", "quick", "minor", or "ad hoc" does **not** bypass this rule when files may be changed.
 
 ## Must Anchor
 
-Create or overwrite `spec/current-work.md` when any item is true:
+Create `spec/current-work.md` or append a new entry when any item is true:
 
 - the task changes existing project code, config, docs, skills, tests, or release files
 - more than one file may change
@@ -23,6 +23,8 @@ Create or overwrite `spec/current-work.md` when any item is true:
 - the workspace already has unclear uncommitted changes
 - the work may affect future agents' understanding
 - the user or AI is about to make a small, lightweight, quick, minor, or ad hoc file change
+
+Do not overwrite existing unarchived entries. If the new task is related to an existing `active`, `paused`, or `closed` entry, update that entry instead of appending a duplicate. If it is unrelated, append a new entry and leave the old entry in place until reconciliation marks it archived.
 
 ## Allowed No-Anchor Exemptions
 
@@ -39,30 +41,42 @@ When skipping, state the reason in this shape:
 No anchor: [specific exemption].
 ```
 
-## Micro-Anchor Format
+## Work-Buffer Format
 
-Use this minimum shape. Overwrite stale content at the start of a new anchored task unless the current task is explicitly resuming it.
+Use this minimum shape when creating the file:
 
 ```md
 # Current Work
 
-- Id: `#W-YYYYMMDD-001`
+## `#W-YYYYMMDD-001` - <short task label>
+
 - Intent: <why this file-changing work is happening>
 - Started: YYYY-MM-DD
 - Expected scope: <files, directories, or "unknown until inspection">
 - Durable record needed: unknown | yes | no
-- Status: active | paused | closed
+- Status: active | paused | closed | archived
+- Promotion: pending | none | `spec/CHANGELOG.md` | `spec/docs/#NNN-name.md` | `spec/ARCHITECTURE.md` | `spec/INBOX.md`
+- Promotion note: <optional short reason when promotion is none or delayed>
 ```
 
 Do not add `Author` or `Actor`.
 
+Status meanings:
+
+- `active`: work is in progress and must not be overwritten.
+- `paused`: work may resume and must not be overwritten.
+- `closed`: the task or phase ended, but promotion or no-promotion has not been decided.
+- `archived`: promotion was completed or explicitly judged unnecessary; the entry may be removed during later cleanup.
+
+Closing an entry never implies promotion into durable spec documents. Promotion is conditional and must pass the Memo promotion gate. If no durable record is justified, set `Status: archived`, set `Promotion: none`, add a short `Promotion note`, and keep the entry until a later cleanup removes archived entries.
+
 ## Cleanup
 
-Close or clear `spec/current-work.md` at every phase boundary:
+Update `spec/current-work.md` at every phase boundary:
 
 - after a lightweight task finishes and verification is reported
 - before or after a release, publish, handoff, or version checkpoint
 - after Memo records a durable plan or shipped outcome
 - when starting an unrelated anchored task
 
-Prefer hard overwrite for a new task. Do not carry old current-work data forward by default.
+Prefer append or targeted entry update for new work. Remove or compact only entries already marked `archived`; never delete `active`, `paused`, or `closed` entries merely because a new unrelated task is starting.
