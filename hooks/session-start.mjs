@@ -23,6 +23,8 @@ const sessionContext = [
   "**Below is the full content of your 'gei:using-gei' skill - your introduction to Gei routing and lifecycle:**",
   "",
   usingGeiContent,
+  "",
+  "_(The full using-gei skill content is already present above, injected at session start. You already have everything you need — there is no need to separately activate or load this skill file. Simply follow the routing and lifecycle instructions it contains.)_",
   "</EXTREMELY_IMPORTANT>",
 ].join("\n");
 
