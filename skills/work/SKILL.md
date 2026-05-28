@@ -30,14 +30,14 @@ If `spec/` does not exist, do not create it. Proceed without it.
 
 If the task is pure read, search, explanation, or summary with no file writes, skip this step and state: `No anchor: read-only task.`
 
-For all file-changing tasks, check `spec/current-work.md` before the first file edit. The anchor format and full lifecycle rules are defined in `using-gei/references/current-work.md` — read that file when creating or updating an anchor.
+For all file-changing tasks, check `spec/current-work.md` before the first file edit. The anchor format and full field rules are defined in `memo/references/contracts/work-anchor.md` — read that file when creating or updating an anchor.
 
 Decision rules:
 
 - If the file matches the current task, continue without changes.
 - If it contains a related active or paused entry, update that entry.
 - If it contains unrelated work, append a new entry; do not touch the existing ones.
-- If it is missing, create it following the format in `using-gei/references/current-work.md`.
+- If it is missing, create it following the format in `memo/references/contracts/work-anchor.md`.
 
 Do not skip this step because the task feels small. Do not overwrite active or paused entries from unrelated work.
 

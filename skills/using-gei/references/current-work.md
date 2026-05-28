@@ -41,34 +41,9 @@ When skipping, state the reason in this shape:
 No anchor: [specific exemption].
 ```
 
-## Work-Buffer Format
+## Format
 
-Use this minimum shape when creating the file:
-
-```md
-# Current Work
-
-## `#W-YYYYMMDD-001` - <short task label>
-
-- Intent: <why this file-changing work is happening>
-- Started: YYYY-MM-DD
-- Expected scope: <files, directories, or "unknown until inspection">
-- Durable record needed: unknown | yes | no
-- Status: active | paused | closed | archived
-- Promotion: pending | none | `spec/CHANGELOG.md` | `spec/docs/#NNN-name.md` | `spec/ARCHITECTURE.md` | `spec/INBOX.md`
-- Promotion note: <optional short reason when promotion is none or delayed>
-```
-
-Do not add `Author` or `Actor`.
-
-Status meanings:
-
-- `active`: work is in progress and must not be overwritten.
-- `paused`: work may resume and must not be overwritten.
-- `closed`: the task or phase ended, but promotion or no-promotion has not been decided.
-- `archived`: promotion was completed or explicitly judged unnecessary; the entry may be removed during later cleanup.
-
-Closing an entry never implies promotion into durable spec documents. Promotion is conditional and must pass the Memo promotion gate. If no durable record is justified, set `Status: archived`, set `Promotion: none`, add a short `Promotion note`, and keep the entry until a later cleanup removes archived entries.
+The anchor entry shape, field definitions, and Status meanings are defined in `memo/references/contracts/work-anchor.md`. Read that file when creating or updating an entry.
 
 ## Cleanup
 
