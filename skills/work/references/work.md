@@ -54,7 +54,7 @@ Follow this loop unless the active spec-task explicitly requires a different ord
 1. **Audit the active spec-task**
    Check whether the active task context matches the repo structure, module boundaries, constraints, and conventions. If the plan is unclear or stale, stop and route the needed document repair through Memo instead of patching spec files directly.
 2. **Write the full test surface first**
-   Create the task tests where the active task context and repo conventions place them. Use `spec/test/` only when the Memo-backed task context assigns that surface. Run the tests and confirm they can execute and fail for the expected reason. If the tests pass immediately or fail for the wrong reason, fix the test or the plan first.
+   Follow `references/testcraft.md` to recover the unit contract, map the test surface across functional, boundary, adversarial, error-handling, and integration dimensions, then write tests before any production code. Place tests where the active task context and repo conventions direct. Run the tests and confirm they can execute and fail for the expected reason. If the tests pass immediately or fail for the wrong reason, fix the test or the plan first.
 3. **Implement or delegate by phase**
    The main thread stays as the orchestrator. Implement locally by default. Use worker subagents only when the user explicitly asked for delegation or approved it for this task.
 

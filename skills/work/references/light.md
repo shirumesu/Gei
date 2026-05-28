@@ -23,7 +23,7 @@ If a blocking requirement is still unclear after a small context read, stop and 
 
 ## Iron Laws
 
-- **Prefer a failing test first.** If the repo already has a usable test harness and the behavior can be tested cleanly, write the failing test before code. If the task is docs, config, release work, or the repo has no practical test path for this change, define the smallest concrete verification first and state why.
+- **Prefer a failing test first.** If the repo already has a usable test harness and the behavior can be tested cleanly, write the failing test before code — follow `references/testcraft.md` to design the test surface first. If the task is docs, config, release work, or the repo has no practical test path for this change, define the smallest concrete verification first and state why.
 - Do not leave `TODO`, `TBD`, placeholder branches, or half-implemented logic in production code.
 
 ## Spec Boundary
@@ -45,7 +45,7 @@ Follow this loop unless the task itself clearly requires a different order.
 1. **Check feasibility and blast radius**
    Confirm what the task is changing, what it might break, and what a successful result looks like. If the task is underspecified, repair that gap with a short local execution plan before coding.
 2. **Define verification first**
-   Decide the exact proof path before implementation. Use a failing automated test first when practical. Otherwise use the smallest concrete check that can prove the task, such as a reproduction command, targeted script, build step, snapshot, or manual path with observable output.
+   Decide the exact proof path before implementation. Use a failing automated test first when practical — follow `references/testcraft.md` to design a meaningful test surface before writing test code. Otherwise use the smallest concrete check that can prove the task, such as a reproduction command, targeted script, build step, snapshot, or manual path with observable output.
 3. **Implement in the main thread**
    Make the smallest coherent change set that satisfies the task. Do not split the task unless the user explicitly wants that extra coordination cost. Do not widen scope just because adjacent cleanup looks tempting.
 4. **Run targeted verification**
