@@ -5,53 +5,92 @@
 <h1 align="center">Gei ~ 芸</h1>
 
 <p align="center">
-  A full suite of AI Skill for Codex, covering a variety of scenarios including design, document maintenance, project management, testing, coding, review, publishing, search, and more.
+  A full suite of AI Skills for Codex, covering design, documentation, project management, testing, coding, review, release, search, and more.
 </p>
 
 <p align="center">
   <span>English</span>
   |
-  <a href="README.md">Simplified Chinese</a>.
-</p
+  <a href="README.md">简体中文</a>
+</p>
 
-Many of the current project skills are too heavy and are based on the Claude Code ecosystem which is sometimes not fully Codex compliant.
-So I wrote this skill
+Most existing engineering skills today are too heavy, and being built on the Claude Code ecosystem, they sometimes don't integrate well with Codex.
+So I wrote these skills.
 
 ## What does it do?
 
-1. too many skills, read all at once on `Codex` instead of loaded on demand: explicit segmented disclosure, load one skill at a time.
-2. too much complexity in skill dependencies: keep it simple, use a single skill as a routing entry point, and stream to details based on tasks, so that users have more control.
-3. better workflow, to solve the problem of overloading some skills.
-4. more comprehensive, in addition to writing code, there are also `see` and other skills for daily search and verification.
+1. Too many skills get loaded all at once in `Codex` instead of on demand: explicit progressive disclosure — load only one skill at a time
+2. Skill interdependencies are overly complex: keep it simple — a single skill acts as the routing entry point, distributing tasks to detailed content, giving users strong control
+3. A more refined and comprehensive workflow
+4. Covers everyday needs — beyond coding, there are skills like `see` for daily search and verification
+
+## Workflow
+
+> All skills have built-in **progressive disclosure** and **routing-based distribution**. The entire pipeline requires almost no manual intervention — skills auto-inline internally.
+
+### Main Flow
+
+/using-gei ──→ /consider ──→ /memo ──→ /work ──→ /memo
+
+
+**`/using-gei`** — Main router, manages the lifecycle of the entire task
+
+**`/consider`** — Asks follow-up questions and searches for mainstream approaches, helping you converge and expand ideas, clarify boundaries and impact, and discuss pros and cons
+
+**`/memo`** — Full documentation maintenance layer
+
+| Module | Responsibility |
+| --- | --- |
+| `current-work` | Complete record of a series of consecutive tasks |
+| `OVERVIEW & ARCHITECTURE` | Quick context recovery |
+| `Docs / Spec-Plan` | Written following a rigorous process, responsible for complex Plan execution |
+| `CHANGELOG` | Assists version release maintenance with a fixed release process in one line |
+
+**`/work`** — Complete code workflow
+
+- Starts from `current-work`, covering detailed test-writing guidance (begin work from an expected-to-fail test)
+- Code modification guidelines · Review · Sub-agent usage · Release process
+
+**`/memo`** ↩ — Based on the work done, maintains new Spec changes
+
+---
+
+### Standalone Skills
+
+**`/create-skill`** — Detailed skill-writing guide covering tone, standard conventions, and more; also provides skill optimization, quick format review, and testing workflows
+
+**`/see`** — Tiered web search (from quick to rigorous), multi-layer research criteria ensuring sources are official, objective, accurate, and can be independently cross-verified; leverages upstream tools to access crawler-unfriendly sites
+
+---
 
 ## Skills
 
-| skill | when to use | use |
-| ----- | ------- | ---- |
-| `/using-gei` | Use before any session starts | General routing and task life maintenance layer |
-| `/consider` | for discussing any new ideas | he will help you shrink your needs, especially if they are vague and give you a detailed design |
-| `/memo` | Project-wide documentation | Maintains the spec layer of the project, documenting the project architecture, current work, change logs, and schematic design | `/work` | Maintains the project spec layer, documenting the project architecture, current work, change logs, and schematic design.
-| `/work` | Any code task | The complete process of coding, testing, reviewing, versioning, and releasing. | `/work` | Any code tasks
-| `/see` | Any external web access | Provides a comprehensive search process to ensure that information is accurate, reliable, and current. Search results are optimized through [Jina](https://jina.ai/). It also supports access to *reddit* / *twitter* / *reddit*, which is a wind-control platform.
-| `/create-skill` | When working with skills | Used to create and review various skills, verifying if they have room for optimization |
-| `/design` | Experimental: visual tasks such as web page, PPT, document design | Extracted from [Claude Design System prompt](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), more suitable for Visual products such as interfaces, layouts, prototypes, presentations, etc. |
+| Skill | When to Use | Purpose |
+| --- | --- | --- |
+| `/using-gei` | Before any session starts | Main router and task lifecycle maintenance layer |
+| `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
+| `/memo` | Project-wide documentation maintenance | Maintains the project Spec layer: architecture, current work, changelog, and solution design |
+| `/work` | Any coding task | Complete coding, testing, review, version maintenance, and release workflow |
+| `/see` | Any external web access | Comprehensive search workflow ensuring information is accurate, reliable, and timely; optimizes results via [Jina](https://jina.ai/); supports Reddit / Twitter / 小红书 and other anti-crawler platforms |
+| `/create-skill` | When working with Skills | Create and review Skills, verify optimization opportunities |
+| `/design` | Visual tasks like web pages, PPTs, documents | Distilled from [Claude Design System](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), suitable for interfaces, layouts, prototypes, and presentations *(experimental)* |
 
-### Commonly used paths
+### Common Usage Paths
 
-| Scenarios | Skill Paths | Notes |
-| ----- | ------- | ---- |
-| complete one-time work | `using-gei` → `consider` → `memo` → `work` → `memo` | hardly any active commands |
-| Ideas for discussion | `using-gei` → `consider` → `work` | Could show that using `consider` would be clearer |
-| external search | `using-gei` → `consider` (optional)` → `see` | see requires ambiguity to be clarified, uses authoritative, mainstream data, and requires some stress-testing to provide more rigorous search results |
+| Scenario | Path | Notes |
+| --- | --- | --- |
+| A complete work session | `using-gei` → `consider` → `memo` → `work` → `memo` | Almost no need to manually invoke any commands |
+| Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
+| External search | `using-gei` → `consider` (optional) → `see` | `see` requires disambiguating queries and using authoritative data, resulting in more rigorous output |
 
 ## AGENTS.md
 
-For my personal workflow, I will synchronize my own root-level `~/.codex/AGENTS.md` for reference and examples.  
-As this is a reference example only, it will not be included in the release package, so please [view separately](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1), and copy and replace or enhance your own `AGENTS.md` or `CLAUDE.md` if you need to. CLAUDE.md
+My personal workflow, synced from my own root-level `~/.codex/AGENTS.md`, provided as a reference and example.
+Since this is only a reference example, it is not included in the release package. Please [view it separately](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1). If needed, you can copy, replace, or enhance your own `AGENTS.md` or `CLAUDE.md`.
 
 ## Installation
 
-### Pay for Token Installation
+### Paid Token Installation
 
 Copy this to your Agent:
 
@@ -59,29 +98,29 @@ Copy this to your Agent:
 Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/gei/refs/heads/main/docs/install.md
 ```
 
-### Token-free manual installation
+### Token-Free Manual Installation
 
-> Estimated savings of about 10000 Token
+> Estimated savings of ~10,000 tokens
 
 #### Codex / Codex CLI
 
-For `Codex` and `Codex CLI`, you can install them as **plugin**.
+For `Codex` and `Codex CLI`, you can install as a **plugin**.
 
 ```shell
 codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agents/plugins
 ```
 
-After that, install and enable `gei` on the Plugins page of the Codex app, or `/plugins` in the Codex CLI.  
+Then install and enable `gei` on the Plugins page of the Codex app, or via `/plugins` in Codex CLI.
 
-At this stage, if your Codex version, marketplace content, or environment doesn't allow you to follow this path in its entirety, you can try them in that order:
+If your Codex version, marketplace content, or environment currently can't fully support this path, try in this order:
 
-1. update the marketplace / plugin configuration in `~/.codex/config.toml`. 2. put the plugin directory directly under `~/.codex/plugins/cache/gei/`;
-2. Put the plugin directory directly under `~/.codex/plugins/cache/gei/` to let Codex recognize local plugins first. 3;
-3. Finally, return the `Gei-codex-plugin.zip` in the release package and extract it manually.
+1. Update the marketplace / plugin configuration in `~/.codex/config.toml`;
+2. Place the plugin directory directly under `~/.codex/plugins/cache/gei/` so Codex recognizes it as a local plugin first;
+3. As a last resort, fall back to manually extracting `Gei-codex-plugin.zip` from the release package.
 
-#### Claude Code Plugin Installation
+#### Claude Code Plugin Installation (with Hook)
 
-Requires Node.js on PATH. Clone the repo and run the built-in installer:
+Requires Node.js to be available. Clone the repo anywhere, then run the built-in install script:
 
 ```shell
 git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
@@ -91,14 +130,14 @@ node ~/.agents/Gei/hooks/install-claude.mjs
 The script automatically:
 
 - Creates directory junctions from `~/.claude/skills/` to this repo's `skills/`, keeping skills in sync with `git pull`
-- Writes the `SessionStart` hook to `~/.claude/settings.json` so Gei's routing context is injected at session start
+- Writes the `SessionStart` hook to `~/.claude/settings.json`, injecting Gei's routing context at session start
 
-Restart Claude Code to apply. No need to re-run the script after `git pull`.
+Restart Claude Code to apply. Afterwards, just `git pull` to update the repo — no need to re-run the script.
 
-#### Non-Plugin / Other Agent
+#### Non-Plugin / Other Agents
 
-Download `Gei-skills.zip` at [release](https://github.com/shirumesu/gei/releases/latest) and extract the desired skills directory into your skills directory.  
-Most Agents accept subdirectories for recursive searching, so your installation directory can also look like this.
+Download `Gei-skills.zip` from [releases](https://github.com/shirumesu/gei/releases/latest) and extract the desired skill directories into your skills directory.
+Most agents accept recursive subdirectory search, so your install directory can look like this:
 ```text
 <skills-dir>/
   Gei/
@@ -116,30 +155,30 @@ Most Agents accept subdirectories for recursive searching, so your installation 
       SKILL.md
 ```
 
-Or even a layer of `Gei/skills/<skill>` would work.
+Even nesting another layer like `Gei/skills/<skill>` works fine.
 
-#### git installation (other agents)
+#### Git Installation
 
-Or you could just `git clone https://github.com/shirumesu/gei.git` and update it with `git pull`
+You can also simply `git clone https://github.com/shirumesu/gei.git` and update with `git pull`.
 
-## Known issues
+## Known Issues
 
-- `/See` relies on a portion of [upstream tools] (#Thanks to), they are not very stable, occasionally you need to manually register and log in state by yourself, the automatic installation as well as the guidelines have been written within the skill, your Agent should guide you through the installation and login.
-  - Since upstream tools are mostly crawlers, cli automation, etc., the risk of blocking is not guaranteed, so if you don't want to use them, please explicitly mention it to the AI in the task.
+- `/see` depends on some [upstream tools](#acknowledgments) which are not very stable. Occasionally you may need to manually register and log in. The skill already includes auto-install and setup guidance — your Agent should walk you through installation and login.
+	- Since the upstream tools are mostly crawlers and CLI automation tools, account ban risk cannot be guaranteed. If you prefer not to use them, explicitly tell your AI in the task.
 
 ## Changelog / New Discoveries
 
-The latest public release log is available at [CHANGELOG.md](. /CHANGELOG.md).
+See [CHANGELOG.md](./CHANGELOG.md) for the latest public version changelog.
 
-## Thanks to
+## Acknowledgments
 
 - Inspiration and references:
-  - [superpowers](superpowers)
-  - [gstack](https://github.com/garrytan/gstack)
-  - [waza](https://github.com/tw93/waza)
-- Upstream Tools:
-  - X Access Support: [twitter-cli](https://github.com/public-clis/twitter-cli)
-  - Xiaohongshu Visit Support: [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
-  - Reddit Visit Support: [rdt-cli](https://github.com/public-clis/rdt-cli)
-- Donors.
-  - [myself](https://github.com/shirumesu) Donated a full human brain, effectively reducing token costs during development.
+	- [superpowers](superpowers)
+	- [gstack](https://github.com/garrytan/gstack)
+	- [Waza](https://github.com/tw93/waza)
+- Upstream tools:
+	- X access support: [twitter-cli](https://github.com/public-clis/twitter-cli)
+	- 小红书 access support: [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
+	- Reddit access support: [rdt-cli](https://github.com/public-clis/rdt-cli)
+- Donors
+	- [Myself](https://github.com/shirumesu) donated a complete human brain, effectively reducing token costs during development

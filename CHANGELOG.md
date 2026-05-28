@@ -2,6 +2,21 @@
 
 This file records public release notes for Gei.
 
+## v0.4.3 - 2026-05-29
+
+### 新增
+- `work` 新增 `testcraft.md` 测试编写参考文档，位于 `skills/work/references/`
+
+### 优化
+- 精简 `work` skill，将 `light.md` 和 `work.md` 内联合并到 `skills/work/SKILL.md`，减少文件碎片
+
+### 修复
+- 修复 `hooks/session-start.mjs` 中重复读取 skill 文件导致的冗余 I/O
+- 清理多个文件中过期的 `current-work` 引用
+
+### 文档
+- 重定义 `spec/current-work.md` 为追加式工作缓冲区，同步更新首跳路由和协调契约
+
 ## v0.4.2 - 2026-05-26
 
 ### 新增
