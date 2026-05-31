@@ -20,14 +20,14 @@ Each entry uses this shape:
 - Intent: <why this file-changing work is happening>
 - Started: YYYY-MM-DD
 - Expected scope: <files, directories, or "unknown until inspection">
-- Durable record needed: unknown | yes | no
 - Status: active | paused | closed | archived
 - Promotion: pending | none | spec/CHANGELOG.md | spec/docs/#NNN-name.md | spec/ARCHITECTURE.md | spec/INBOX.md
 - Promotion note: <optional short reason when promotion is none or delayed>
+- Resume: <active/paused only: where the work stands now · the next concrete step · what blocks it>
 - Progress:
-  - <one line per completed section or milestone, appended as work progresses>
+  - <one line per closed section or milestone — the decision, diagnosis, or deviation, not just what was added>
 - Evidence:
-  - <command and observed result, appended after each verification run>
+  - <optional verbatim artifact backing a claim above — exact error string, symbol, file:line, or external constraint>
 - Notes:
   - <cross-session constraints, pinned versions, known risks, or blockers>
 ```
@@ -40,21 +40,33 @@ Do not add `Author` or `Actor`.
 
 **Expected scope** — the files and directories likely to change. Write "unknown until inspection" if genuinely unclear at start. Update as scope becomes known.
 
-**Durable record needed** — whether the completed work deserves a permanent entry in a spec document. Set to `unknown` when unsure; decide before closing.
-
 **Status** — lifecycle state of this entry:
 - `active`: work is in progress. Do not overwrite or archive.
 - `paused`: work will resume from this anchor. Do not overwrite or archive.
 - `closed`: the task or phase ended, but whether to promote has not been decided.
 - `archived`: promotion completed or judged unnecessary. May be removed during cleanup.
 
-**Promotion** — where durable information from this entry will land, or `none` if no promotion is needed.
+**Promotion** — where durable information from this entry will land, or `none` if no promotion is needed. `pending` also means the durable-record decision itself has not been made yet; decide it before archiving.
 
-**Progress** — running append log. After each section or meaningful milestone completes, append one line describing what was done. This is the primary recovery surface for a new session picking up an in-progress task. Write each line when the section closes, not retroactively at the end.
+**Resume** — for an `active` or `paused` entry, the single most important recovery fact: where the work stands now, the next concrete step, and anything blocking it. This is the first thing a returning agent reads. It is the one field you **overwrite** as state moves, not append to (unlike `Progress`). Leave empty (`—`) for `closed` or `archived` entries.
 
-**Evidence** — running append log of verification commands and observed outputs. Append after each verification run, not only at task end. Each line should be self-contained: command + result.
+**Progress** — append-only history, one line per closed section or milestone, written when it closes (not retroactively). Bias each line toward what the diff and the task spec cannot show on their own: the decision made and why, an alternative ruled out, a root cause diagnosed, or a deviation from the plan. A bare restatement of what was added ("added route X, component Y") has little recovery value — the diff already shows it. The current tip and next step live in `Resume`, not here.
+
+**Evidence** — optional. The raw artifact behind a `Progress`, `Resume`, or `Notes` claim that must survive verbatim: an exact error string, a symbol or `file:line`, an external API or version constraint, a short excerpt. It is the proof, not the conclusion — the conclusion belongs in `Progress`/`Notes`; `Evidence` is what you would quote to defend it. Never a command log: do not record routine passing lint/test/build runs, and do not search for something to fill this field. If you have a claim but no artifact worth quoting verbatim, leave `Evidence` empty.
 
 **Notes** — persistent constraints, pinned versions, known risks, or blockers that must survive across sessions. Append when a constraint is discovered. Do not clean this field during active work.
+
+## Examples
+
+`Progress` — record the decision behind a change, not a restatement of the diff:
+
+- Low value: `[Section 1] Added the /plugin route, sidebar entry, and page scaffold.` — the diff already shows this.
+- High value: `[Block 1] Replaced the mock runtime with real Main lifecycle APIs; routed plugin file/path reads through Main/preload because renderer fs/path stubs were silently blocking installed main.js.`
+
+`Evidence` — a verbatim artifact, never a routine run:
+
+- Keep: `paddleocr ensureServedFromHttp throws when location.protocol === "file:"` — the exact reason packaged `file://` fails; backs the `neopot://` decision.
+- Drop: `npm run test => 87 pass, 0 fail` — routine run; record it nowhere.
 
 ## Write Rules
 
@@ -62,7 +74,9 @@ Do not overwrite an `active` or `paused` entry when starting an unrelated task. 
 
 Update the existing entry when the current task is a direct continuation of that entry.
 
-Append to `Progress`, `Evidence`, and `Notes` during work — not only at task end. A future session must be able to reconstruct current state from this file alone without reading git diff.
+Append to `Progress` and `Notes` during work — not only at task end. Keep `Resume` current by overwriting it as the work moves; it is the one field you rewrite rather than append. Add `Evidence` only when a raw artifact is worth quoting verbatim. A future session must be able to reconstruct current state from this file alone without reading git diff.
+
+When the task has a spec-task doc (`spec/docs/#NNN`), do not restate its plan, scope, or file list here. The spec-task holds the plan; this entry tracks progress against it plus in-flight decisions, deviations, and the current `Resume` state.
 
 Do not infer a full plan from git diff when the anchor is missing — surface the gap instead.
 
@@ -88,7 +102,9 @@ Before finishing a Memo update that touches `spec/current-work.md`:
 - Each unarchived entry describes one task only.
 - No stale `active` entry exists for work that has clearly ended.
 - The close or archive choice is explicit.
-- `Progress`, `Evidence`, and `Notes` reflect the actual work done, appended incrementally.
+- For an `active` or `paused` entry, `Resume` states the current position, the next concrete step, and any blocker — enough to pick up without reading the diff.
+- `Progress` records decisions, diagnoses, and deviations, not just a restatement of what the diff already shows.
+- `Evidence`, when present, is a verbatim artifact backing a claim — never a routine command log.
 - Durable work has a spec entry only when it passed the promotion gate.
 - Non-durable complete work is marked `Status: archived` with `Promotion: none`.
 - `spec/` remains excluded from product commits unless the user explicitly opted in.

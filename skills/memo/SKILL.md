@@ -11,7 +11,7 @@ Its job is to keep future agents productive without forcing a fresh deep read of
 
 `spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, and how completed changes were recorded.
 
-`spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone.
+`spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone. Optimize it for resumability, not audit completeness.
 
 ## Version Control Boundary
 

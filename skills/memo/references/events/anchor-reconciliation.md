@@ -8,7 +8,7 @@ Trigger this event when any of these are true:
 
 - a file-changing task or phase is ending and `spec/current-work.md` exists
 - work expanded beyond an entry's `Expected scope`
-- `Durable record needed` is `yes` or `unknown` at a phase boundary
+- `Promotion` is still `pending` at a phase boundary
 - a release, publish, handoff, checkpoint, or deliberate Memo sync is happening
 - changed files exist but there is no reliable task intent except the current-work buffer or user statement
 
@@ -22,17 +22,18 @@ Read:
 4. The smallest changed-file list or user summary needed to compare actual work against the selected entry
 5. Other Memo contracts only if the reconciliation will update those documents
 
-Do not read broad source files just to reconstruct intent. Use the selected current-work entry first, then inspect only the files needed to verify scope or evidence.
+Do not read broad source files just to reconstruct intent. Use the selected current-work entry first, then inspect only the files needed to verify scope or decision-supporting evidence.
 
 ## Actions
 
 1. Select the relevant current-work entry. Do not reconcile unrelated entries unless the user asked for cleanup.
 2. Compare `Intent` and `Expected scope` with the actual changed-file surface.
-3. Apply the promotion gate before writing any durable spec document.
-4. If durable changelog value exists, add one concise typed entry under `spec/CHANGELOG.md` `## Unreleased`.
-5. If structure, routing, commands, module boundaries, or major data flow changed, route the architecture update through `architecture-change.md`.
-6. If a complex plan or handoff was explicitly accepted, update the owning task spec.
-7. Set the entry to `closed`, `paused`, or `archived`; only remove entries that were already archived before this event or were archived during an explicit cleanup.
+3. Check whether `Resume`, `Progress`, and `Notes` are enough to resume the task without rereading the full diff. Prefer concise current-state, decision, and remaining-risk facts over verification-command logs.
+4. Apply the promotion gate before writing any durable spec document.
+5. If durable changelog value exists, add one concise typed entry under `spec/CHANGELOG.md` `## Unreleased`.
+6. If structure, routing, commands, module boundaries, or major data flow changed, route the architecture update through `architecture-change.md`.
+7. If a complex plan or handoff was explicitly accepted, update the owning task spec.
+8. Set the entry to `closed`, `paused`, or `archived`; only remove entries that were already archived before this event or were archived during an explicit cleanup.
 
 ## Decision Standard
 
@@ -49,6 +50,7 @@ Do not create separate backlog or general-purpose memory records. Future work is
 ## Completion Check
 
 - The reconciled entry no longer contains stale active work.
+- The selected entry can be resumed from `Intent`, `Resume`, `Progress`, and `Notes` without treating routine lint/test/build success as important context.
 - `CHANGELOG.md` records only durable changed work under `Unreleased`.
 - Any promoted document has the correct id and link.
 - Entries not promoted to spec are explicitly marked `Promotion: none` with a short reason.
