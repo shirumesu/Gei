@@ -77,8 +77,8 @@
 
 ## Hooks
 
-本 Skill 提供 SessionStart Hook，用于在会话开始时自动注入 `using-gei` 全文以及 `project_has_spec: true|false` Flag。
-`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准；如果是 Codex，将会自动连带注入 *spec/OVERVIEW.md* 全文；由于 Claude Code 存在最大 Hooks 文本限制，因此仅注入 `using-gei` 全文、Flag 与 OVERVIEW 指针。
+本 Skill 提供两个 SessionStart Hook：`inject_using_gei` 自动注入 `using-gei` 全文，`inject_overview` 自动注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文。
+`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准；Claude Code 和 Codex 都会通过第二个 Hook 自动注入 *spec/OVERVIEW.md* 全文。
 
 ### 常见使用路径
 
@@ -135,7 +135,7 @@ node ~/.agents/Gei/hooks/install-claude.mjs
 脚本自动完成：
 
 - 在 `~/.claude/skills/` 下创建指向本仓库 `skills/` 的目录 junction，skills 随 `git pull` 自动同步
-- 将 `SessionStart` hook 写入 `~/.claude/settings.json`，会话开始时自动注入 Gei 路由上下文
+- 将两个 `SessionStart` hooks 写入 `~/.claude/settings.json`，会话开始时自动注入 Gei 路由上下文和 OVERVIEW 全文
 
 重启 Claude Code 后生效。后续只需 `git pull` 更新仓库，不需要重新运行脚本。
 

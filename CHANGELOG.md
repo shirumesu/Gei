@@ -1,12 +1,21 @@
 # Changelog
 
-This file records public release notes for Gei.
+## v0.4.5 - 2026-06-02
 
-## Unreleased
+### 移除
+- 移除已废弃的 spec archive-directory 存储模型，以及不再维护的 Design skill
 
 ### 修复
+- SessionStart 注入拆分为 `inject_using_gei.mjs` 和 `inject_overview.mjs` 两个 hook；Claude Code 和 Codex 都注册双 hook，避免单个 hook 输出同时承载 using-gei 与 OVERVIEW 后触发 Claude Code 的大输出预览。
+- 拆分后取消 Claude Code/Codex 的 OVERVIEW 注入差异；两个宿主现在都会通过 `inject_overview.mjs` 注入完整 `spec/OVERVIEW.md`。
 - SessionStart hook 现在始终先注入 `using-gei` 全文，再注入 `project_has_spec: true|false`；`project_has_spec` 仅以 `spec/OVERVIEW.md` 是否存在为准，避免临时遗留的 `spec/current-work.md` 被误判为完整 spec。
 - Claude Code hook 配置收敛到官方默认的 `hooks/hooks.json`，移除 `hooks/claude-hooks.json`，避免 Claude Code 同时发现两份 hook 配置后静默忽略其中一份；Codex 改用 `hooks/codex-hooks.json` 保留自身占位符。
+- Claude Code plugin manifest 补齐发布元数据，并保持 `0.4.5` 版本号与 Codex plugin metadata 对齐。
+
+### 优化
+- Work 的验证规则从绝对 failing-test-first 调整为按行为风险选择命令行验证；同时明确禁止把低价值存在性、源码形状、mock-only 或 “does not throw” 测试作为主要证明。
+- Memo changelog 指南移除 standalone changed-file 和 commit-list 段落，让发布记录保持更短、更聚焦。
+- 压缩 `using-gei` router 文本，保留首跳路由、文件变更生命周期和 progressive disclosure 约束，同时降低每次 SessionStart 注入的上下文成本。
 
 ## v0.4.4 - 2026-06-01
 

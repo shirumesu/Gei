@@ -76,8 +76,8 @@ So I wrote these skills.
 
 ## Hooks
 
-This Skill provides a SessionStart hook that injects the full `using-gei` text and a `project_has_spec: true|false` flag at the beginning of the session.
-`project_has_spec` is true only when *spec/OVERVIEW.md* exists. Codex also receives the full *spec/OVERVIEW.md* text; because Claude Code has hook text limits, it receives the full `using-gei` text, the flag, and an OVERVIEW pointer.
+This Skill provides two SessionStart hooks: `inject_using_gei` injects the full `using-gei` text, while `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context.
+`project_has_spec` is true only when *spec/OVERVIEW.md* exists. Claude Code and Codex both receive the full *spec/OVERVIEW.md* text through the second hook.
 
 ### Common Usage Paths
 
@@ -134,7 +134,7 @@ node ~/.agents/Gei/hooks/install-claude.mjs
 The script automatically:
 
 - Creates directory junctions from `~/.claude/skills/` to this repo's `skills/`, keeping skills in sync with `git pull`
-- Writes the `SessionStart` hook to `~/.claude/settings.json`, injecting Gei's routing context at session start
+- Writes two `SessionStart` hooks to `~/.claude/settings.json`, injecting Gei's routing context and the full OVERVIEW at session start
 
 Restart Claude Code to apply. Afterwards, just `git pull` to update the repo — no need to re-run the script.
 

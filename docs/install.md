@@ -37,10 +37,10 @@ node <install-dir>/Gei/hooks/install-claude.mjs
     memo/        -> <install-dir>/Gei/skills/memo
     see/         -> <install-dir>/Gei/skills/see
     consider/    -> <install-dir>/Gei/skills/consider
-  settings.json  (contains SessionStart hook entry)
+  settings.json  (contains SessionStart hook entries)
 ```
 
-Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains a `SessionStart` hook entry pointing to `<install-dir>/Gei/hooks/session-start.mjs`.
+Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_using_gei.mjs` and `<install-dir>/Gei/hooks/inject_overview.mjs`.
 
 For updates, run `git pull` inside `<install-dir>/Gei`. No need to re-run the installer unless new skill directories are added.
 

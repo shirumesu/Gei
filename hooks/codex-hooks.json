@@ -1,5 +1,5 @@
 {
-  "description": "Inject the Gei router at session start so skill routing is present from the first turn.",
+  "description": "Inject the Gei router and project overview at session start so routing and cold-start context are present from the first turn.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,8 +7,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_using_gei.mjs\"",
             "statusMessage": "Loading Gei routing context",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_overview.mjs\"",
+            "statusMessage": "Loading Gei project overview",
             "timeout": 5
           }
         ]

@@ -64,10 +64,25 @@ function installSkills() {
   }
 }
 
+function hookCommands(group) {
+  return (group.hooks ?? []).map(h => h.command).filter(Boolean);
+}
+
+function sameCommands(left, right) {
+  const leftCommands = hookCommands(left);
+  const rightCommands = hookCommands(right);
+  return (
+    leftCommands.length === rightCommands.length &&
+    leftCommands.every((cmd, index) => cmd === rightCommands[index])
+  );
+}
+
+function isLegacyGeiSessionStartHook(group) {
+  return hookCommands(group).some(cmd => cmd.includes('/hooks/session-start.mjs') || cmd.includes('\\hooks\\session-start.mjs'));
+}
+
 function hookExists(groups, incoming) {
-  const cmd = incoming.hooks?.[0]?.command;
-  if (!cmd) return false;
-  return groups.some(g => g.hooks?.some(h => h.command === cmd));
+  return groups.some(g => sameCommands(g, incoming));
 }
 
 function installHooks() {
@@ -83,6 +98,12 @@ function installHooks() {
 
   for (const [event, groups] of Object.entries(hooksDef.hooks)) {
     if (!settings.hooks[event]) settings.hooks[event] = [];
+    const beforeCount = settings.hooks[event].length;
+    settings.hooks[event] = settings.hooks[event].filter(group => !isLegacyGeiSessionStartHook(group));
+    if (settings.hooks[event].length !== beforeCount) {
+      console.log(`  hook   [removed] ${event} legacy session-start.mjs`);
+      dirty = true;
+    }
 
     for (const group of groups) {
       const expanded = JSON.parse(

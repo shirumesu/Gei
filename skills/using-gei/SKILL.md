@@ -3,120 +3,60 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-This is the entry router and lifecycle starter for Gei, a collection of skills such as `consider`, `see`, `memo`, `work`, and `create-skill`.
+Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `work`, or `create-skill`.
 
-If there is a real chance the task belongs to one of the skills, stop here first and choose the first downstream skill before you answer, explore, ask clarifying questions, or act.
+## Core Contract
 
-## Instruction Priority
+- Route before answering, exploring, asking clarifying questions, or acting.
+- User instructions and repo rules decide **what** to do; Gei routing decides **how** to work.
+- If the user explicitly names a skill, load that skill first unless higher-priority instructions block it.
+- Choose only the first downstream skill. The selected skill owns its workflow and any later handoff.
+- Load one downstream skill at a time. Do not preload likely later skills.
+- If no Gei skill matches, exit Gei and continue normally.
 
-Gei routing decides **how** to work. The user's instructions still decide **what** to do.
+## Route By Final Objective
 
-1. User instructions and repo rules come first.
-2. If the user explicitly requests a skill, load that skill first unless a higher-priority instruction makes that impossible.
-3. If this router conflicts with the selected downstream skill, follow the downstream skill.
-4. This router chooses only the first downstream skill.
-5. The selected downstream skill owns local workflow decisions, but it MUST obey the lifecycle state started here.
-
-## Core Rule
-
-Route by the user's primary objective, not by the first visible action word.
-
-Actions such as search, inspect, read, compare, check, verify, update, and summarize may be supporting actions. They should not decide the first skill unless they are the user's final deliverable.
-
-Only load one downstream skill at a time. If later context requires another skill, the currently loaded skill decides that handoff through the current lifecycle state.
-
-## Lifecycle State
-
-`using-gei` starts lifecycle state; downstream skills enforce it. Do not ask a downstream skill to remember this file. Use `spec/current-work.md` as the short local state file for active and recent file-changing work.
-
-If the task may write files, publish, commit, or maintain project state, read `references/current-work.md` before the first file edit and satisfy that lifecycle contract. If the task cannot affect project state, no lifecycle reference is needed.
-
-When project context sources disagree, use this confidence order: repository code/config/tests/Git history first; `spec/current-work.md` second as recent task memory; durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` third because they may lag until Memo promotion.
-
-The general lifecycle:
-
-1. Recognize user commands and load only the most appropriate Skill.
-2. Execute the task according to the Skill's requirements.
-3. Test, check, and verify that the task is complete.
-4. Before the first file edit, check `spec/current-work.md` (see `references/current-work.md`).
-5. If `spec/current-work.md` was created or reused, close, pause, or archive the relevant entry at phase boundaries.
-6. Invoke `memo` to reconcile current-work entries and conditionally promote durable changes into spec documents.
-
-## First-Hop Routing
-
-### 1. Explicit Skill Request
-
-If the user explicitly names a skill, load that skill first.
-
-Examples:
-
-- `$memo` + "maintain docs" -> `using-gei` -> `memo`
-- `$work` + "release a new version" -> `using-gei` -> `work`
-- `$create-skill` + "revise this Skill" -> `using-gei` -> `create-skill`
-
-Do not second-guess the first hop just because another skill may also be useful later.
-
-### 2. Primary Objective
-
-If no skill is explicitly requested, choose the first downstream skill by the user's main intended outcome.
+Route by the user's primary intended outcome, not by the first visible verb.
 
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
 - Creating, improving, reviewing, or validating agent Skills -> `create-skill`
 - Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
-- No matching skill -> exit Gei and answer normally, or use the appropriate non-skill if one applies.
+- No matching skill -> exit Gei
 
-When a new skill is added, route to it by its own current description if it is the best first-hop match. Do not expand this router into a complete copy of every downstream skill's trigger list.
+When a new skill is added, route to it by its own description if it is the best first hop. Do not copy every downstream skill's full trigger list into this router.
 
-### 3. Supporting Actions
+## Supporting Actions
 
-Do not choose a skill only because the request mentions a supporting action. Consider what that action is for.
+Do not route by incidental actions such as search, inspect, read, compare, check, verify, update, or summarize unless that action is the final deliverable.
 
 Examples:
 
-- "Search for mods for a game" -> `using-gei` -> `see`
-  - Research is the final deliverable.
-- "I want to add a feature; check how another project designed it" -> `using-gei` -> `consider`
-  - Feature planning is the primary objective. `consider` may invoke research if external examples are needed.
-- "Release a new version" -> `using-gei` -> `work`
-  - Release execution is the primary objective. `work` should gather project context first and may invoke `memo` if current-work, changelog, spec, or architecture updates are needed.
-- "Check whether the current system matches the alignment docs" -> `using-gei` -> `memo`
-  - Documentation alignment is the primary objective.
-- "Turn this repeated workflow into a Skill" -> `using-gei` -> `create-skill`
-  - Skill authoring quality is the final deliverable.
-- "Hi" -> exit Gei and answer normally.
+- "Search for mods for a game" -> `see`, because research is the deliverable.
+- "I want to add a feature; check how another project designed it" -> `consider`, because feature planning is the deliverable and research is supporting work.
+- "Hi" -> exit Gei.
 
-### 4. Context Acquisition
+Do not route to `see` or `memo` only because context may be needed. The selected first-hop skill gathers its own project, external, Git, test, build, spec, or source context.
 
-Do not route to `see` or `memo` only because context might be needed.
+## Lifecycle State
 
-The selected first-hop skill is responsible for gathering the context it needs:
+`using-gei` starts lifecycle state; downstream skills enforce it. Do not ask downstream skills to remember this file.
 
-- `work` gathers project, Git, test, build, and release context before acting.
-- `consider` gathers project and external context when the design depends on it.
-- `create-skill` gathers source workflow, trigger, structure, and validation context needed to create or improve a Skill.
-- `memo` gathers system and document context needed to maintain durable records.
-- `see` gathers source context when research is the deliverable.
+For file-changing work:
 
-## Red Flags
+1. Use `spec/current-work.md` as the short local state file for active and recent work.
+2. Before the first file edit, read `references/current-work.md` and satisfy that contract.
+3. At phase boundaries, close, pause, or archive the relevant current-work entry.
+4. Invoke `memo` when current-work reconciliation or durable spec promotion is required.
 
-These thoughts usually mean the routing step is being skipped:
+For read-only tasks, no current-work anchor is needed.
 
-- "This is simple. I can answer first."
-- "I need more context before I choose a skill."
-- "The request mentions search, so it must be `see`."
-- "The request might touch docs later, so it must start with `memo`."
-- "I already know what these skills do."
-
-Stop and route deliberately.
+When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` third.
 
 ## End Condition
 
-- If a skill matches, state the routing path briefly, such as `using-gei` -> `consider`
-- If lifecycle state was required, also state whether `spec/current-work.md` was created, reused, or explicitly skipped.
-- **Principle of Progressive Disclosure**:
-  - If multiple skills are matched, such as: `using-gei` -> `consider` -> `memo` -> `work`, load **only** the skill with the shortest path(In example, it is`consider`).
-  - Then, either execute the subsequent skills as directed by the current skill
-  - Or wait until the current skill has fully completed before loading the next one; **do not** load all skills at the very beginning.
+- State the routing path briefly, for example: `using-gei` -> `consider`.
+- If lifecycle state was required, state whether `spec/current-work.md` was created, reused, or explicitly skipped.
+- If multiple skills seem relevant, load only the shortest first-hop path and wait for that skill to complete or hand off.
 - If no skill matches, exit this router and continue normally.

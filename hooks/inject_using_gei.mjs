@@ -3,14 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import {
-  buildProjectSpecBlock,
-  findSpecProjectDir,
-  getHookStartDir,
-  pluginRoot,
-  readHookInput,
-  writeSessionStartContext,
-} from "./session-context.mjs";
+import { pluginRoot, writeSessionStartContext } from "./session-context.mjs";
 
 const skillPath = path.join(pluginRoot, "skills", "using-gei", "SKILL.md");
 
@@ -33,7 +26,4 @@ const sessionContext = [
   "</EXTREMELY_IMPORTANT>",
 ].join("\n");
 
-const hookInput = readHookInput();
-const projectDir = findSpecProjectDir(getHookStartDir(hookInput));
-
-writeSessionStartContext(`${sessionContext}\n\n${buildProjectSpecBlock(projectDir)}`);
+writeSessionStartContext(sessionContext);
