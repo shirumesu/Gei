@@ -103,13 +103,66 @@ function buildProjectSpecBlock(projectDir) {
   }
 }
 
+// Claude Code persists/truncates large SessionStart additionalContext, so on Claude
+// we inject only a small pointer to spec/OVERVIEW.md instead of inlining its full text.
+function buildProjectSpecFlag(projectDir) {
+  try {
+    if (!projectDir) return "";
+
+    const specRoot = path.join(projectDir, "spec");
+    const overviewPath = path.join(specRoot, "OVERVIEW.md");
+    if (!fs.existsSync(overviewPath)) return "";
+
+    const overview = fs.readFileSync(overviewPath, "utf8");
+    const lineCount = overview.trim() ? overview.split(/\r?\n/).length : 0;
+    const warning =
+      lineCount > OVERVIEW_LINE_WARNING
+        ? [
+            "",
+            `Note: spec/OVERVIEW.md is ${lineCount} lines, above the ${OVERVIEW_LINE_WARNING}-line warning threshold. Tell the user this project should compress OVERVIEW.md.`,
+          ]
+        : [];
+
+    return [
+      "<gei-project-spec>",
+      "Project_has_spec: true",
+      `spec_root: ${specRoot}`,
+      "",
+      "The current project maintains a spec/ system. The full spec/OVERVIEW.md is intentionally NOT inlined here.",
+      `Read spec/OVERVIEW.md now for this project's cold-start context: ${overviewPath}`,
+      "After reading it, use it to choose the next context surface. Do not read ARCHITECTURE.md, current-work.md, CHANGELOG.md, or spec/docs/ by default.",
+      "Read ARCHITECTURE.md when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed.",
+      "Read current-work.md for recent task memory, active/paused file-changing work, release/debug reconciliation, or before file edits as required by the Gei lifecycle.",
+      "Treat confidence in this order: repository code/config/tests first, current-work.md as recent task memory second, durable spec files third because they may lag until promotion.",
+      ...warning,
+      "</gei-project-spec>",
+    ].join("\n");
+  } catch {
+    return "";
+  }
+}
+
 const hookInput = readHookInput();
 const projectDir = findSpecProjectDir(
   typeof hookInput.cwd === "string" && hookInput.cwd
     ? hookInput.cwd
     : process.env.CLAUDE_PROJECT_DIR || process.cwd(),
 );
-const projectSpecBlock = buildProjectSpecBlock(projectDir);
+// Claude Code sets CLAUDE_* env vars for hook commands; Codex does not. Detect
+// Claude positively and default to Codex, so a miss degrades to full injection
+// (the existing Codex behavior) rather than breaking Codex.
+const isClaudeCode = Boolean(
+  process.env.CLAUDECODE ||
+    process.env.CLAUDE_CODE_ENTRYPOINT ||
+    process.env.CLAUDE_PROJECT_DIR ||
+    process.env.CLAUDE_PLUGIN_ROOT,
+);
+
+// Codex receives the full OVERVIEW inline; Claude Code only gets a pointer flag
+// because it persists/truncates large SessionStart additionalContext.
+const projectSpecBlock = isClaudeCode
+  ? buildProjectSpecFlag(projectDir)
+  : buildProjectSpecBlock(projectDir);
 const additionalContext = projectSpecBlock
   ? `${sessionContext}\n\n${projectSpecBlock}`
   : sessionContext;

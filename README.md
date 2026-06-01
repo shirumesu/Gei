@@ -76,6 +76,11 @@
 | `/create-skill` | Skill 相关操作时 | 创建与审核 Skill，验证可优化空间 |
 | `/design` | 网页、PPT、文档等视觉任务 | 提炼自 [Claude Design System](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de)，适合界面、版式、原型、演示文稿 *(实验性)* |
 
+## Hooks
+
+本 Skill 提供一个 Hooks，用于在会话开始时自动注入 `using-gei` 全文以及项目是否有 *spec/* 的 Flag
+如果是 Codex，将会自动连带注入 *spec/OVERVIEW.md* 全文；由于 Claude Code 存在最大 Hooks 文本限制，因此仅限 `using-gei` 全文与 Flag
+
 ### 常见使用路径
 
 | 场景 | 路径 | 备注 |

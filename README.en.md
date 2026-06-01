@@ -75,6 +75,11 @@ So I wrote these skills.
 | `/create-skill` | When working with Skills | Create and review Skills, verify optimization opportunities |
 | `/design` | Visual tasks like web pages, PPTs, documents | Distilled from [Claude Design System](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), suitable for interfaces, layouts, prototypes, and presentations *(experimental)* |
 
+## Hooks
+
+This Skill provides a Hooks to inject the `using-gei` full text at the beginning of the session and if the project has a *spec/* flag.
+If it is a Codex, the full text of *spec/OVERVIEW.md* will be injected along with it; due to Claude Code's maximum Hooks text limit, it is limited to the full text of `using-gei` and the Flag.
+
 ### Common Usage Paths
 
 | Scenario | Path | Notes |
