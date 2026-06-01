@@ -2,6 +2,26 @@
 
 This file records public release notes for Gei.
 
+## v0.4.4 - 2026-06-01
+
+### 新增
+- SessionStart hook 现在会自动检测项目 `spec/OVERVIEW.md` 并注入会话上下文；Codex 注入 OVERVIEW 全文，Claude Code 因 Hook 文本限制仅注入 `using-gei` 全文以及 Flag 指针（引导读取 OVERVIEW.md）
+
+### 优化
+- Memo Skill 新增置信度分层：代码/配置/测试 > current-work（近期任务记忆）> 持久文档（OVERVIEW/ARCHITECTURE/CHANGELOG）
+- Architecture 契约支持 `spec/architecture/*.md` 碎片化模型，可通过按领域拆分避免单文件过长
+- Architecture 模板移除验证命令表（命令事实保留在包/配置文件中）
+- Overview 模板精简，移除默认的 backend/frontend/build command 字段
+- Consider 读取入口从 `ARCHITECTURE.md` 改为 `OVERVIEW.md`，调整阅读顺序与置信度层级
+- Memo current-work 锚点契约：废弃 `Durable record needed`，新增 `Resume` 字段，精炼 Progress/Evidence 指引含义，添加正反示例
+
+### 文档
+- `skills/memo/SKILL.md`：新增置信度分层说明和文档长度指南优化
+- `skills/consider/references/read-spec.md`：全面重构，入口改为 OVERVIEW.md
+- `skills/memo/references/contracts/architecture.md` / `overview.md` / `spec-system.md`：同步碎片化模型和阅读顺序
+- `skills/memo/references/contracts/work-anchor.md`：契约重构（Resume、Progress、Evidence）
+- `hooks/session-start.mjs`：添加项目 spec 探测和运行时感知注入逻辑
+
 ## v0.4.3 - 2026-05-29
 
 ### 新增
