@@ -104,7 +104,7 @@ Use headings and bullets only when they help scanning. Prefer short sections, se
 
 - Record closed outcomes under `Unreleased` first.
 - Use concise conventional type headings such as `feat`, `fix`, `docs`, and `chore`.
-- Include commit ids when available and `Commit: pending` when not.
+- Mention commit ids only when they help future agents verify or recover the work.
 - Prefer user-visible or architecture-visible language.
 - Do not copy commit messages line by line.
 - Keep `Unreleased` and recent version/checkpoint sections concise enough that the active file remains useful.
@@ -123,6 +123,6 @@ Before saving, check:
 2. Can any vague adjective be replaced with a fact?
 3. Did any sentence announce structure instead of delivering content?
 4. Are ids, file paths, and commands exact?
-5. Did you leave any filler such as `TBD`, `later`, or `appropriate`?
+5. Did you leave any unfinished markers, vague deferrals, or filler words?
 
 If the answer to any check is yes, rewrite the line.

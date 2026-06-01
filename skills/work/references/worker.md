@@ -4,7 +4,7 @@
 
 This reference is for execution workers dispatched by `work`.
 
-Your job is to finish one assigned phase from the active task context provided by the main thread, prove it with tests, and hand clean evidence back to the main thread.
+Your job is to finish one assigned phase from the active task context provided by the main thread, prove it with the strongest appropriate command-line verification, and hand clean evidence back to the main thread.
 
 Do not take over orchestration. Do not drift into unrelated repo archaeology.
 
@@ -26,55 +26,58 @@ If the assigned phase truly needs more context:
 2. prefer interface files, nearby tests, and direct dependencies
 3. if the phase is still blocked, stop and report the missing context to the main thread
 
-## Iron Law
+## Verification Gate
 
-```text
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
+Before implementation, decide how this phase will be verified. Prefer command-line checks that exercise real behavior through a stable public surface.
 
-If you write code before the test, delete it and restart from RED.
+Add tests when the phase changes behavior, fixes a bug, touches persistence, configuration, parsing, security, permissions, data migration, public APIs, CLI behavior, UI state logic, IPC, network boundaries, or another contract where a regression would matter.
 
-No exceptions:
+Do not add tests that only prove work happened:
 
-- do not keep it as reference
-- do not adapt it while writing tests
-- do not leave placeholder logic behind
+- file or folder existence
+- function-name or import-presence checks
+- source-code regex checks
+- mock-only assertions
+- "does not throw" assertions with no behavioral claim
 
-## Atomic TDD Loop
+If no new test is warranted, state why and name the command-line checks that prove the phase instead.
+
+## Atomic Verification Loop
 
 Run one small loop at a time.
 
-### RED
+### SELECT
 
-Write the failing test first.
+Choose the targeted verification.
 
-- Put the test where the plan says it belongs.
+- If a behavior or regression test is needed, put it where the plan says it belongs.
 - Name the behavior precisely.
 - Prefer real behavior over mocked trivia.
+- If a test is not needed, name the existing tests, lint, typecheck, build, CLI smoke check, or validation script that will prove the phase.
 
-Then run the targeted command and confirm the test fails for the expected reason.
+When a new test can be written before implementation, run the targeted command and confirm the test fails for the expected reason.
 
-If the test passes immediately, you are not testing the intended change yet.
+If the test passes immediately, you are not testing the intended change yet unless the behavior is already covered and the phase only needs existing verification.
 
-### GREEN
+### IMPLEMENT
 
-Write the smallest code change that makes the failing test pass.
+Write the smallest code change that satisfies the selected verification.
 
 - do not add side features
 - do not refactor unrelated code
 - do not "improve" the design early
 
-Run the targeted test again and confirm it passes.
+Run the targeted verification again and confirm it passes.
 
 ### REFACTOR
 
-Only after GREEN may you improve structure.
+Only after targeted verification passes may you improve structure.
 
 - remove duplication
 - improve naming
 - extract helpers only when they simplify the current change
 
-Re-run the targeted test and any broader verification required by the plan.
+Re-run the targeted verification and any broader verification required by the plan.
 
 ## Debugging Defense
 
@@ -95,7 +98,7 @@ Do not stack speculative fixes.
 
 - Stay inside the assigned phase.
 - Do not widen scope without asking.
-- Do not add `TODO`, `TBD`, fallback stubs, or dead branches.
+- Do not add placeholder comments, fallback stubs, or dead branches.
 - Do not commit unless the main thread explicitly asks.
 - Do not rewrite durable docs unless the prompt explicitly assigns them.
 - If the plan is stale or impossible, stop and explain exactly why.
@@ -126,7 +129,7 @@ Files Changed:
 - path
 
 Tests:
-- test added first: yes | no
+- new test added: yes | no, with reason
 - targeted command: ...
 - broader verification: ...
 
@@ -137,4 +140,4 @@ Notes For Main Thread:
 - anything the next phase must know
 ```
 
-If `test added first` is `no`, the phase is not complete.
+If `new test added` is `no`, the phase is complete only when the reason is explicit and command-line verification passed.

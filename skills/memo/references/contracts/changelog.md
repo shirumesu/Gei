@@ -23,10 +23,10 @@ Use this shape when creating the file:
 Pending.
 
 ### feat
-- Add the new workflow. Commit: `pending`
+- Add the new workflow.
 
 ### fix
-- Correct stale anchor reconciliation. Commit: `abc1234`
+- Correct stale anchor reconciliation.
 ```
 
 Use conventional type headings such as `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, and `breaking`. Omit empty type headings.
@@ -50,15 +50,9 @@ A released or checkpointed section may include:
 ```md
 ### Summary
 - Short outcome summary.
-
-### Changed Files
-- `path/to/file`
-
-### Commits
-- `abc1234`
 ```
 
-Keep the typed entries if they are still useful. Compress noisy entries into the summary when the section is too long.
+Keep the typed entries if they are still useful. Compress noisy entries into the summary when the section is too long. Do not add standalone changed-file or commit-list sections; mention an exact path or commit inline only when it materially helps future agents recover the work.
 
 ## Checkpoint Rules
 
@@ -74,8 +68,7 @@ Keep `Unreleased` and recent version/checkpoint sections concise enough that the
 ## Write Rules
 
 - Record the outcome in one concise bullet.
-- Include `Commit: pending` until a short commit id exists.
-- Mention exact paths only when they help future agents find the changed area.
+- Mention exact paths or commit ids only when they help future agents find or verify the changed area.
 - Do not require task specs, evidence blocks, or release metrics for ordinary task close entries.
 - Never invent metrics. If a release/checkpoint summary needs evidence and none exists, write `not measured` or `not instrumented`.
 
@@ -83,5 +76,4 @@ Keep `Unreleased` and recent version/checkpoint sections concise enough that the
 
 - `Unreleased` exists after every update.
 - Durable closed file-changing work has one concise typed entry.
-- Commit ids are present or explicitly `pending`.
 - Version/checkpoint sections are scan-friendly and not raw implementation diaries.

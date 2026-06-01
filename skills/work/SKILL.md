@@ -1,6 +1,6 @@
 ---
 name: work
-description: Use when the user wants coding execution such as implementation, bug fixing, tests, builds, refactors, releases, or other code-changing work. Handles all task sizes in a single unified flow — reads spec when present, writes failing tests first, executes in sections, and routes to ship when releasing.
+description: Use when the user wants coding execution such as implementation, bug fixing, tests, builds, refactors, releases, or other code-changing work. Handles all task sizes in a single unified flow — reads spec when present, chooses meaningful verification, executes in sections, and routes to ship when releasing.
 ---
 
 # Work
@@ -69,29 +69,31 @@ Section checkpoint format:
 - Section checkpoint: [Section N] [what was done]. Verified with `[command]` on YYYY-MM-DD.
 ```
 
-## Step 3: Write Tests First (Iron Law)
+## Step 3: Choose Verification
 
-```
-NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
-```
+Before implementation, decide the smallest verification surface that can prove the section worked. Prefer command-line verification that exercises real behavior through the most stable public surface available.
 
-No exceptions. If code appears before the test, delete it and restart from RED.
+Tests are required when the section changes behavior, fixes a bug, touches persistence, configuration, parsing, security, permissions, data migration, public APIs, CLI behavior, UI state logic, IPC, network boundaries, or another contract where a regression would matter. For bug fixes, add a regression test whenever the behavior can be exercised from a stable test surface.
 
-Before writing tests, read `references/testcraft.md` to design a meaningful test surface — contract recovery, surface map, and red verification. Do not write tests that only confirm current behavior.
+Do not write a test just to satisfy process. A new test is not required for pure documentation, comments, formatting, metadata text, generated artifacts, mechanical moves already covered by typecheck/build, empty directory scaffolding, or deleting unreachable files when existing commands prove no live reference remains.
 
-Place test files in `spec/tests/` unless the repo already has an established test directory. When a convention exists, follow it.
+When tests are required, read `references/testcraft.md` before writing them. Design tests around observable behavior and the full behavior chain. For example, a configuration change should prove that the setting can be enabled and disabled, persists through the real config path, and changes the consuming behavior; it should not merely prove that a function, file, schema field, or import exists.
 
-Run the tests and confirm they **fail for the expected reason** before writing any production code.
+Low-value tests are forbidden as the primary verification for a section: file or folder existence, function-name checks, source-code regex checks, import-presence checks, mock-only assertions, "does not throw" assertions, and tests that only confirm the implementation shape. Use these only as temporary migration checks when no better command-line verification exists, and label that limitation.
+
+If no new test is warranted, state the reason and name the command-line checks that will prove the section instead, such as targeted existing tests, lint, typecheck, build, schema validation, CLI smoke checks, or repository-specific validation scripts.
+
+When a new test is warranted and can be written before implementation, run it first and confirm it fails for the expected reason. If the best verification can only be run after implementation, state why, then run it as soon as the behavior is reachable.
 
 ## Step 4: Implement
 
 Write the smallest coherent change set that satisfies the current section.
 
 - Do not widen scope because adjacent cleanup looks tempting.
-- Do not add `TODO`, `TBD`, placeholder branches, or dead code.
+- Do not add placeholder comments, placeholder branches, or dead code.
 - Do not rewrite durable docs unless the task assigns them.
 
-Run the failing tests after each meaningful unit of code. Once the targeted tests pass, run the broader affected verification: related tests, lint, build, typecheck — based on the real blast radius.
+Run the targeted verification after each meaningful unit of code. Once it passes, run the broader affected verification: related tests, lint, build, typecheck, or other command-line checks based on the real blast radius.
 
 ## Step 5: Self-Check
 
@@ -99,7 +101,7 @@ Before closing a section, read your own changes and confirm:
 
 - The change solves the requested problem without drift.
 - The implementation is minimal and free of obvious waste.
-- No new `TODO`, placeholder logic, or half-implemented paths were left in.
+- No new placeholder comments, placeholder logic, or half-implemented paths were left in.
 - If the change is user-facing or developer-facing, the flow is understandable.
 
 ## Step 6: Close the Section
@@ -139,7 +141,7 @@ Do not improvise around these conditions.
 Do not call the task complete until:
 
 1. Every planned section is done with a checkpoint.
-2. All new tests and affected existing tests are green.
+2. All required new tests and affected existing tests are green, or the no-new-test decision is justified with passing command-line verification.
 3. The self-check passed for every section.
 4. Memo reconciliation ran when relevant files changed.
 5. `spec/current-work.md` is closed, cleared, or handed off.

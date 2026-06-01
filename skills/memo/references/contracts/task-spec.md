@@ -147,7 +147,7 @@ Verification expected results must say what behavior was proven. Do not write lo
 
 Do not leave these patterns in a live plan:
 
-- `TBD`, `TODO`, `later`, `if needed`, `as appropriate`, or other unresolved placeholders.
+- Unfinished markers, vague deferrals, conditional filler, or other unresolved placeholders.
 - `handle edge cases` without naming the edge cases and expected behavior.
 - `write tests` without test names, fixtures, assertions, or a specific manual substitute.
 - `implement support` without interfaces, input/output behavior, implementation details, and verification.

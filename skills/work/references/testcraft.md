@@ -2,15 +2,34 @@
 
 ## Purpose
 
-Testcraft is the test-design reference for the Work skill. Load it when writing tests before implementation — regardless of whether the flow is light or heavy.
+Testcraft is the test-design reference for the Work skill. Load it when Work decides that a section needs new tests.
 
-Its job is to ensure every test defends a real contract, not just transcribes the current code. A test that passes when the code is wrong is noise. A test that fails for the wrong reason is a trap.
+Its job is to ensure every test defends a real contract, not just transcribes the current code. A test that passes when the behavior is wrong is noise. A test that fails for the wrong reason is a trap.
 
-## Core Rule
+## Core Rules
 
 **Every test must answer: "Which specific contract breaks when this test fails?"**
 
 If you cannot answer that question for a test, do not write it yet.
+
+**Tests are for meaningful behavior risk, not for proving that work happened.**
+
+Do not create a new test when the only available assertion is that a file, folder, function, import, string, or implementation detail exists. Use existing command-line verification instead, and state why no new test is warranted.
+
+## When To Add A Test
+
+Add a test when the change affects a behavior contract that a future edit could break:
+
+- user-visible behavior, CLI output, API responses, or UI state transitions
+- configuration and feature flag behavior, including enable and disable paths
+- persistence, serialization, migration, or cache behavior
+- parsing, validation, permissions, security, or error handling
+- integration between real neighbors such as IPC, network clients, storage adapters, or plugin boundaries
+- bug fixes where the broken behavior can be exercised through a stable surface
+
+Do not add a test by default for pure documentation, comments, formatting, generated outputs, empty scaffolding, mechanical moves already covered by build/typecheck, or deleting dead files when existing checks prove the files are unused.
+
+When a behavior deserves coverage but a good automated test is not practical in the current repository, say so explicitly and use the strongest command-line substitute available. Do not fill the gap with a weak existence test.
 
 ## Phase 1: Contract Recovery
 
@@ -34,6 +53,7 @@ Core behavior: does the unit do what it promises for valid, representative input
 - Cover each distinct output type or state change the contract specifies.
 - Cover representative inputs across each equivalence class, not every possible value.
 - Do not test internal implementation details. Test observable outcomes.
+- Prefer the full behavior chain over the nearest function. For configuration, verify that the setting is saved, reloaded or read through the real config path, and changes the consuming behavior in both enabled and disabled states.
 
 ### Boundary
 
@@ -105,15 +125,17 @@ Write one test at a time. For each test:
 
 6. **Do not modify production code to make a test pass**: if the test reveals a design problem, fix the design. If the test is wrong, fix the test.
 
-## Phase 4: Red Verification
+## Phase 4: Red Verification When Applicable
 
-After writing all tests, run them before writing any production code.
+When the test can be written before implementation, run it before writing production code.
 
-- Every test must fail before the implementation exists.
-- A test that passes immediately is either testing something already implemented, testing the wrong contract, or has a broken assertion.
+- A new regression or feature test should fail before the implementation exists or before the bug is fixed.
+- A test that passes immediately is either testing existing covered behavior, testing the wrong contract, or has a broken assertion.
 - A test that fails for the wrong reason — wrong exception type, wrong assertion message, error inside the test setup — must be fixed before implementation begins.
 
 The failure message for each test should be self-explanatory: it should name the expected behavior, not just report a traceback.
+
+If the best test surface only exists after part of the implementation is present, state that constraint before implementation, then run the test as soon as the behavior is reachable. Do not use that exception to skip behavior coverage for a regression-prone change.
 
 ## Self-Review Before Handoff
 
