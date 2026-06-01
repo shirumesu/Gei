@@ -5,7 +5,7 @@
 <h1 align="center">Gei ~ 芸</h1>
 
 <p align="center">
-  面向 Codex 的全套 AI Skill。涵盖设计、文档维护、项目管理、测试、编码、审查、发布、搜索等各种场景。
+  面向 Codex 的全套 AI Skill。涵盖需求澄清、文档维护、项目管理、测试、编码、审查、发布、搜索等各种场景。
 </p>
 
 <p align="center">
@@ -74,7 +74,6 @@
 | `/work` | 任何代码任务 | 完整的编码、测试、审查、版本维护及发布流程 |
 | `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；透过 [Jina](https://jina.ai/) 优化结果；支持 Reddit / Twitter / 小红书等风控平台 |
 | `/create-skill` | Skill 相关操作时 | 创建与审核 Skill，验证可优化空间 |
-| `/design` | 网页、PPT、文档等视觉任务 | 提炼自 [Claude Design System](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de)，适合界面、版式、原型、演示文稿 *(实验性)* |
 
 ## Hooks
 
@@ -156,8 +155,6 @@ node ~/.agents/Gei/hooks/install-claude.mjs
     see/
       SKILL.md
     consider/
-      SKILL.md
-    design/
       SKILL.md
 ```
 

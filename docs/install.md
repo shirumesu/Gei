@@ -37,7 +37,6 @@ node <install-dir>/Gei/hooks/install-claude.mjs
     memo/        -> <install-dir>/Gei/skills/memo
     see/         -> <install-dir>/Gei/skills/see
     consider/    -> <install-dir>/Gei/skills/consider
-    design/      -> <install-dir>/Gei/skills/design
   settings.json  (contains SessionStart hook entry)
 ```
 
@@ -79,8 +78,6 @@ unzip Gei-codex-plugin.zip -d <install-dir>
         SKILL.md
       consider/
         SKILL.md
-      design/
-        SKILL.md
 ```
 
 Termination condition: `<install-dir>/gei/.codex-plugin/plugin.json` exists and every listed skill directory contains `SKILL.md`.
@@ -115,8 +112,6 @@ unzip Gei-skills.zip -d <install-dir>
     see/
       SKILL.md
     consider/
-      SKILL.md
-    design/
       SKILL.md
 ```
 
@@ -154,8 +149,6 @@ git -C <install-dir>/Gei pull
         SKILL.md
       consider/
         SKILL.md
-      design/
-        SKILL.md
 ```
 
 Termination condition: `<install-dir>/Gei/skills/using-gei/SKILL.md` exists and every listed skill directory contains `SKILL.md`.
@@ -175,8 +168,6 @@ If the host does not recursively detect skills under `Gei/`, move or copy the sk
   see/
     SKILL.md
   consider/
-    SKILL.md
-  design/
     SKILL.md
 ```
 

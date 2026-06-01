@@ -3,7 +3,7 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-This is the entry router and lifecycle starter for Gei, a collection of skills such as `design`, `consider`, `see`, `memo`, `work`, and `create-skill`.
+This is the entry router and lifecycle starter for Gei, a collection of skills such as `consider`, `see`, `memo`, `work`, and `create-skill`.
 
 If there is a real chance the task belongs to one of the skills, stop here first and choose the first downstream skill before you answer, explore, ask clarifying questions, or act.
 
@@ -64,7 +64,6 @@ If no skill is explicitly requested, choose the first downstream skill by the us
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
 - Creating, improving, reviewing, or validating agent Skills -> `create-skill`
 - Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
-- Interface, visual artifact, layout, poster, deck, prototype, or visual direction -> `design`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
 - No matching skill -> exit Gei and answer normally, or use the appropriate non-skill if one applies.
 
@@ -96,7 +95,6 @@ The selected first-hop skill is responsible for gathering the context it needs:
 
 - `work` gathers project, Git, test, build, and release context before acting.
 - `consider` gathers project and external context when the design depends on it.
-- `design` gathers visual, product, and reference context needed for the artifact.
 - `create-skill` gathers source workflow, trigger, structure, and validation context needed to create or improve a Skill.
 - `memo` gathers system and document context needed to maintain durable records.
 - `see` gathers source context when research is the deliverable.

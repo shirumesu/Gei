@@ -51,7 +51,7 @@ Each checkpoint should answer:
 
 Prefer user-visible or architecture-visible language over commit-diff narration.
 
-Keep the active changelog focused on recent history. During archive cleanup, keep only `Unreleased` plus the latest five version/checkpoint sections active and move older ones into `spec/archive/CHANGELOG.md`.
+Keep the active changelog focused on recent history. Compress noisy checkpoint sections in place when they make recent history hard to scan.
 
 ## Completion Check
 

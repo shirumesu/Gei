@@ -157,7 +157,6 @@ This file records public release notes for Gei.
 - Added `using-gei` as the top-level router for `design`, `consider`, `memo`, and `work`.
 - Added `see` for comparison, fact-checking, topic exploration, how-to research, public-opinion sampling, and multi-source summaries.
 - Added `see` tool guidance and a local health check script.
-- Added an explicit archive path to `memo`.
 
 ### Changed
 

@@ -107,14 +107,7 @@ Use headings and bullets only when they help scanning. Prefer short sections, se
 - Include commit ids when available and `Commit: pending` when not.
 - Prefer user-visible or architecture-visible language.
 - Do not copy commit messages line by line.
-- Keep `Unreleased` plus the latest five version/checkpoint sections in the active file. Move older sections into `spec/archive/CHANGELOG.md` without changing their meaning.
-
-### `spec/archive/*.md`
-
-- Preserve dates, headings, and source references.
-- Keep archived wording close to the original text.
-- Add a short archive note only when the reason for removal is not obvious.
-- Organize the file so old entries stay easy to find.
+- Keep `Unreleased` and recent version/checkpoint sections concise enough that the active file remains useful.
 
 ### `spec/docs/#NNN-{work-description}.md`
 

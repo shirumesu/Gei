@@ -24,14 +24,10 @@ spec/
     <domain>.md
   CHANGELOG.md
   current-work.md
-  archive/
-    CHANGELOG.md
   test/
   docs/
     #NNN-{work-description}.md
 ```
-
-`spec/archive/` is optional. Create it only when an archive cleanup pass actually moves content out of the active files.
 
 `spec/architecture/` is optional. Create it only when root `ARCHITECTURE.md` has earned a domain split under the architecture contract. The root file remains the index; fragments hold domain details.
 
@@ -55,14 +51,6 @@ Read code after that only where the docs are insufficient or possibly stale.
 
 Use confidence tiers when documents disagree: code, tests, configuration, build scripts, and Git history outrank Memo documents; `current-work.md` outranks durable spec files for recent task state; durable spec files are long-term memory and may lag until promotion.
 
-For an archive cleanup pass, read in this order:
-
-1. `spec/CHANGELOG.md`
-2. existing files in `spec/archive/`
-3. the current spec-task file only if it is needed to classify a borderline entry
-
-During archive cleanup, do not read code unless the user asked for it or the docs are too stale to classify an entry safely.
-
 ## Write Order
 
 When creating the system for the first time:
@@ -74,8 +62,6 @@ When creating the system for the first time:
 5. the first combined spec-task file at `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task
 
 When updating during normal work, touch only the files required by the current event.
-
-When updating during archive cleanup, create `spec/archive/` only if content is actually moved there.
 
 ## ID Rules
 
@@ -114,9 +100,7 @@ Good pattern:
 - update `CHANGELOG.md` when file-changing work closes
 - update a combined spec-task file when an explicit spec-backed task changes scope
 - update architecture only when structure changes
-- run an archive cleanup when closed history starts to hide current context
-
-For detailed archive procedure, read `references/archive.md`.
+- checkpoint or compress `CHANGELOG.md` when closed history starts to hide current context
 
 ## Minimal Change Planning
 
@@ -157,4 +141,4 @@ Bad pattern:
 
 ## Trigger Source
 
-The complete trigger map lives in `SKILL.md`. Detailed action rules live in `references/events/` and `references/archive.md`.
+The complete trigger map lives in `SKILL.md`. Detailed action rules live in `references/events/`.

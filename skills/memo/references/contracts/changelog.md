@@ -66,10 +66,10 @@ Do not let `Unreleased` grow without bound. Create a checkpoint when any of thes
 
 - `Unreleased` has more than 20 entries.
 - The current active work cycle has been stable for 7-14 days.
-- The user asks to organize, close, release, publish, or archive work.
+- The user asks to organize, close, release, or publish work.
 - The accumulated entries are making recent history hard to scan.
 
-Keep `Unreleased` plus the latest five version or checkpoint sections active. Move older sections into `spec/archive/CHANGELOG.md` during archive cleanup.
+Keep `Unreleased` and recent version/checkpoint sections concise enough that the active file remains useful.
 
 ## Write Rules
 

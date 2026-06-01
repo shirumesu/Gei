@@ -5,7 +5,7 @@
 <h1 align="center">Gei ~ 芸</h1>
 
 <p align="center">
-  A full suite of AI Skills for Codex, covering design, documentation, project management, testing, coding, review, release, search, and more.
+  A full suite of AI Skills for Codex, covering requirement clarification, documentation, project management, testing, coding, review, release, search, and more.
 </p>
 
 <p align="center">
@@ -73,7 +73,6 @@ So I wrote these skills.
 | `/work` | Any coding task | Complete coding, testing, review, version maintenance, and release workflow |
 | `/see` | Any external web access | Comprehensive search workflow ensuring information is accurate, reliable, and timely; optimizes results via [Jina](https://jina.ai/); supports Reddit / Twitter / 小红书 and other anti-crawler platforms |
 | `/create-skill` | When working with Skills | Create and review Skills, verify optimization opportunities |
-| `/design` | Visual tasks like web pages, PPTs, documents | Distilled from [Claude Design System](https://gist.github.com/hqman/f46d5479a5b663c282c94faa8be866de), suitable for interfaces, layouts, prototypes, and presentations *(experimental)* |
 
 ## Hooks
 
@@ -155,8 +154,6 @@ Most agents accept recursive subdirectory search, so your install directory can 
     see/
       SKILL.md
     consider/
-      SKILL.md
-    design/
       SKILL.md
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Use when maintaining system spec documents; when a workflow points to Memo; when spec docs, architecture context, current-work reconciliation, catch-up notes, archive cleanup, or shipped outcomes must be recorded for future agents.
+description: Use when maintaining system spec documents; when a workflow points to Memo; when spec docs, architecture context, current-work reconciliation, catch-up notes, or shipped outcomes must be recorded for future agents.
 ---
 
 # Memo
@@ -68,7 +68,6 @@ When recording architecture or task context, include where to start reading, whi
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |
 | Anchor reconciliation | `spec/current-work.md` entries must be closed, archived, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
 | Catch-up | Work already happened outside Memo and must be captured into `spec/INBOX.md` before full reconciliation | `references/events/catch-up.md` |
-| Archive cleanup | The user asks to archive, or active spec files are noisy with stale history | `references/archive.md` |
 
 ## Document Contracts
 
@@ -96,14 +95,10 @@ spec/
   ARCHITECTURE.md
   CHANGELOG.md
   current-work.md
-  archive/
-    CHANGELOG.md
   test/
   docs/
     #NNN-{work-description}.md
 ```
-
-`spec/archive/` is optional. Create it only when archive cleanup actually moves content out of the active files.
 
 `current-work.md` is optional and temporary-to-medium-term. Create it for anchored work; append entries for unrelated work; close or archive entries at phase boundaries; clean only entries already marked archived.
 
