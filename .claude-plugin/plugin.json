@@ -11,6 +11,5 @@
   "repository": "https://github.com/shirumesu/gei",
   "license": "MIT",
   "keywords": ["agent", "skills", "workflow", "claude-code"],
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json"
+  "skills": "./skills/"
 }
