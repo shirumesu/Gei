@@ -34,32 +34,29 @@ List the people, systems, agents, or workflows that use or operate the project.
 | Area | Baseline | Notes |
 |------|----------|-------|
 | Runtime | | |
-| Frontend | | |
-| Backend | | |
 | Package manager | | |
-| Build command | | |
-| Test command | | |
-| Typecheck or lint command | | |
+| Main commands | | Only stable commands needed for orientation. |
 
 ## Document Map
 
 | Document | Use When |
 |----------|----------|
-| `spec/ARCHITECTURE.md` | You need system structure, module boundaries, flows, task entry routes, or impact paths. |
-| `spec/current-work.md` | You need the active file-changing task intent and scope. |
+| `spec/ARCHITECTURE.md` | You need durable structure, routing, data flow, module boundaries, or cross-file impact context. |
+| `spec/current-work.md` | You need recent task memory, active/paused file-changing work, release/debug context, reconciliation context, or the lifecycle requires a pre-edit anchor check. |
 | `spec/CHANGELOG.md` | You need recent closed work, releases, or checkpoints. |
 | `spec/docs/` | You need explicit spec-backed plans, scopes, and execution context. |
 
 ## How To Start A Task
 
 1. Read this file to understand the project.
-2. Read `spec/ARCHITECTURE.md` to locate the affected structure and impact path.
-3. Read `spec/current-work.md` when active or recent work may overlap the task.
+2. Read `spec/ARCHITECTURE.md` when the task needs durable structure, routing, data flow, module boundaries, or cross-file impact context.
+3. Read `spec/current-work.md` for recent task memory, active/paused work, release/debug handoff context, reconciliation, or before file edits as required by the lifecycle.
 4. Read `spec/CHANGELOG.md` only when recent closed work may affect the decision.
 5. Read code only after the spec surface is insufficient or possibly stale.
 
 ## Authority And Staleness
 
-- Source code, tests, configuration, build scripts, and Git history are the source of truth.
-- Spec files are navigation and project state.
-- If this file conflicts with code or `ARCHITECTURE.md`, verify against the repo and update the smallest stale spec surface.
+- Source code, tests, configuration, build scripts, and Git history are the highest-confidence source of truth.
+- `spec/current-work.md` is recent task memory and should be more current than durable spec files.
+- `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` are durable project memory and may lag until promotion.
+- If this file conflicts with higher-confidence sources, verify against the repo and update the smallest stale spec surface.

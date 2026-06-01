@@ -22,7 +22,7 @@ Read:
 
 1. `references/contracts/task-spec.md`
 2. The active `spec/docs/#NNN-{work-description}.md`
-3. `references/contracts/architecture.md` only if structure, routing, commands, or major data flow changed
+3. `references/contracts/architecture.md` only if structure, routing, entry points, boundaries, or major data flow changed
 
 Do not read unrelated spec docs unless the active file cannot identify the current scope.
 
@@ -35,7 +35,7 @@ Update the active combined spec-task file when:
 - important files or interfaces change
 - spec-managed test files or verification strategy change
 
-Do not touch `ARCHITECTURE.md` unless system structure, routing, commands, or major flow actually changed.
+Do not touch `ARCHITECTURE.md` unless system structure, routing, entry points, boundaries, or major flow actually changed.
 
 Do not write routine progress updates, elapsed time, temporary debugging notes, or full decision history.
 

@@ -13,6 +13,12 @@ Its job is to keep future agents productive without forcing a fresh deep read of
 
 `spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone. Optimize it for resumability, not audit completeness.
 
+Treat project context by confidence tier:
+
+1. Repository code, tests, configuration, build scripts, and Git history are authoritative.
+2. `spec/current-work.md` is recent task memory. It should track active or recently closed work closely enough to explain intent, debugging context, release/checkpoint basis, and future promotion decisions.
+3. `spec/OVERVIEW.md`, `spec/ARCHITECTURE.md`, and `spec/CHANGELOG.md` are durable storage. They are updated at phase or promotion boundaries and may lag behind the first two tiers.
+
 ## Version Control Boundary
 
 By default, `spec/` is internal agent and project state. Do not stage, commit, push, or publish it through the product repository unless the user explicitly opts in. If durable versioning is needed, prefer a separate repository or private backup surface.
@@ -23,9 +29,9 @@ Write only what the current event requires. Do not bulk-rewrite unrelated docume
 
 Closing a current-work entry never means it must enter durable spec documents. Promote closed work only when it has durable value for future agents, releases, architecture, handoff, or recovery. Otherwise mark the entry archived with `Promotion: none` and keep durable spec files lean.
 
-Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess, and do not write long documents as diaries.
+Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess, and do not write long documents as diaries. Prefer an index plus targeted fragments over one long durable document when that reduces the number of irrelevant lines a future task must read.
 
-A long Memo document must remain structured as a working manual: exact goals, boundaries, files, interfaces, impact paths, commands, examples, expected outputs, and verification steps.
+A long Memo document must remain structured as a working manual: exact goals, boundaries, files, interfaces, impact paths, examples, expected outputs, and non-obvious verification notes. Do not duplicate command lists that are already authoritative in package manifests or scripts.
 
 ## Source Of Truth
 

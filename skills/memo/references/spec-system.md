@@ -20,6 +20,8 @@ By default, `spec/` is internal agent and project state, not product source. Do 
 spec/
   OVERVIEW.md
   ARCHITECTURE.md
+  architecture/
+    <domain>.md
   CHANGELOG.md
   current-work.md
   archive/
@@ -31,7 +33,9 @@ spec/
 
 `spec/archive/` is optional. Create it only when an archive cleanup pass actually moves content out of the active files.
 
-`current-work.md` is optional lifecycle state. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies.
+`spec/architecture/` is optional. Create it only when root `ARCHITECTURE.md` has earned a domain split under the architecture contract. The root file remains the index; fragments hold domain details.
+
+`current-work.md` is optional lifecycle state and recent task memory. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies. It can also preserve recent debug, release, handoff, or reconciliation context that has not yet been promoted into durable spec files.
 
 `spec/docs/` is optional execution context. Create task specs only for explicit plans, handoffs, or complex spec-backed work.
 
@@ -40,13 +44,16 @@ spec/
 For a new task in an established project, use this order:
 
 1. `spec/OVERVIEW.md`
-2. `spec/ARCHITECTURE.md`
-3. `spec/current-work.md` when it exists and may describe active or recent work in the same area
-4. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
-5. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
-6. related test files in `spec/test/` when the task includes verification work
+2. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
+3. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
+4. `spec/current-work.md` for active or paused file-changing work, recent related task memory, debug/release handoff context, reconciliation, or before file edits as required by the lifecycle
+5. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
+6. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
+7. related test files in `spec/test/` when the task includes verification work
 
 Read code after that only where the docs are insufficient or possibly stale.
+
+Use confidence tiers when documents disagree: code, tests, configuration, build scripts, and Git history outrank Memo documents; `current-work.md` outranks durable spec files for recent task state; durable spec files are long-term memory and may lag until promotion.
 
 For an archive cleanup pass, read in this order:
 
@@ -86,12 +93,12 @@ If the project already uses another stable pattern, preserve the old pattern.
 
 Every `OVERVIEW.md` should include a short document map that tells future agents which spec file to read for project context, structure, active work, and closed outcomes.
 
-Every `ARCHITECTURE.md` should include a short routing section that tells future agents:
+Every root `ARCHITECTURE.md` should include a short routing section that tells future agents:
 
 - where to start reading
-- which commands matter
 - which directories are authoritative
 - which documents are likely stale or derived
+- which architecture fragment, if any, owns the relevant domain
 
 ## Update Principle
 

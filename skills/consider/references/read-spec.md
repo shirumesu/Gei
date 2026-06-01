@@ -10,14 +10,17 @@ The goal is to recover the minimum context that lets you answer these questions 
 
 ## Core Rule
 
-Start with `spec/ARCHITECTURE.md`.
+Start with `spec/OVERVIEW.md`.
 
 - Do not start with `spec/docs/`.
 - Do not bulk-read the whole `spec/` tree.
-- Treat `ARCHITECTURE.md` as the primary entry point for understanding the product, the stack, the system boundaries, and the likely extension points.
-- Treat `current-work.md` and `CHANGELOG.md` as conditional context.
-- Open `spec/docs/#NNN-{work-description}.md` only when `ARCHITECTURE.md`, `current-work.md`, or the requested feature clearly points to that exact work area.
+- Treat `OVERVIEW.md` as the cold-start entry and document map.
+- Read root `ARCHITECTURE.md` when the design needs durable structure, routing, data flow, module boundaries, or cross-file impact context.
+- If root `ARCHITECTURE.md` routes to `spec/architecture/*.md`, read only the relevant fragment.
+- Treat `current-work.md` and `CHANGELOG.md` as conditional context. `current-work.md` is recent task memory and lifecycle evidence, not a generic design document.
+- Open `spec/docs/#NNN-{work-description}.md` only when `OVERVIEW.md`, `ARCHITECTURE.md`, `current-work.md`, or the requested feature clearly points to that exact work area.
 - Read code only after the Spec surface tells you which exact area matters.
+- When sources disagree, trust repository code/config/tests/Git history first, `current-work.md` second for recent task state, and durable spec files third.
 
 ## Quick Check
 
@@ -25,46 +28,48 @@ Confirm that the project has a usable Spec surface:
 
 ```text
 spec/
+  OVERVIEW.md
   ARCHITECTURE.md
+  architecture/
   CHANGELOG.md
   current-work.md
   docs/
   test/
 ```
 
-`current-work.md`, `docs/`, and `test/` may be absent in a fresh or lightweight project. Their absence is not a reason to initialize or repair Memo from `consider`.
+`architecture/`, `current-work.md`, `docs/`, and `test/` may be absent in a fresh or lightweight project. Their absence is not a reason to initialize or repair Memo from `consider`.
 
 ## Reading Order
 
 Use this order unless the user gives a stronger reason to do something narrower.
 
-1. Read `spec/ARCHITECTURE.md`.
-2. Read `spec/current-work.md` only when active or recent work may overlap the request.
-3. Read `spec/CHANGELOG.md` only when recent closed behavior might matter for the new feature.
-4. Open a `spec/docs/#NNN-{work-description}.md` file only when `ARCHITECTURE.md`, `current-work.md`, `CHANGELOG.md`, or the requested feature gives you a direct reason to open it.
-5. Read code only after the Spec surface has narrowed the likely files or modules.
+1. Read `spec/OVERVIEW.md`.
+2. Read root `spec/ARCHITECTURE.md` when structure, routing, data flow, module boundaries, or cross-file impact context is needed for the design.
+3. Read one relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there.
+4. Read `spec/current-work.md` only when active, paused, debug, release, handoff, or recent work may overlap the request.
+5. Read `spec/CHANGELOG.md` only when recent closed behavior might matter for the new feature.
+6. Open a `spec/docs/#NNN-{work-description}.md` file only when the spec map, current-work, changelog, architecture, or requested feature gives you a direct reason to open it.
+7. Read code only after the Spec surface has narrowed the likely files or modules.
 
-## Step 1. Read Architecture First
+## Step 1. Read Overview First
 
-`spec/ARCHITECTURE.md` is the main entry point.
+`spec/OVERVIEW.md` is the main entry point.
 
 Read it to answer:
 
 - what the product or system is for
-- what the top-level folders or modules are
-- what each major part owns
-- what runtime, framework, language, database, and service choices exist
-- what the main request flow, data flow, or state flow looks like
-- which boundaries and invariants new work must respect
-- where a new feature of the user's type most likely belongs
+- what work surfaces and actors exist
+- what runtime, framework, language, database, or service choices matter for orientation
+- which durable document should be read next
+- whether the task appears to need architecture, recent task memory, changelog, or a specific spec-task file
 
-This is the first file because it should tell you how the system is supposed to fit together before you read task history.
+This is the first file because it should be compact enough to inject or read at cold start and should route the next context surface.
 
-If the architecture file contains links, references, commands, or named modules, follow only the parts that are needed to answer the current feature question.
+If the overview contains links, references, or named modules, follow only the parts that are needed to answer the current design question.
 
-## Step 2. Use Architecture To Infer The Extension Path
+## Step 2. Read Architecture Only For Structural Design Context
 
-Before reading task history, use the architecture to form an initial model of how a new feature should be added.
+Read root `spec/ARCHITECTURE.md` when the design needs durable structure, routing, data flow, module boundaries, or cross-file impact context. Use it to form an initial model of how a new feature should be added.
 
 You should be able to name:
 
@@ -72,9 +77,9 @@ You should be able to name:
 - the adjacent systems the feature will interact with
 - the storage or state boundary it must respect
 - the interface layer where the feature will probably enter
-- the main risks of adding work in that area
+- the main cross-domain risks of adding work in that area
 
-If you cannot do this after reading `ARCHITECTURE.md`, do not jump straight into every work record. Read only the exact architecture sections or linked source files needed to close that gap.
+If root `ARCHITECTURE.md` routes the task to a `spec/architecture/*.md` fragment, read only that fragment. If you still cannot identify the extension path, do not jump straight into every work record. Read only the exact architecture fragment, section, or linked source files needed to close that gap.
 
 ## Step 3. Read Current Work Only When It May Overlap
 
@@ -82,13 +87,15 @@ Read `spec/current-work.md` only when:
 
 - it exists and has `Status: active` or `Status: paused`
 - the current request might touch the same files or area
+- you need recent debug, release, handoff, or reconciliation context
 - you need to avoid interrupting or overwriting an active task
 
 Use it to learn:
 
 - the current task intent
 - the expected scope
-- whether the current task is active, paused, or closed
+- whether the current task is active, paused, or recently closed
+- recent decisions or diagnoses that may not yet be promoted into durable spec files
 
 Do not treat `current-work.md` as a design document, backlog, or changelog.
 
@@ -126,7 +133,7 @@ Do not bulk-read every work record under `spec/docs/`.
 
 ## Step 6. Read Code Only After The Spec Surface Narrows It
 
-Once `ARCHITECTURE.md`, optional `current-work.md`, optional `CHANGELOG.md`, and any directly relevant work record have narrowed the target area, then read code.
+Once `OVERVIEW.md`, optional `ARCHITECTURE.md` or architecture fragment, optional `current-work.md`, optional `CHANGELOG.md`, and any directly relevant work record have narrowed the target area, then read code.
 
 At that point you should already know:
 
@@ -165,6 +172,7 @@ Stop this guide and invoke `memo` when any of these are true:
 Use targeted reads instead of broad scans.
 
 ```powershell
+Get-Content spec/OVERVIEW.md
 Get-Content spec/ARCHITECTURE.md
 Select-String -Path spec/ARCHITECTURE.md -Pattern '^#|^##|module|flow|route|interface|stack|runtime|database|service|command'
 Get-Content spec/current-work.md

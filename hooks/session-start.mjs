@@ -28,12 +28,98 @@ const sessionContext = [
   "</EXTREMELY_IMPORTANT>",
 ].join("\n");
 
+const OVERVIEW_LINE_WARNING = 250;
+
+function readHookInput() {
+  if (process.stdin.isTTY) return {};
+
+  try {
+    const raw = fs.readFileSync(0, "utf8");
+    if (!raw.trim()) return {};
+    const input = JSON.parse(raw);
+    return input && typeof input === "object" ? input : {};
+  } catch {
+    return {};
+  }
+}
+
+function findSpecProjectDir(startDir) {
+  try {
+    if (!startDir) return "";
+
+    let current = path.resolve(startDir);
+    while (true) {
+      if (fs.existsSync(path.join(current, "spec", "OVERVIEW.md"))) {
+        return current;
+      }
+
+      const parent = path.dirname(current);
+      if (parent === current) return "";
+      current = parent;
+    }
+  } catch {
+    return "";
+  }
+}
+
+function buildProjectSpecBlock(projectDir) {
+  try {
+    if (!projectDir) return "";
+
+    const specRoot = path.join(projectDir, "spec");
+    const overviewPath = path.join(specRoot, "OVERVIEW.md");
+    if (!fs.existsSync(overviewPath)) return "";
+
+    const overview = fs.readFileSync(overviewPath, "utf8").trimEnd();
+    const lineCount = overview ? overview.split(/\r?\n/).length : 0;
+    const warning =
+      lineCount > OVERVIEW_LINE_WARNING
+        ? [
+            "",
+            `Warning: spec/OVERVIEW.md is ${lineCount} lines, above the ${OVERVIEW_LINE_WARNING}-line warning threshold.`,
+            "Keep using the full injected overview, but tell the user during the task or final handoff that this project should compress OVERVIEW.md.",
+          ]
+        : [];
+
+    return [
+      "<gei-project-spec>",
+      "Project_has_spec: true",
+      `spec_root: ${specRoot}`,
+      "",
+      "The current project maintains a spec/ system. The injected spec/OVERVIEW.md content below is this project's cold-start context.",
+      "Use it to choose the next context surface. Do not read ARCHITECTURE.md, current-work.md, CHANGELOG.md, or spec/docs/ by default.",
+      "Read ARCHITECTURE.md when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed.",
+      "Read current-work.md for recent task memory, active/paused file-changing work, release/debug reconciliation, or before file edits as required by the Gei lifecycle.",
+      "Treat confidence in this order: repository code/config/tests first, current-work.md as recent task memory second, durable spec files third because they may lag until promotion.",
+      ...warning,
+      "",
+      "--- spec/OVERVIEW.md ---",
+      overview,
+      "------------------------",
+      "</gei-project-spec>",
+    ].join("\n");
+  } catch {
+    return "";
+  }
+}
+
+const hookInput = readHookInput();
+const projectDir = findSpecProjectDir(
+  typeof hookInput.cwd === "string" && hookInput.cwd
+    ? hookInput.cwd
+    : process.env.CLAUDE_PROJECT_DIR || process.cwd(),
+);
+const projectSpecBlock = buildProjectSpecBlock(projectDir);
+const additionalContext = projectSpecBlock
+  ? `${sessionContext}\n\n${projectSpecBlock}`
+  : sessionContext;
+
 process.stdout.write(
   `${JSON.stringify(
     {
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: sessionContext,
+        additionalContext,
       },
     },
     null,

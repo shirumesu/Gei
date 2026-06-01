@@ -20,9 +20,22 @@ project-root/
 
 Explain each top-level area's responsibility.
 
+## Architecture Fragment Map
+
+Use this section only when the project has earned `spec/architecture/*.md` fragments. Otherwise write `No fragments; this file is the full architecture map.`
+
+| Need | Read |
+|------|------|
+| | `spec/architecture/<domain>.md` |
+
+## Cross-Cutting Invariants
+
+- Invariant that affects more than one domain.
+- Boundary that future tasks must preserve before reading a fragment.
+
 ## Runtime Flow
 
-Describe the main request or processing flow.
+Describe only the main cross-domain request or processing flow. Move domain-local flows into fragments when architecture is split.
 
 ```text
 Input
@@ -57,19 +70,18 @@ Describe the states that matter and how data moves across boundaries.
 
 - Start here for new tasks:
 - Read this before touching production code:
-- Commands that prove the system still works:
 
 ## Task Entry Map
 
-| Task type | Start reading | Likely files | Verification | Notes |
-|-----------|---------------|--------------|--------------|-------|
-| | | | | |
+| Task type | Start reading | Likely files | Notes |
+|-----------|---------------|--------------|-------|
+| | | | |
 
 ## Impact Map
 
-| If this changes | Also inspect | Reason | Verification |
-|-----------------|--------------|--------|--------------|
-| | | | |
+| If this changes | Also inspect | Reason |
+|-----------------|--------------|--------|
+| | | |
 
 ## Known Risks
 

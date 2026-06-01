@@ -27,9 +27,11 @@ Only load one downstream skill at a time. If later context requires another skil
 
 ## Lifecycle State
 
-`using-gei` starts lifecycle state; downstream skills enforce it. Do not ask a downstream skill to remember this file. Use `spec/current-work.md` as the short local state file.
+`using-gei` starts lifecycle state; downstream skills enforce it. Do not ask a downstream skill to remember this file. Use `spec/current-work.md` as the short local state file for active and recent file-changing work.
 
 If the task may write files, publish, commit, or maintain project state, read `references/current-work.md` before the first file edit and satisfy that lifecycle contract. If the task cannot affect project state, no lifecycle reference is needed.
+
+When project context sources disagree, use this confidence order: repository code/config/tests/Git history first; `spec/current-work.md` second as recent task memory; durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` third because they may lag until Memo promotion.
 
 The general lifecycle:
 

@@ -8,7 +8,7 @@ description: Use when the user wants coding execution such as implementation, bu
 Work is the execution skill for all coding tasks. 
 
 `memo` owns the `spec/` document system. Work reads `spec/` as context but does not write or maintain spec documents directly.
-`spec/current-work.md` is lifecycle state, not a spec document. Work creates, overwrites, and closes it as needed.
+`spec/current-work.md` is lifecycle state and recent task memory, not a durable spec document. Work creates it when missing, updates only the matching entry, appends unrelated entries, and closes or pauses entries at phase boundaries.
 
 ## Always-On Rules
 
@@ -23,6 +23,8 @@ Work is the execution skill for all coding tasks.
 ### Check for spec
 
 If `spec/` exists in the current workspace, read the relevant spec documents before doing anything else. Use `memo` to determine read order. Do not propose a plan that contradicts existing architecture or active tasks.
+
+When context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second for recent task intent and state, and durable spec files third because they may lag until Memo promotion.
 
 If `spec/` does not exist, do not create it. Proceed without it.
 
