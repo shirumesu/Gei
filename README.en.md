@@ -76,8 +76,8 @@ So I wrote these skills.
 
 ## Hooks
 
-This Skill provides a Hooks to inject the `using-gei` full text at the beginning of the session and if the project has a *spec/* flag.
-If it is a Codex, the full text of *spec/OVERVIEW.md* will be injected along with it; due to Claude Code's maximum Hooks text limit, it is limited to the full text of `using-gei` and the Flag.
+This Skill provides a SessionStart hook that injects the full `using-gei` text and a `project_has_spec: true|false` flag at the beginning of the session.
+`project_has_spec` is true only when *spec/OVERVIEW.md* exists. Codex also receives the full *spec/OVERVIEW.md* text; because Claude Code has hook text limits, it receives the full `using-gei` text, the flag, and an OVERVIEW pointer.
 
 ### Common Usage Paths
 

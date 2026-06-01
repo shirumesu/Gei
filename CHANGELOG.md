@@ -2,6 +2,12 @@
 
 This file records public release notes for Gei.
 
+## Unreleased
+
+### 修复
+- SessionStart hook 现在始终先注入 `using-gei` 全文，再注入 `project_has_spec: true|false`；`project_has_spec` 仅以 `spec/OVERVIEW.md` 是否存在为准，避免临时遗留的 `spec/current-work.md` 被误判为完整 spec。
+- Claude Code hook 配置收敛到官方默认的 `hooks/hooks.json`，移除 `hooks/claude-hooks.json`，避免 Claude Code 同时发现两份 hook 配置后静默忽略其中一份；Codex 改用 `hooks/codex-hooks.json` 保留自身占位符。
+
 ## v0.4.4 - 2026-06-01
 
 ### 新增

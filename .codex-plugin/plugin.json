@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, and project state.",
   "author": {
     "name": "shirumesu",
@@ -11,7 +11,7 @@
   "license": "MIT",
   "keywords": ["agent", "skills", "workflow", "codex"],
   "skills": "./skills/",
-  "hooks": "./hooks/hooks.json",
+  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Progressive skill routing for practical agent workflows.",

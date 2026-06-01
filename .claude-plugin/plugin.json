@@ -1,6 +1,16 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "gei",
-  "version": "0.4.4",
+  "displayName": "Gei",
+  "version": "0.4.5",
+  "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, and project state.",
+  "author": {
+    "name": "shirumesu"
+  },
+  "homepage": "https://github.com/shirumesu/gei",
+  "repository": "https://github.com/shirumesu/gei",
+  "license": "MIT",
+  "keywords": ["agent", "skills", "workflow", "claude-code"],
   "skills": "./skills/",
-  "hooks": "./hooks/claude-hooks.json"
+  "hooks": "./hooks/hooks.json"
 }

@@ -23,7 +23,7 @@ const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const SKILLS_DIR = path.join(CLAUDE_DIR, 'skills');
 const SETTINGS_PATH = path.join(CLAUDE_DIR, 'settings.json');
 const SKILLS_SOURCE = path.join(PLUGIN_ROOT, 'skills');
-const HOOKS_CONFIG = path.join(PLUGIN_ROOT, 'hooks', 'claude-hooks.json');
+const HOOKS_CONFIG = path.join(PLUGIN_ROOT, 'hooks', 'hooks.json');
 
 function readJson(p) {
   return JSON.parse(fs.readFileSync(p, 'utf8'));
@@ -88,6 +88,9 @@ function installHooks() {
       const expanded = JSON.parse(
         JSON.stringify(group).replaceAll(
           '${CLAUDE_PLUGIN_ROOT}',
+          PLUGIN_ROOT.replace(/\\/g, '\\\\')
+        ).replaceAll(
+          '${PLUGIN_ROOT}',
           PLUGIN_ROOT.replace(/\\/g, '\\\\')
         )
       );

@@ -77,8 +77,8 @@
 
 ## Hooks
 
-本 Skill 提供一个 Hooks，用于在会话开始时自动注入 `using-gei` 全文以及项目是否有 *spec/* 的 Flag
-如果是 Codex，将会自动连带注入 *spec/OVERVIEW.md* 全文；由于 Claude Code 存在最大 Hooks 文本限制，因此仅限 `using-gei` 全文与 Flag
+本 Skill 提供 SessionStart Hook，用于在会话开始时自动注入 `using-gei` 全文以及 `project_has_spec: true|false` Flag。
+`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准；如果是 Codex，将会自动连带注入 *spec/OVERVIEW.md* 全文；由于 Claude Code 存在最大 Hooks 文本限制，因此仅注入 `using-gei` 全文、Flag 与 OVERVIEW 指针。
 
 ### 常见使用路径
 

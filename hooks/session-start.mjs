@@ -62,9 +62,27 @@ function findSpecProjectDir(startDir) {
   }
 }
 
+function buildProjectSpecFlag(projectDir) {
+  const projectHasSpec = Boolean(projectDir);
+
+  return [
+    "<gei-project-spec>",
+    `project_has_spec: ${projectHasSpec ? "true" : "false"}`,
+    ...(projectHasSpec ? [`spec_root: ${path.join(projectDir, "spec")}`] : []),
+  ];
+}
+
 function buildProjectSpecBlock(projectDir) {
   try {
-    if (!projectDir) return "";
+    const base = buildProjectSpecFlag(projectDir);
+    if (!projectDir) {
+      return [
+        ...base,
+        "",
+        "No complete Gei spec is present for the current project because spec/OVERVIEW.md was not found.",
+        "</gei-project-spec>",
+      ].join("\n");
+    }
 
     const specRoot = path.join(projectDir, "spec");
     const overviewPath = path.join(specRoot, "OVERVIEW.md");
@@ -82,9 +100,7 @@ function buildProjectSpecBlock(projectDir) {
         : [];
 
     return [
-      "<gei-project-spec>",
-      "Project_has_spec: true",
-      `spec_root: ${specRoot}`,
+      ...base,
       "",
       "The current project maintains a spec/ system. The injected spec/OVERVIEW.md content below is this project's cold-start context.",
       "Use it to choose the next context surface. Do not read ARCHITECTURE.md, current-work.md, CHANGELOG.md, or spec/docs/ by default.",
@@ -105,9 +121,17 @@ function buildProjectSpecBlock(projectDir) {
 
 // Claude Code persists/truncates large SessionStart additionalContext, so on Claude
 // we inject only a small pointer to spec/OVERVIEW.md instead of inlining its full text.
-function buildProjectSpecFlag(projectDir) {
+function buildProjectSpecPointer(projectDir) {
   try {
-    if (!projectDir) return "";
+    const base = buildProjectSpecFlag(projectDir);
+    if (!projectDir) {
+      return [
+        ...base,
+        "",
+        "No complete Gei spec is present for the current project because spec/OVERVIEW.md was not found.",
+        "</gei-project-spec>",
+      ].join("\n");
+    }
 
     const specRoot = path.join(projectDir, "spec");
     const overviewPath = path.join(specRoot, "OVERVIEW.md");
@@ -124,9 +148,7 @@ function buildProjectSpecFlag(projectDir) {
         : [];
 
     return [
-      "<gei-project-spec>",
-      "Project_has_spec: true",
-      `spec_root: ${specRoot}`,
+      ...base,
       "",
       "The current project maintains a spec/ system. The full spec/OVERVIEW.md is intentionally NOT inlined here.",
       `Read spec/OVERVIEW.md now for this project's cold-start context: ${overviewPath}`,
@@ -152,7 +174,8 @@ const projectDir = findSpecProjectDir(
 // Claude positively and default to Codex, so a miss degrades to full injection
 // (the existing Codex behavior) rather than breaking Codex.
 const isClaudeCode = Boolean(
-  process.env.CLAUDECODE ||
+  (typeof hookInput.source === "string" && typeof hookInput.model === "string") ||
+    process.env.CLAUDECODE ||
     process.env.CLAUDE_CODE_ENTRYPOINT ||
     process.env.CLAUDE_PROJECT_DIR ||
     process.env.CLAUDE_PLUGIN_ROOT,
@@ -161,11 +184,9 @@ const isClaudeCode = Boolean(
 // Codex receives the full OVERVIEW inline; Claude Code only gets a pointer flag
 // because it persists/truncates large SessionStart additionalContext.
 const projectSpecBlock = isClaudeCode
-  ? buildProjectSpecFlag(projectDir)
+  ? buildProjectSpecPointer(projectDir)
   : buildProjectSpecBlock(projectDir);
-const additionalContext = projectSpecBlock
-  ? `${sessionContext}\n\n${projectSpecBlock}`
-  : sessionContext;
+const additionalContext = `${sessionContext}\n\n${projectSpecBlock}`;
 
 process.stdout.write(
   `${JSON.stringify(
