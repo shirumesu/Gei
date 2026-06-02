@@ -21,7 +21,7 @@ Each entry uses this shape:
 - Started: YYYY-MM-DD
 - Expected scope: <files, directories, or "unknown until inspection">
 - Status: active | paused | closed | archived
-- Promotion: pending | none | spec/CHANGELOG.md | spec/docs/#NNN-name.md | spec/ARCHITECTURE.md | spec/INBOX.md
+- Promotion: pending | none | spec/CHANGELOG.md | spec/OVERVIEW.md | spec/ARCHITECTURE.md | spec/docs/#NNN-name.md | spec/INBOX.md | comma-separated target list
 - Promotion note: <optional short reason when promotion is none or delayed>
 - Resume: <active/paused only: where the work stands now · the next concrete step · what blocks it>
 - Progress:
@@ -46,7 +46,7 @@ Do not add `Author` or `Actor`.
 - `closed`: the task or phase ended, but whether to promote has not been decided.
 - `archived`: promotion completed or judged unnecessary. May be removed during cleanup.
 
-**Promotion** — where durable information from this entry will land, or `none` if no promotion is needed. `pending` also means the durable-record decision itself has not been made yet; decide it before archiving.
+**Promotion** — where durable information from this entry will land, or `none` if no promotion is needed. It may name one target document or a comma-separated target list when the same entry has durable value in multiple spec surfaces. `pending` also means the durable-record decision itself has not been made yet; decide it before archiving.
 
 **Resume** — for an `active` or `paused` entry, the single most important recovery fact: where the work stands now, the next concrete step, and anything blocking it. This is the first thing a returning agent reads. It is the one field you **overwrite** as state moves, not append to (unlike `Progress`). Leave empty (`—`) for `closed` or `archived` entries.
 
@@ -86,7 +86,7 @@ At every phase boundary, choose one of these transitions for each entry:
 
 - **Closed:** work or phase ended, but whether to promote has not been decided.
 - **Archived without promotion:** complete, no durable spec value. Set `Status: archived`, `Promotion: none`, add a short `Promotion note`.
-- **Archived after promotion:** update the target Memo document first, then set `Status: archived` and point `Promotion` at that document.
+- **Archived after promotion:** update the target Memo document or documents first, then set `Status: archived` and point `Promotion` at the promoted target or targets.
 - **Paused:** work will resume from this exact anchor.
 
 Closing an entry does not imply promotion. Promotion requires the promotion gate in the reconciliation event.
@@ -94,6 +94,8 @@ Closing an entry does not imply promotion. Promotion requires the promotion gate
 Release, publish, handoff, and deliberate Memo sync are phase boundaries. Do not carry an old active entry across them without explicitly closing, pausing, or archiving it.
 
 Cleanups may remove only entries already marked `archived`. Do not delete `active`, `paused`, or `closed` entries because a new task is starting.
+
+When the user explicitly asks to clean up `current-work.md`, Memo may remove entries archived during that cleanup only after the promotion decision is complete: either the durable target document was updated and named in `Promotion`, or the entry is marked `Promotion: none` with a short `Promotion note`. Never remove a `closed` entry with `Promotion: pending`; decide its promotion target first.
 
 ## Completion Check
 
@@ -107,4 +109,5 @@ Before finishing a Memo update that touches `spec/current-work.md`:
 - `Evidence`, when present, is a verbatim artifact backing a claim — never a routine command log.
 - Durable work has a spec entry only when it passed the promotion gate.
 - Non-durable complete work is marked `Status: archived` with `Promotion: none`.
+- Explicit cleanup did not remove any `active`, `paused`, `closed`, or `Promotion: pending` entry before promotion was decided.
 - `spec/` remains excluded from product commits unless the user explicitly opted in.

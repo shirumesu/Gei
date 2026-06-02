@@ -11,6 +11,7 @@ Trigger this event when any of these are true:
 - `Promotion` is still `pending` at a phase boundary
 - a release, publish, handoff, checkpoint, or deliberate Memo sync is happening
 - changed files exist but there is no reliable task intent except the current-work buffer or user statement
+- the user explicitly asks to clean up, compact, or keep only selected entries in `spec/current-work.md`
 
 ## Required Reading
 
@@ -35,12 +36,28 @@ Do not read broad source files just to reconstruct intent. Use the selected curr
 7. If a complex plan or handoff was explicitly accepted, update the owning task spec.
 8. Set the entry to `closed`, `paused`, or `archived`; only remove entries that were already archived before this event or were archived during an explicit cleanup.
 
+## Explicit Current-Work Cleanup
+
+Use this subflow when the user asks to clean up `spec/current-work.md`, remove old entries, compact the buffer, or keep only a named entry.
+
+Cleanup is not a shortcut to `CHANGELOG.md`, and it is not a direct deletion pass. For each entry that may be removed, first decide where its durable facts belong:
+
+- Behavior, release, rollback, workflow, or future-agent maintenance value -> update `spec/CHANGELOG.md`.
+- Structure, routing, command, module boundary, interface, important data flow, or diagram value -> route through `architecture-change.md` and update `spec/ARCHITECTURE.md`.
+- Cold-start project purpose, core capability, technology baseline, document map, task-start route, or authority/staleness value -> read the overview contract and update `spec/OVERVIEW.md`.
+- Accepted durable plan, complex task context, long-lived handoff, or recovery details that do not belong in the root architecture or changelog -> create or update the owning `spec/docs/#NNN-{work-description}.md`.
+- Uncertain intent or insufficient evidence for a safe durable update -> capture the uncertainty in `spec/INBOX.md` before removing the entry.
+- No durable value after review -> set `Promotion: none` with a short `Promotion note`.
+
+Only after that decision is complete may the entry be archived or removed. If the user says to keep a specific entry, leave that entry in `current-work.md` unchanged except for targeted lifecycle corrections that are directly required by the cleanup.
+
 ## Decision Standard
 
 - No relevant file changes -> archive the entry with `Promotion: none`, or close it if the phase ended but the outcome is still uncertain.
 - Stage-only work, failed attempts, exploratory checks, temporary debugging, or partial implementation with no durable outcome -> keep in `current-work.md`; do not promote yet.
 - File changes with durable maintenance, release, rollback, user-visible, workflow, or future-agent value -> update `CHANGELOG.md` before archiving the entry.
 - Architecture-visible change -> update `ARCHITECTURE.md` through the architecture event.
+- Overview-visible change -> update `OVERVIEW.md` through the overview contract.
 - Durable implementation plan is needed -> create or update a task spec.
 - Intent is still uncertain -> capture a short `spec/INBOX.md` entry instead of guessing.
 - No durable value after review -> set `Status: archived`, `Promotion: none`, and a short `Promotion note`.
@@ -54,5 +71,6 @@ Do not create separate backlog or general-purpose memory records. Future work is
 - `CHANGELOG.md` records only durable changed work under `Unreleased`.
 - Any promoted document has the correct id and link.
 - Entries not promoted to spec are explicitly marked `Promotion: none` with a short reason.
+- Explicit cleanup entries were checked against `CHANGELOG.md`, `ARCHITECTURE.md`, `OVERVIEW.md`, `spec/docs/`, `spec/INBOX.md`, and `Promotion: none` before deletion.
 - No full task plan was invented from diff alone.
 - Only necessary files were inspected.
