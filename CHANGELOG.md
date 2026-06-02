@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.0 - 2026-6-2
+
+### 新功能
+
+- /memo with MEMORY and hook
+
+### 性能优化
+
+- clean-up cureen-work
+
 ## v0.4.5 - 2026-06-02
 
 ### 移除
