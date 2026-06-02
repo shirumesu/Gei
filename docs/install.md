@@ -179,14 +179,6 @@ When installation is verified, tell the user:
 
 1. Gei is installed.
 2. They need to restart the host application so it reloads the skills or plugin.
-3. The `see` skill needs social-tool login state before first use.
-4. `AGENTS.md` is optional reference material and is not installed by default.
+3. `AGENTS.md` is optional reference material and is not installed by default.
 
-Then ask the user whether they want to synchronize `AGENTS.md` into their host instructions, making clear that this is optional. Also ask whether they want to initialize the `see` tools now. Offer exactly these two options for `see` initialization:
-
-- Continue in this window. If the user chooses this, read `see/SKILL.md` and `see/references/tool.md` explicitly. Do not search for unrelated or unregistered skills.
-- Continue in a new window. give them this prompt to copy:
-
-```text
-Using the `see` skill and `see/references/tool.md`, initialize and install the required social tools.
-```
+Then ask the user whether they want to synchronize `AGENTS.md` into their host instructions, making clear that this is optional.

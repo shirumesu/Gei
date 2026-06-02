@@ -59,7 +59,7 @@ So I wrote these skills.
 
 **`/create-skill`** — Detailed skill-writing guide covering tone, standard conventions, and more; also provides skill optimization, quick format review, and testing workflows
 
-**`/see`** — Tiered web search (from quick to rigorous), multi-layer research criteria ensuring sources are official, objective, accurate, and can be independently cross-verified; leverages upstream tools to access crawler-unfriendly sites
+**`/see`** — Tiered web search (from quick to rigorous), multi-layer research criteria ensuring sources are official, objective, accurate, and can be independently cross-verified; can use Jina as a helper reader for known crawler-unfriendly URLs
 
 ---
 
@@ -71,7 +71,7 @@ So I wrote these skills.
 | `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
 | `/memo` | Project-wide documentation maintenance | Maintains the project Spec layer: architecture, current work, changelog, and solution design |
 | `/work` | Any coding task | Complete coding, testing, review, version maintenance, and release workflow |
-| `/see` | Any external web access | Comprehensive search workflow ensuring information is accurate, reliable, and timely; optimizes results via [Jina](https://jina.ai/); supports Reddit / Twitter / 小红书 and other anti-crawler platforms |
+| `/see` | Any external web access | Comprehensive search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) as a helper reader for known URLs |
 | `/create-skill` | When working with Skills | Create and review Skills, verify optimization opportunities |
 
 ## Hooks
@@ -163,11 +163,6 @@ Even nesting another layer like `Gei/skills/<skill>` works fine.
 
 You can also simply `git clone https://github.com/shirumesu/gei.git` and update with `git pull`.
 
-## Known Issues
-
-- `/see` depends on some [upstream tools](#acknowledgments) which are not very stable. Occasionally you may need to manually register and log in. The skill already includes auto-install and setup guidance — your Agent should walk you through installation and login.
-	- Since the upstream tools are mostly crawlers and CLI automation tools, account ban risk cannot be guaranteed. If you prefer not to use them, explicitly tell your AI in the task.
-
 ## Changelog / New Discoveries
 
 See [CHANGELOG.md](./CHANGELOG.md) for the latest public version changelog.
@@ -178,9 +173,5 @@ See [CHANGELOG.md](./CHANGELOG.md) for the latest public version changelog.
 	- [superpowers](superpowers)
 	- [gstack](https://github.com/garrytan/gstack)
 	- [Waza](https://github.com/tw93/waza)
-- Upstream tools:
-	- X access support: [twitter-cli](https://github.com/public-clis/twitter-cli)
-	- 小红书 access support: [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
-	- Reddit access support: [rdt-cli](https://github.com/public-clis/rdt-cli)
 - Donors
 	- [Myself](https://github.com/shirumesu) donated a complete human brain, effectively reducing token costs during development

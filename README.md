@@ -60,7 +60,7 @@
 
 **`/create-skill`** — 详细的 Skill 编写指导，覆盖语气、标准写法等方方面面；另提供 Skill 优化、快速格式审查和测试流程
 
-**`/see`** — 网络搜索分级（从快速到严谨），多层研究准则确保来源官方、客观、准确、可多重验证、独立验证；借助上游工具访问爬虫不友好网站
+**`/see`** — 网络搜索分级（从快速到严谨），多层研究准则确保来源官方、客观、准确、可多重验证、独立验证；对已知 URL 可使用 Jina 辅助读取爬虫不友好的网页
 
 ---
 
@@ -72,7 +72,7 @@
 | `/consider` | 讨论任何新想法时 | 帮助收敛需求；需求模糊时提供详细的设计方案 |
 | `/memo` | 全工程文档维护 | 维护项目 Spec 层：架构、当前工作、更改日志和方案设计 |
 | `/work` | 任何代码任务 | 完整的编码、测试、审查、版本维护及发布流程 |
-| `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；透过 [Jina](https://jina.ai/) 优化结果；支持 Reddit / Twitter / 小红书等风控平台 |
+| `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；对已知 URL 可透过 [Jina](https://jina.ai/) 辅助读取网页 |
 | `/create-skill` | Skill 相关操作时 | 创建与审核 Skill，验证可优化空间 |
 
 ## Hooks
@@ -164,11 +164,6 @@ node ~/.agents/Gei/hooks/install-claude.mjs
 
 也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新
 
-## 已知问题
-
-- `/See` 依赖一部分[上游工具](#感谢)，他们不太稳定，偶尔需要自己手动注册登录态，skill 内已写好自动安装以及指引，你的 Agent 应该会指引你完成安装和登录。
-	- 由于上游工具多是爬虫、cli自动化等，封号风险本身难以保证，若不想用，请在任务中明确向 AI 提出。
-
 ## 未来想法
 
 - [ ] `/learn`，记忆系统？辅助学习？编写新skill的指南？我不知道…但总感觉如果是 芸 他需要这个。 
@@ -183,9 +178,5 @@ node ~/.agents/Gei/hooks/install-claude.mjs
 	- [superpowers](superpowers)
 	- [gstack](https://github.com/garrytan/gstack)
 	- [Waza](https://github.com/tw93/waza)  
-- 上游工具：
-	- X 访问支持： [twitter-cli](https://github.com/public-clis/twitter-cli)
-	- 小红书 访问支持： [xiaohongshu-cli](https://github.com/jackwener/xiaohongshu-cli)
-	- Reddit 访问支持： [rdt-cli](https://github.com/public-clis/rdt-cli)
 - 捐赠者
 	- [我自己](https://github.com/shirumesu) 捐赠了一个完整的 人类大脑，有效降低了开发过程中的 token 成本

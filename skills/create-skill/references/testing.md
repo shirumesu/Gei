@@ -41,6 +41,8 @@ It does not prove the Skill is useful.
 
 Prefer fresh-agent or subagent checks for behavior. The point is to see whether another agent can use the Skill without inheriting the current conversation's hidden context.
 
+Use an interactive subagent probe when the Skill is meant to guide multi-step judgment, not just produce one artifact. This works well for Work-style, planning, review, testing, and discipline Skills where the agent should ask for missing context before deciding.
+
 With-skill prompt shape:
 
 ```text
@@ -60,6 +62,17 @@ Save or report the output that a normal user would care about.
 ```
 
 For an existing Skill improvement, compare the revised Skill against the old version or a saved snapshot when that is practical.
+
+Interactive subagent probe shape:
+
+1. Start one fresh subagent per realistic instance. Do not reuse the same agent across cases.
+2. Give only the Skill summary, a realistic user request, and minimal project context such as an overview. Ask what success means, what could be affected, and what information it needs next.
+3. Wait for the subagent's reply. Do not include the later exploration facts in the first message; many agents will answer only the final instruction when overloaded.
+4. Provide invented but coherent follow-up facts such as relevant architecture notes, observed behavior chains, existing tests, constraints, and a minimal reproduction.
+5. Ask for the final decision or output the Skill should guide: for example which tests to write, what not to test, red/green verification, routing choice, or handoff plan.
+6. Judge whether the agent followed the Skill's intended behavior. Record specific misses; do not silently fix the Skill during the test run.
+
+Use two or three cases for meaningful workflow changes: one straightforward case that should pass cleanly, and one edge or pressure case that could expose overreach, under-coverage, or premature action.
 
 ## 4. Test Trigger Behavior
 

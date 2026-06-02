@@ -1,119 +1,59 @@
 # Tool Reference
 
-This file covers the installed CLI tools for Reddit, Twitter/X, and Xiaohongshu.
-For ordinary web pages, follow the network access rules in `SKILL.md`.
+This file covers Jina Reader usage for known URLs. Jina is a network reader, not an installed tool, search backend, or platform-specific integration.
 
-## Reddit
+For source discovery and ordinary search, return to the network access rules in `SKILL.md` and use the installed search or web backend first. Jina is a second-pass reader for URLs that are already known.
 
-Use `rdt-cli`.
+## Usage
 
-Setup and account checks:
+Prefix the original full URL with `https://r.jina.ai/`.
 
-```bash
-rdt --help
-rdt login
-rdt status
-rdt whoami
+```text
+https://r.jina.ai/https://example.com/page
 ```
 
-Common browsing and reading:
+For JavaScript-heavy pages, request browser-rendered mode:
 
 ```bash
-rdt popular
-rdt sub python
-rdt search "python async"
-rdt show 1
-rdt read <post_id>
-rdt read <post_id> --expand-more
+curl "https://r.jina.ai/https://example.com/page" \
+  -H "X-Engine: browser" \
+  -H "X-Respond-Timing: mutation-idle"
 ```
 
-Export:
+- `X-Engine: browser`: asks Jina to use a browser-rendered path.
+- `X-Respond-Timing: mutation-idle`: waits until DOM mutations quiet down before returning content.
 
-```bash
-rdt export "python tips" -n 100 -o tips.csv
-```
+The output is usually Markdown-like text with a title, source URL, optional published time, extracted links, images, and page text.
 
-## Twitter/X
+## When To Use
 
-Use `twitter-cli`.
+Use Jina when:
 
-Auth and setup notes:
+- the URL is already known
+- normal fetch returns an empty page, JavaScript shell, or crawler-hostile result
+- extracted text, timestamps, links, images, or page metadata would be useful evidence
 
-```bash
-twitter --help
-twitter user openai
-```
+Do not use Jina as:
 
-`twitter-cli` does not provide a dedicated `login` command. It uses local browser cookies or environment variables.
+- the first step for general search or source discovery
+- a replacement for ordinary fetch/search on pages that are already readable
+- proof that login-gated or blocked content is available
 
-Common browsing and reading:
+## Result Validation
 
-```bash
-twitter feed
-twitter search "AI agent"
-twitter show 1
-twitter tweet <tweet_id>
-twitter article <tweet_id> --markdown
-twitter user-posts openai --max 20
-```
+HTTP success is not enough. Jina may return a wrapper response while the target page inside the content failed, redirected, or rendered only a login/block page.
 
-## Xiaohongshu
+Before using a Jina result as evidence, check:
 
-Use `xiaohongshu-cli`.
+- the title and body are specific to the target page
+- the needed text, timestamp, author, link, image, or metadata is present
+- warnings such as `Warning: Target URL returned error` are absent or explicitly handled
+- login prompts, sidebars, footers, and navigation are not being mistaken for the target content
 
-Setup and account checks:
+If the result is mostly login text, footer/legal text, category navigation, or a generic title, treat it as unusable and state the limitation.
 
-```bash
-xhs --help
-xhs login
-xhs login --qrcode
-xhs status
-xhs whoami
-```
+## Reddit Limit
 
-Common search and reading:
+Do not rely on Jina for Reddit by default. Current observed behavior is that Reddit public pages can return network-security blocks, including old Reddit URLs.
 
-```bash
-xhs search "美食"
-xhs topics "美食"
-xhs read 1
-xhs read "<note_id>"
-xhs hot
-```
-
-## Health Check
-
-If tool availability is unclear, run the bundled health check:
-
-```bash
-python skills/see/scripts/health_check.py
-```
-
-If you want the script to attempt installation for missing or unavailable CLI tools:
-
-```bash
-python skills/see/scripts/health_check.py --install
-```
-
-The health check runs multiple commands for each tool and reports `pass x of x` together with the failed command names.
-
-If a tool remains unavailable, continue the task with the next valid fallback and state the limitation plainly in the answer.
-
-### Tool Login
-
-If haven't logged in yet, use these commands to log in:
-```bash
-rdt login
-xiaohongshu login --qrcode
-twitter status
-```
-Sometimes these commands may return errors or require user interaction; please inform the user accordingly.
-
-### Twitter-cli Login
-
-Cookie retrieval from the upstream tool is unreliable; please instruct the user to set environment variables if setup fail.
-Typical steps:
-1. Open a browser and locate the "Cookies" section
-2. Find the `x.com` cookies and locate the `AUTH_TOKEN` and `CT0` keys
-3. Set them as environment variables `TWITTER_AUTH_TOKEN` and `TWITTER_CT0`
-4. Done
+If Jina returns Reddit text, verify that it is actual thread or comment content rather than a block page.

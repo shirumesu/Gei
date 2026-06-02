@@ -2,7 +2,7 @@
 
 Read this file after the root skill routes the task to `public-opinion`.
 
-If the task depends on Jina or local CLI access for Reddit, X/Twitter, or Xiaohongshu, read `references/tool.md` first and then continue here.
+If the task depends on Jina access for Reddit, X/Twitter, or Xiaohongshu, read `references/tool.md` first and then continue here.
 
 This branch is about user voices, platform feedback, and public discussion samples. It is not the same thing as fact-checking. User voices can prove that people are saying, reporting, or feeling something. They do not automatically prove that the underlying fact is established.
 
@@ -40,10 +40,10 @@ Do not pretend that restricted-platform tooling already exists. State the curren
 
 | Capability | Current state | Notes |
 | --- | --- | --- |
-| Local tool guidance | bundled | Load `references/tool.md` for Jina and the optional Reddit, Twitter/X, and Xiaohongshu CLIs |
-| Platform sampling scripts | not bundled | The repo ships guidance and a health check, not a bundled wrapper around those CLIs |
+| Jina guidance | bundled | Load `references/tool.md` for known URLs on crawler-hostile platforms |
+| Platform sampling scripts | not bundled | The repo ships guidance, not platform-specific wrappers |
 | Restricted-platform reading | not bundled | Work only with what the current environment can actually access |
-| Unified health or setup checks | bundled | Run `python skills/see/scripts/health_check.py` when external tool availability matters |
+| Unified health or setup checks | not bundled | Treat network readers as ordinary web access, not installed tools |
 
 ## Stop Conditions
 

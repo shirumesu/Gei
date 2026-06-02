@@ -55,14 +55,13 @@ Default to the lowest level that can safely satisfy the task. Do not turn every 
 
 When the task needs to access these sites, read [references/tool.md](references/tool.md):
 Xiaohongshu, Twitter, X, Reddit
-For any ordinary webpage that does not use `tool`, follow this order:
 
-1. Prefer the user-provided installed Web backend.
-2. If no suitable installed backend is available, use Jina.
-3. If Jina is unavailable or returns unusable results, fall back to native tools such as Fetch or web search.
+For source discovery and ordinary search, use the installed search or web backend first. Jina is not a search backend.
 
-Jina usage: prepend `https://r.jina.ai/` to the original URL.
+For a known URL, use Jina when normal fetch/search extraction returns an empty page, a JavaScript shell, or crawler-hostile content. Jina usage: prepend `https://r.jina.ai/` to the original URL.
 Example: `https://r.jina.ai/http://example.com`
+
+Before treating a Jina result as evidence, confirm that it contains target-specific content rather than only login prompts, navigation, footer text, or a target error warning.
 
 ### 4. Decide whether to enable the `summary / write-to-file` overlay
 
