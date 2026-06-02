@@ -10,11 +10,14 @@ from pathlib import Path
 TEMPLATE_MAP = {
     "OVERVIEW.template.md": "spec/OVERVIEW.md",
     "ARCHITECTURE.template.md": "spec/ARCHITECTURE.md",
+    "MEMORY.template.md": "spec/MEMORY.md",
     "CHANGELOG.template.md": "spec/CHANGELOG.md",
     "task-spec.template.md": "spec/docs/#001-work.md",
 }
 
 DIRECTORIES = [
+    "spec/docs",
+    "spec/memory",
     "spec/test",
 ]
 
@@ -37,6 +40,7 @@ CONFLICT_MARKERS = [
     "plandocs",
     "OVERVIEW.md",
     "ARCHITECTURE.md",
+    "MEMORY.md",
     "CHANGELOG.md",
 ]
 
@@ -68,6 +72,8 @@ def load_templates(script_path: Path) -> dict[Path, str]:
     contents: dict[Path, str] = {}
     for template_name, output_name in TEMPLATE_MAP.items():
         template_path = templates_dir / template_name
+        if not template_path.exists():
+            raise FileNotFoundError(f"Template not found: {template_path}")
         contents[Path(output_name)] = template_path.read_text(encoding="utf-8")
     return contents
 
@@ -85,7 +91,13 @@ def write_spec_files(project_root: Path, contents: dict[Path, str], force: bool)
 
 def ensure_directories(project_root: Path) -> None:
     for relative_path in DIRECTORIES:
-        (project_root / relative_path).mkdir(parents=True, exist_ok=True)
+        dir_path = project_root / relative_path
+        dir_path.mkdir(parents=True, exist_ok=True)
+        # Create .gitkeep for empty directories
+        if relative_path in ("spec/test", "spec/memory"):
+            gitkeep = dir_path / ".gitkeep"
+            if not gitkeep.exists():
+                gitkeep.touch()
 
 
 def run_git_init(project_root: Path, git_path: str) -> bool:
@@ -122,7 +134,7 @@ def update_gitignore(project_root: Path) -> str:
     if "spec/" in existing:
         return ".gitignore already contains spec/."
 
-    block = "#spec\nspec/\n"
+    block = "# Gei spec system - internal agent state, not product source\nspec/\n"
     if existing:
         separator = "\n" if existing.endswith("\n") else "\n\n"
         updated = f"{existing}{separator}{block}"
@@ -160,6 +172,9 @@ def main() -> int:
         contents = load_templates(Path(__file__).resolve())
         write_spec_files(project_root, contents, args.force)
         ensure_directories(project_root)
+    except FileNotFoundError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     except FileExistsError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -169,12 +184,20 @@ def main() -> int:
 
     git_message = update_gitignore(project_root)
 
-    print("Initialized spec files:")
-    for output_name in TEMPLATE_MAP.values():
+    print("Initialized spec/ system:")
+    print("\nCore documents:")
+    for output_name in ["spec/OVERVIEW.md", "spec/ARCHITECTURE.md", "spec/MEMORY.md", "spec/CHANGELOG.md"]:
         print(f" - {project_root / output_name}")
+    print("\nDirectories:")
     for directory_name in DIRECTORIES:
-        print(f" - {project_root / directory_name}")
-    print(git_message)
+        print(f" - {project_root / directory_name}/")
+    print(f"\nTask spec example:\n - {project_root / 'spec/docs/#001-work.md'}")
+    print(f"\n{git_message}")
+    print("\nNext steps:")
+    print(" - Edit spec/OVERVIEW.md with project-specific context")
+    print(" - Edit spec/ARCHITECTURE.md with module structure")
+    print(" - Create memory entries in spec/memory/ as patterns emerge")
+    print(" - Use spec/current-work.md for active file-changing work (created on demand)")
     return 0
 
 

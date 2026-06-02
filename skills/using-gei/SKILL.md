@@ -52,7 +52,7 @@ For file-changing work:
 
 For read-only tasks, no current-work anchor is needed.
 
-When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` third.
+When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, and `CHANGELOG.md` third.
 
 ## End Condition
 

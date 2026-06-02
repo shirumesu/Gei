@@ -20,8 +20,11 @@ By default, `spec/` is internal agent and project state, not product source. Do 
 spec/
   OVERVIEW.md
   ARCHITECTURE.md
+  MEMORY.md
   architecture/
     <domain>.md
+  memory/
+    <pattern-name>.md
   CHANGELOG.md
   current-work.md
   test/
@@ -30,6 +33,8 @@ spec/
 ```
 
 `spec/architecture/` is optional. Create it only when root `ARCHITECTURE.md` has earned a domain split under the architecture contract. The root file remains the index; fragments hold domain details.
+
+`MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`. Create memory entries for operational patterns, gotchas, and usage conventions that are easy to miss or repeat.
 
 `current-work.md` is optional lifecycle state and recent task memory. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies. It can also preserve recent debug, release, handoff, or reconciliation context that has not yet been promoted into durable spec files.
 
@@ -40,12 +45,14 @@ spec/
 For a new task in an established project, use this order:
 
 1. `spec/OVERVIEW.md`
-2. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
-3. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
-4. `spec/current-work.md` for active or paused file-changing work, recent related task memory, debug/release handoff context, reconciliation, or before file edits as required by the lifecycle
-5. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
-6. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
-7. related test files in `spec/test/` when the task includes verification work
+2. `spec/MEMORY.md` when the task may involve project-specific operational patterns
+3. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
+4. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
+5. the relevant `spec/memory/*.md` entry only when the memory index points to it
+6. `spec/current-work.md` for active or paused file-changing work, recent related task memory, debug/release handoff context, reconciliation, or before file edits as required by the lifecycle
+7. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
+8. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
+9. related test files in `spec/test/` when the task includes verification work
 
 Read code after that only where the docs are insufficient or possibly stale.
 
@@ -57,9 +64,10 @@ When creating the system for the first time:
 
 1. `OVERVIEW.md`
 2. `ARCHITECTURE.md`
-3. `CHANGELOG.md`
-4. `test/`
-5. the first combined spec-task file at `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task
+3. `MEMORY.md`
+4. `CHANGELOG.md`
+5. `test/`
+6. the first combined spec-task file at `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task
 
 When updating during normal work, touch only the files required by the current event.
 

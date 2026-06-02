@@ -56,4 +56,4 @@ Update `spec/current-work.md` at every phase boundary:
 
 Prefer append or targeted entry update for new work. Remove or compact only entries already marked `archived`; never delete `active`, `paused`, or `closed` entries merely because a new unrelated task is starting.
 
-When the user explicitly asks to clean up, compact, or keep only selected entries in `spec/current-work.md`, invoke Memo's anchor reconciliation cleanup flow. That cleanup must decide each removable entry's promotion target before deletion: `CHANGELOG`, `ARCHITECTURE`, `OVERVIEW`, a task spec, `INBOX`, or `Promotion: none`.
+When the user explicitly asks to clean up, compact, or keep only selected entries in `spec/current-work.md`, invoke Memo's anchor reconciliation cleanup flow. That cleanup must decide each removable entry's promotion target before deletion: `CHANGELOG`, `ARCHITECTURE`, `OVERVIEW`, `MEMORY`, a task spec, `INBOX`, or `Promotion: none`.

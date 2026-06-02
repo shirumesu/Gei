@@ -68,6 +68,7 @@ When recording architecture or task context, include where to start reading, whi
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |
 | Anchor reconciliation | `spec/current-work.md` entries must be closed, archived, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
 | Catch-up | Work already happened outside Memo and must be captured into `spec/INBOX.md` before full reconciliation | `references/events/catch-up.md` |
+| Memory write | A pattern worth remembering is discovered during work | `references/events/memory-write.md` |
 
 ## Document Contracts
 
@@ -78,12 +79,20 @@ Pure catch-up capture does not require a document contract. It writes only `spec
 - `spec/ARCHITECTURE.md`: `references/contracts/architecture.md`
 - `spec/OVERVIEW.md`: `references/contracts/overview.md`
 - `spec/CHANGELOG.md`: `references/contracts/changelog.md`
+- `spec/MEMORY.md`: `references/contracts/memory.md`
 - `spec/docs/#NNN-{work-description}.md`: `references/contracts/task-spec.md`
 - `spec/current-work.md`: `references/contracts/work-anchor.md`
 - Full spec layout, ids, read order, and initialization rules: `references/spec-system.md`
 - Broad writing-quality cleanup or large doc rewrite: `references/writing-guide.md`
 
 Templates remain available under `references/templates/`. Use them when creating a new file from scratch; do not read every template for routine edits.
+
+Available templates:
+- `ARCHITECTURE.template.md`
+- `OVERVIEW.template.md`
+- `CHANGELOG.template.md`
+- `task-spec.template.md`
+- `memory.template.md`
 
 ## Spec Layout
 
@@ -93,14 +102,18 @@ Memo maintains this default layout:
 spec/
   OVERVIEW.md
   ARCHITECTURE.md
+  MEMORY.md
   CHANGELOG.md
   current-work.md
+  memory/
   test/
   docs/
     #NNN-{work-description}.md
 ```
 
 `current-work.md` is optional and temporary-to-medium-term. Create it for anchored work; append entries for unrelated work; close or archive entries at phase boundaries; clean only entries already marked archived.
+
+`MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`.
 
 ## Naming Rules
 

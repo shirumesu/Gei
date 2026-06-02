@@ -21,7 +21,7 @@ Each entry uses this shape:
 - Started: YYYY-MM-DD
 - Expected scope: <files, directories, or "unknown until inspection">
 - Status: active | paused | closed | archived
-- Promotion: pending | none | spec/CHANGELOG.md | spec/OVERVIEW.md | spec/ARCHITECTURE.md | spec/docs/#NNN-name.md | spec/INBOX.md | comma-separated target list
+- Promotion: pending | none | spec/CHANGELOG.md | spec/OVERVIEW.md | spec/ARCHITECTURE.md | spec/MEMORY.md | spec/docs/#NNN-name.md | spec/INBOX.md | comma-separated target list
 - Promotion note: <optional short reason when promotion is none or delayed>
 - Resume: <active/paused only: where the work stands now · the next concrete step · what blocks it>
 - Progress:
