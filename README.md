@@ -125,19 +125,65 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agen
 
 #### Claude Code Plugin 安装（含 Hook）
 
-需要 Node.js 可用。将仓库 clone 到任意位置后，运行内置的安装脚本：
+需要 Node.js 可用。将仓库 clone 到任意位置后，手动创建 skill 链接并配置 hooks：
 
 ```shell
 git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
-node ~/.agents/Gei/hooks/install-claude.mjs
 ```
 
-脚本自动完成：
+**创建 skill 链接：**
 
-- 在 `~/.claude/skills/` 下创建指向本仓库 `skills/` 的目录 junction，skills 随 `git pull` 自动同步
-- 将两个 `SessionStart` hooks 写入 `~/.claude/settings.json`，会话开始时自动注入 Gei 路由上下文和 OVERVIEW 全文
+Windows (PowerShell):
+```powershell
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "$HOME\.agents\Gei\skills\see"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "$HOME\.agents\Gei\skills\consider"
+```
 
-重启 Claude Code 后生效。后续只需 `git pull` 更新仓库，不需要重新运行脚本。
+Unix (Bash/Zsh):
+```shell
+ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
+ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
+ln -s ~/.agents/Gei/skills/see ~/.claude/skills/see
+ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
+```
+
+**配置 SessionStart hooks：**
+
+编辑 `~/.claude/settings.json`，添加以下内容（如果 `hooks` 字段已存在，合并进去）：
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/inject_overview.mjs\"",
+            "statusMessage": "Loading Gei project overview",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/inject_memory.mjs\"",
+            "statusMessage": "Loading Gei memory index",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用双反斜杠或正斜杠。
+
+重启 Claude Code 后生效。后续只需 `git pull` 更新仓库。
 
 #### 非Plugin / 其他 Agent
 

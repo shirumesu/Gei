@@ -7,12 +7,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_using_gei.mjs\"",
-            "statusMessage": "Loading Gei routing context",
-            "timeout": 5
-          },
-          {
-            "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_overview.mjs\"",
             "statusMessage": "Loading Gei project overview",
             "timeout": 5

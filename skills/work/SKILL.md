@@ -73,9 +73,24 @@ Section checkpoint format:
 
 Before implementation, decide the smallest verification surface that can prove the section worked. Prefer command-line verification that exercises real behavior through the most stable public surface available.
 
-Tests are required when the section changes behavior, fixes a bug, touches persistence, configuration, parsing, security, permissions, data migration, public APIs, CLI behavior, UI state logic, IPC, network boundaries, or another contract where a regression would matter. For bug fixes, add a regression test whenever the behavior can be exercised from a stable test surface.
+**Consider writing a test** when the section changes behavior in ways that could regress silently:
+- Bug fixes where the broken behavior can be exercised from a stable test surface
+- Security, permissions, or authorization logic changes
+- Persistence, serialization, or data migration logic
+- Parsing or validation that accepts external input
+- Public APIs or CLI behavior contracts
+- Configuration or feature-flag behavior where enable/disable paths could break independently
+- Integration across IPC, network boundaries, or plugin interfaces where wiring could drift
 
-Do not write a test just to satisfy process. A new test is not required for pure documentation, comments, formatting, metadata text, generated artifacts, mechanical moves already covered by typecheck/build, empty directory scaffolding, or deleting unreachable files when existing commands prove no live reference remains.
+**Skip new tests by default** for:
+- Pure documentation, comments, formatting, or metadata changes
+- Mechanical refactors already covered by typecheck/build (renames, moves, extract-function)
+- Internal implementation changes with no observable behavior difference
+- Trivial bug fixes where existing tests or runtime already catch the failure (missing null check, typo)
+- Deleting dead code when existing commands prove no live reference remains
+- Changes where command-line verification is stronger than a new test (build output, CLI smoke test, schema validation)
+
+Do not write a test just to satisfy process. If no new test is warranted, state the reason and name the command-line checks that will prove the section instead.
 
 When tests are required, read `references/testcraft.md` before writing them. Design tests around observable behavior and the full behavior chain. For example, a configuration change should prove that the setting can be enabled and disabled, persists through the real config path, and changes the consuming behavior; it should not merely prove that a function, file, schema field, or import exists.
 

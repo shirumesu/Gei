@@ -27,6 +27,20 @@ Do not add a test by default for pure documentation, comments, formatting, gener
 
 When a behavior deserves coverage but a good automated test is not practical in the current repository, say so explicitly and use the strongest command-line substitute available. Do not fill the gap with a weak existence test.
 
+## When NOT To Add A Test
+
+Skip a test by default when:
+
+- **Type system already enforces it**: constant values, enum literals, interface shapes, type coercion
+- **Build/runtime fails immediately**: missing imports, syntax errors, undefined functions, module resolution
+- **Only assertion is existence**: `!== null`, `> 0`, `length >= N` without specific contract meaning
+- **Transcribes configuration**: package.json fields, tsconfig values, environment variables that commands already verify
+- **Internal symbol checks**: `source.includes('helperFunction')` or variable names without proving behavior
+- **Thin wrapper with no logic**: string trim, basic type validation, pass-through adapters with obvious behavior
+- **Grep/lint can enforce it**: call-site wiring, naming conventions, import patterns, architectural boundaries
+
+When behavior deserves coverage but automated testing isn't practical, document why and use the strongest command-line verification. Do not add a weak existence test to fill the gap.
+
 ## Phase 1: Recover The Contract
 
 Before writing a test, recover the contract under test from the most stable sources available: task acceptance criteria, API specs, existing tests, callers, public signatures, docstrings, and relevant implementation files.
@@ -89,6 +103,10 @@ For example, if a path contract rejects both parent-directory traversal and abso
 - Cover material configuration or feature-flag combinations that change behavior.
 - For stateful units, test the state transitions across calls.
 - Use real collaborators or faithful fakes; avoid mocks that merely repeat the implementation's assumptions.
+- For thin wrappers or validators, prefer source grep over unit tests when:
+  - The wrapper has obvious behavior (trim whitespace, validate non-null, type coercion)
+  - The real contract is "all call sites use the validator"
+  - Example: grep proves `normalizeInput(value)` wraps all inputs; unit-testing the normalizer adds no signal
 
 ### Performance And Load
 
@@ -102,6 +120,9 @@ Write one test at a time:
 2. State the defended contract in a comment or docstring when the name is not enough.
 3. Arrange only the state this test needs; shared state creates ordering bugs.
 4. Assert specifically enough to fail when the contract breaks, but not on irrelevant implementation changes.
+   - **Weak assertions that usually signal noise**: `!== null`, `> 0`, `length >= N`, `.includes(string)`, `typeof === 'object'`
+   - **Strong assertions**: exact values for distinct outcomes, specific error types, state transitions, observable side effects
+   - **Red flag**: If you removed the core logic but left scaffolding, would this assertion still pass? If yes, tighten it.
 5. Keep one contract per test. Multiple assertions are fine when they jointly prove the same contract; split tests when assertions defend separate contracts.
 6. Do not add test-only hooks or distort production design to satisfy an implementation-shaped test. If a valid failing test exposes a product issue, fix production behavior; if the test is wrong, fix the test.
 
@@ -110,11 +131,58 @@ Write one test at a time:
 When a test can be written before implementation, run it first.
 
 - A regression or feature test should fail before the bug is fixed or the behavior exists.
-- A test that passes immediately is probably testing existing behavior, the wrong contract, or a broken assertion.
+- **A test that passes immediately is probably testing existing behavior, the wrong contract, or a broken assertion.**
+- **Critical check**: If you cannot make the test fail by removing the fix, the test is too weak.
 - A test that fails for the wrong reason, such as setup failure or the wrong error type, must be corrected before implementation.
 - The failure should make the expected behavior clear, not merely dump a traceback.
 
 If the best test surface only exists after part of the implementation is present, state that constraint before implementation, then run the test as soon as the behavior is reachable.
+
+## Common Anti-Patterns
+
+Before finalizing a test, check against these noise patterns found in real codebases:
+
+❌ **Constant literal checks**
+```javascript
+test('enum values are correct', () => {
+  assert.equal(ServiceType.TRANSLATE, 'translate')  // TypeScript enforces this
+})
+```
+**Why weak**: If the constant were wrong, TypeScript would fail at every call site. No behavior defended.
+
+❌ **Config transcription**
+```javascript
+test('build script is correct', () => {
+  assert.equal(packageJson.scripts.build, 'vite build')  // npm run build verifies
+})
+```
+**Why weak**: If the script were wrong, the build command would fail immediately. Test adds no signal.
+
+❌ **Weak numeric bounds**
+```javascript
+test('list has items', () => {
+  assert.ok(languageList.length >= 20)  // What breaks at 19?
+})
+```
+**Why weak**: Can't answer "which contract breaks at length=19?" Probably just testing that work happened.
+
+❌ **Internal symbol existence**
+```javascript
+test('queue implementation exists', () => {
+  assert.ok(windowSource.includes('pendingWindowEvents'))  // Doesn't prove queue works
+})
+```
+**Why weak**: Verifies code exists, not that behavior is correct. The real contract is "events aren't lost."
+
+❌ **Routing without observable effect**
+```javascript
+test('error state returns retry action', () => {
+  assert.equal(getAction({status: 'error'}), 'retry')  // What does 'retry' do?
+})
+```
+**Why weak**: Tests what string is returned, not whether the button behavior is correct downstream.
+
+**Better approach**: Test the full chain (button click → action → observable outcome) or use source grep to prove wiring.
 
 ## Self-Review Before Handoff
 

@@ -124,19 +124,65 @@ If your Codex version, marketplace content, or environment currently can't fully
 
 #### Claude Code Plugin Installation (with Hook)
 
-Requires Node.js to be available. Clone the repo anywhere, then run the built-in install script:
+Requires Node.js to be available. Clone the repo anywhere, then manually create skill links and configure hooks:
 
 ```shell
 git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
-node ~/.agents/Gei/hooks/install-claude.mjs
 ```
 
-The script automatically:
+**Create skill links:**
 
-- Creates directory junctions from `~/.claude/skills/` to this repo's `skills/`, keeping skills in sync with `git pull`
-- Writes two `SessionStart` hooks to `~/.claude/settings.json`, injecting Gei's routing context and the full OVERVIEW at session start
+Windows (PowerShell):
+```powershell
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "$HOME\.agents\Gei\skills\see"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "$HOME\.agents\Gei\skills\consider"
+```
 
-Restart Claude Code to apply. Afterwards, just `git pull` to update the repo — no need to re-run the script.
+Unix (Bash/Zsh):
+```shell
+ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
+ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
+ln -s ~/.agents/Gei/skills/see ~/.claude/skills/see
+ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
+```
+
+**Configure SessionStart hooks:**
+
+Edit `~/.claude/settings.json` and add the following (if `hooks` field already exists, merge it):
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/inject_overview.mjs\"",
+            "statusMessage": "Loading Gei project overview",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/inject_memory.mjs\"",
+            "statusMessage": "Loading Gei memory index",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+On Windows, replace `~` with your actual home directory path and use double backslashes or forward slashes.
+
+Restart Claude Code to apply. Afterwards, just `git pull` to update the repo.
 
 #### Non-Plugin / Other Agents
 

@@ -2,8 +2,26 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
 
-import { pluginRoot, writeSessionStartContext } from "./session-context.mjs";
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const pluginRoot = process.env.PLUGIN_ROOT || path.resolve(scriptDir, "..");
+
+function writeSessionStartContext(additionalContext) {
+  process.stdout.write(
+    `${JSON.stringify(
+      {
+        hookSpecificOutput: {
+          hookEventName: "SessionStart",
+          additionalContext,
+        },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
 
 const skillPath = path.join(pluginRoot, "skills", "using-gei", "SKILL.md");
 
@@ -15,15 +33,17 @@ try {
 }
 
 const sessionContext = [
-  "<EXTREMELY_IMPORTANT>",
-  "You are using Gei.",
+  "<gei-routing-context>",
+  "This session is using Gei.",
   "",
-  "**Below is the full content of your 'gei:using-gei' skill - your introduction to Gei routing and lifecycle:**",
+  "The 'gei:using-gei' skill content has been pre-loaded below. When processing user requests, this content defines the routing and lifecycle rules that apply to this session.",
   "",
+  "--- gei:using-gei skill ---",
   usingGeiContent,
+  "---------------------------",
   "",
-  "_(The full using-gei skill content is already present above, injected at session start. You already have everything you need — there is no need to separately activate or load this skill file. Simply follow the routing and lifecycle instructions it contains.)_",
-  "</EXTREMELY_IMPORTANT>",
+  "The using-gei skill is available in context for all turns in this session.",
+  "</gei-routing-context>",
 ].join("\n");
 
 writeSessionStartContext(sessionContext);

@@ -13,7 +13,7 @@ If `<install-dir>` cannot be determined from the host environment, ask the user 
 
 ## Method: Claude Plugin
 
-Use this when the host is Claude Code and you want plugin-style installation with automatic hook registration. Requires Node.js on PATH.
+Use this when the host is Claude Code and you want plugin-style installation with automatic hook registration.
 
 1. Clone the repository to any location (recommended: `~/.agents/Gei`):
 
@@ -21,13 +21,55 @@ Use this when the host is Claude Code and you want plugin-style installation wit
 git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
 ```
 
-2. Run the installer:
+2. Create skill symlinks or junctions manually:
 
 ```shell
-node <install-dir>/Gei/hooks/install-claude.mjs
+# On Windows (PowerShell):
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "<install-dir>\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "<install-dir>\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "<install-dir>\Gei\skills\memo"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "<install-dir>\Gei\skills\see"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "<install-dir>\Gei\skills\consider"
+
+# On Unix (symlinks):
+ln -s <install-dir>/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s <install-dir>/Gei/skills/work ~/.claude/skills/work
+ln -s <install-dir>/Gei/skills/memo ~/.claude/skills/memo
+ln -s <install-dir>/Gei/skills/see ~/.claude/skills/see
+ln -s <install-dir>/Gei/skills/consider ~/.claude/skills/consider
 ```
 
-3. Verify this layout:
+3. Add SessionStart hooks to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<install-dir>/Gei/hooks/inject_overview.mjs\"",
+            "statusMessage": "Loading Gei project overview",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"<install-dir>/Gei/hooks/inject_memory.mjs\"",
+            "statusMessage": "Loading Gei memory index",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+Replace `<install-dir>` with the actual path. On Windows, use double backslashes or forward slashes.
+
+4. Verify this layout:
 
 ```text
 ~/.claude/
@@ -40,9 +82,9 @@ node <install-dir>/Gei/hooks/install-claude.mjs
   settings.json  (contains SessionStart hook entries)
 ```
 
-Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_using_gei.mjs` and `<install-dir>/Gei/hooks/inject_overview.mjs`.
+Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_overview.mjs` and `<install-dir>/Gei/hooks/inject_memory.mjs`.
 
-For updates, run `git pull` inside `<install-dir>/Gei`. No need to re-run the installer unless new skill directories are added.
+For updates, run `git pull` inside `<install-dir>/Gei`. No need to manually update anything after that.
 
 ## Method: Codex Plugin
 
