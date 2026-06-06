@@ -30,10 +30,12 @@ So I wrote these skills.
 
 ### Main Flow
 
-/using-gei ──→ /consider ──→ /memo ──→ /work ──→ /memo
+/using-gei ──→ /learn(recall memory) ──→ /consider | /memo | /work | /code-review | /see
 
 
 **`/using-gei`** — Main router, manages the lifecycle of the entire task
+
+**`/learn`** — Project memory layer for recalling, applying, writing, updating, and compacting `spec/MEMORY.md` plus `spec/memory/`
 
 **`/consider`** — Asks follow-up questions and searches for mainstream approaches, helping you converge and expand ideas, clarify boundaries and impact, and discuss pros and cons
 
@@ -53,6 +55,8 @@ So I wrote these skills.
 
 **`/memo`** ↩ — Based on the work done, maintains new Spec changes
 
+**`/learn`** ↩ — The Stop hook asks for a memory recall/write check before anchored tasks end
+
 ---
 
 ### Standalone Skills
@@ -70,6 +74,7 @@ So I wrote these skills.
 | Skill | When to Use | Purpose |
 | --- | --- | --- |
 | `/using-gei` | Before any session starts | Main router and task lifecycle maintenance layer |
+| `/learn` | When recalling, writing, updating, deleting, compacting, or auditing project memory | Manages the `spec/MEMORY.md` index and `spec/memory/` entries at task start and task end |
 | `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
 | `/memo` | Project-wide documentation maintenance | Maintains the project Spec layer: architecture, current work, changelog, and solution design |
 | `/work` | Any code execution task | Complete coding, testing, version maintenance, and release workflow |
@@ -79,14 +84,14 @@ So I wrote these skills.
 
 ## Hooks
 
-This Skill provides two SessionStart hooks: `inject_using_gei` injects the full `using-gei` text, while `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context.
-`project_has_spec` is true only when *spec/OVERVIEW.md* exists. Claude Code and Codex both receive the full *spec/OVERVIEW.md* text through the second hook.
+This Skill provides three hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, `inject_memory` injects the `spec/MEMORY.md` index, and `stop_record_memory` asks for a Learn memory check before anchored tasks stop.
+`project_has_spec` is true only when *spec/OVERVIEW.md* exists. OVERVIEW and MEMORY stay split to avoid oversized single-hook output.
 
 ### Common Usage Paths
 
 | Scenario | Path | Notes |
 | --- | --- | --- |
-| A complete work session | `using-gei` → `consider` → `memo` → `work` → `memo` | Almost no need to manually invoke any commands |
+| A complete work session | `using-gei` → `learn` recall → `consider` / `work` → `memo` → `learn` close check | Almost no need to manually invoke any commands |
 | Code review | `using-gei` → `code-review` | Read-only review; does not enter Work's implementation lifecycle |
 | Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
 | External search | `using-gei` → `consider` (optional) → `see` | `see` requires disambiguating queries and using authoritative data, resulting in more rigorous output |
@@ -139,6 +144,7 @@ git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
 Windows (PowerShell):
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\learn" -Target "$HOME\.agents\Gei\skills\learn"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "$HOME\.agents\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
@@ -150,6 +156,7 @@ New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "$
 Unix (Bash/Zsh):
 ```shell
 ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s ~/.agents/Gei/skills/learn ~/.claude/skills/learn
 ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
 ln -s ~/.agents/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
@@ -158,7 +165,7 @@ ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
 ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
-**Configure SessionStart hooks:**
+**Configure SessionStart / Stop hooks:**
 
 Edit `~/.claude/settings.json` and add the following (if `hooks` field already exists, merge it):
 
@@ -183,6 +190,18 @@ Edit `~/.claude/settings.json` and add the following (if `hooks` field already e
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/stop_record_memory.mjs\"",
+            "statusMessage": "Checking Gei learn memory gate",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
@@ -200,6 +219,8 @@ Most agents accept recursive subdirectory search, so your install directory can 
 <skills-dir>/
   Gei/
     using-gei/
+      SKILL.md
+    learn/
       SKILL.md
     work/
       SKILL.md

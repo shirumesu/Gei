@@ -42,6 +42,7 @@ List the people, systems, agents, or workflows that use or operate the project.
 | Document | Use When |
 |----------|----------|
 | `spec/ARCHITECTURE.md` | You need durable structure, routing, data flow, module boundaries, or cross-file impact context. |
+| `spec/MEMORY.md` | You need the project memory index. Use Learn recall before reading linked `spec/memory/*.md` entries. |
 | `spec/current-work.md` | You need recent task memory, active/paused file-changing work, release/debug context, reconciliation context, or the lifecycle requires a pre-edit anchor check. |
 | `spec/CHANGELOG.md` | You need recent closed work, releases, or checkpoints. |
 | `spec/docs/` | You need explicit spec-backed plans, scopes, and execution context. |
@@ -49,14 +50,16 @@ List the people, systems, agents, or workflows that use or operate the project.
 ## How To Start A Task
 
 1. Read this file to understand the project.
-2. Read `spec/ARCHITECTURE.md` when the task needs durable structure, routing, data flow, module boundaries, or cross-file impact context.
-3. Read `spec/current-work.md` for recent task memory, active/paused work, release/debug handoff context, reconciliation, or before file edits as required by the lifecycle.
-4. Read `spec/CHANGELOG.md` only when recent closed work may affect the decision.
-5. Read code only after the spec surface is insufficient or possibly stale.
+2. Scan injected `spec/MEMORY.md`; when a `Read when ...` line matches, use Learn recall and read the linked entry before deciding.
+3. Read `spec/ARCHITECTURE.md` when the task needs durable structure, routing, data flow, module boundaries, or cross-file impact context.
+4. Read `spec/current-work.md` for recent task memory, active/paused work, release/debug handoff context, reconciliation, or before file edits as required by the lifecycle.
+5. Read `spec/CHANGELOG.md` only when recent closed work may affect the decision.
+6. Read code only after the spec surface is insufficient or possibly stale.
 
 ## Authority And Staleness
 
 - Source code, tests, configuration, build scripts, and Git history are the highest-confidence source of truth.
 - `spec/current-work.md` is recent task memory and should be more current than durable spec files.
+- `spec/MEMORY.md` and `spec/memory/*.md` are behavioral context, not authority. Check them against repo state when they conflict.
 - `OVERVIEW.md`, `ARCHITECTURE.md`, and `CHANGELOG.md` are durable project memory and may lag until promotion.
 - If this file conflicts with higher-confidence sources, verify against the repo and update the smallest stale spec surface.

@@ -11,6 +11,8 @@ Its job is to keep future agents productive without forcing a fresh deep read of
 
 `spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, and how completed changes were recorded.
 
+Learn owns `spec/MEMORY.md` and `spec/memory/` recall/write behavior. Memo may initialize the memory index as part of a new spec system, but operational pattern capture, memory entry format, compaction, and deletion belong to `skills/learn/`.
+
 `spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone. Optimize it for resumability, not audit completeness.
 
 Treat project context by confidence tier:
@@ -68,7 +70,6 @@ When recording architecture or task context, include where to start reading, whi
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |
 | Anchor reconciliation | `spec/current-work.md` entries must be closed, archived, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
 | Catch-up | Work already happened outside Memo and must be captured into `spec/INBOX.md` before full reconciliation | `references/events/catch-up.md` |
-| Memory write | A pattern worth remembering is discovered during work | `references/events/memory-write.md` |
 
 ## Document Contracts
 
@@ -79,7 +80,6 @@ Pure catch-up capture does not require a document contract. It writes only `spec
 - `spec/ARCHITECTURE.md`: `references/contracts/architecture.md`
 - `spec/OVERVIEW.md`: `references/contracts/overview.md`
 - `spec/CHANGELOG.md`: `references/contracts/changelog.md`
-- `spec/MEMORY.md`: `references/contracts/memory.md`
 - `spec/docs/#NNN-{work-description}.md`: `references/contracts/task-spec.md`
 - `spec/current-work.md`: `references/contracts/work-anchor.md`
 - Full spec layout, ids, read order, and initialization rules: `references/spec-system.md`
@@ -92,7 +92,7 @@ Available templates:
 - `OVERVIEW.template.md`
 - `CHANGELOG.template.md`
 - `task-spec.template.md`
-- `memory.template.md`
+- `MEMORY.template.md`
 
 ## Spec Layout
 
@@ -113,7 +113,7 @@ spec/
 
 `current-work.md` is optional and temporary-to-medium-term. Create it for anchored work; append entries for unrelated work; close or archive entries at phase boundaries; clean only entries already marked archived.
 
-`MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`.
+`MEMORY.md` is the memory index initialized by Memo and maintained by Learn. Individual memory entries live under `memory/`.
 
 ## Naming Rules
 

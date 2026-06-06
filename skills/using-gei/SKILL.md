@@ -3,7 +3,7 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `work`, `code-review`, or `create-skill`.
+Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `learn`, `work`, `code-review`, or `create-skill`.
 
 ## Core Contract
 
@@ -21,6 +21,7 @@ Route by the user's primary intended outcome, not by the first visible verb.
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
 - Creating, improving, reviewing, or validating agent Skills -> `create-skill`
+- Recalling, creating, updating, deleting, compacting, or auditing project memory -> `learn`
 - Non-Skill code review, PR review, diff audit, commit review, working-tree review, or implementation audit as the final deliverable -> `code-review`
 - Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
@@ -40,6 +41,8 @@ Examples:
 
 Do not route to `see` or `memo` only because context may be needed. The selected first-hop skill gathers its own project, external, Git, test, build, spec, or source context.
 
+Do not route to `learn` only because memory may be relevant. Memory recall is lifecycle context unless the user's final objective is memory itself.
+
 ## Lifecycle State
 
 `using-gei` starts lifecycle state; downstream skills enforce it. Do not ask downstream skills to remember this file.
@@ -52,6 +55,15 @@ For file-changing work:
 4. Invoke `memo` when current-work reconciliation or durable spec promotion is required.
 
 For read-only tasks, no current-work anchor is needed.
+
+For memory recall:
+
+1. At task start, scan the injected `spec/MEMORY.md` index when it exists.
+2. If a `Read when ...` line matches the current task, read the linked `spec/memory/*.md` entry before planning, reviewing, or editing.
+3. State the result with `Memory applied:`, `Memory skipped:`, or `Memory checked:` so the constraint is visible.
+4. Repeat the check when scope changes enough to involve new files, commands, errors, or workflows.
+
+Memory writing is handled by `learn` and the Stop hook, not by `using-gei`.
 
 When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, and `CHANGELOG.md` third.
 

@@ -3,11 +3,15 @@
 ## Unreleased
 
 ### 新增
+- 新增独立 `learn` Skill，负责项目记忆的读取、应用、写入、更新、删除、压缩和安全检查。
+- 新增 `stop_record_memory` Stop hook，在有 `current-work` 锚点的任务结束前要求完成 Learn 记忆检查。
 - 新增独立 `code-review` Skill，用于只读审查 PR、diff、commit、working tree 和实现结果，并包含安全审查参考流程。
 
 ### 优化
+- 将 `MEMORY.md` 模板压缩为纯索引，把记忆写入规则从 Memo 拆到 Learn。
+- 保持 `inject_overview` 与 `inject_memory` 两个 SessionStart hook 拆分，避免单个 hook 输出过长。
 - 从 `work` 中移除 code review 和子 Agent 指引，让 Work 只负责代码执行、验证和发布生命周期。
-- 更新 README 与安装文档中的 Skill 列表，补齐 `code-review` 和 `create-skill`。
+- 更新 README 与安装文档中的 Skill 列表，补齐 `learn`、`code-review` 和 `create-skill`。
 
 ## v0.4.5 - 2026-06-02
 

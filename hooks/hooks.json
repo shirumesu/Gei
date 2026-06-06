@@ -1,9 +1,9 @@
 {
-  "description": "Inject the Gei router, project overview, and memory index at session start so routing and cold-start context are present from the first turn.",
+  "description": "Inject Gei project overview and memory index at session start, then enforce a Learn memory check before anchored tasks stop.",
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|clear|compact",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
@@ -15,6 +15,18 @@
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_memory.mjs\"",
             "statusMessage": "Loading Gei memory index",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop_record_memory.mjs\"",
+            "statusMessage": "Checking Gei learn memory gate",
             "timeout": 5
           }
         ]

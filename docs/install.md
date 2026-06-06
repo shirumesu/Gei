@@ -26,6 +26,7 @@ git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
 ```shell
 # On Windows (PowerShell):
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "<install-dir>\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\learn" -Target "<install-dir>\Gei\skills\learn"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "<install-dir>\Gei\skills\work"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "<install-dir>\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "<install-dir>\Gei\skills\memo"
@@ -35,6 +36,7 @@ New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "<
 
 # On Unix (symlinks):
 ln -s <install-dir>/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s <install-dir>/Gei/skills/learn ~/.claude/skills/learn
 ln -s <install-dir>/Gei/skills/work ~/.claude/skills/work
 ln -s <install-dir>/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s <install-dir>/Gei/skills/memo ~/.claude/skills/memo
@@ -43,7 +45,7 @@ ln -s <install-dir>/Gei/skills/consider ~/.claude/skills/consider
 ln -s <install-dir>/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
-3. Add SessionStart hooks to `~/.claude/settings.json`:
+3. Add SessionStart and Stop hooks to `~/.claude/settings.json`:
 
 ```json
 {
@@ -66,6 +68,18 @@ ln -s <install-dir>/Gei/skills/create-skill ~/.claude/skills/create-skill
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"<install-dir>/Gei/hooks/stop_record_memory.mjs\"",
+            "statusMessage": "Checking Gei learn memory gate",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
@@ -79,16 +93,17 @@ Replace `<install-dir>` with the actual path. On Windows, use double backslashes
 ~/.claude/
   skills/
     using-gei/  -> <install-dir>/Gei/skills/using-gei
+    learn/      -> <install-dir>/Gei/skills/learn
     work/        -> <install-dir>/Gei/skills/work
     code-review/ -> <install-dir>/Gei/skills/code-review
     memo/        -> <install-dir>/Gei/skills/memo
     see/         -> <install-dir>/Gei/skills/see
     consider/    -> <install-dir>/Gei/skills/consider
     create-skill/ -> <install-dir>/Gei/skills/create-skill
-  settings.json  (contains SessionStart hook entries)
+  settings.json  (contains SessionStart and Stop hook entries)
 ```
 
-Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_overview.mjs` and `<install-dir>/Gei/hooks/inject_memory.mjs`.
+Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_overview.mjs` and `<install-dir>/Gei/hooks/inject_memory.mjs`, plus a `Stop` hook entry pointing to `<install-dir>/Gei/hooks/stop_record_memory.mjs`.
 
 For updates, run `git pull` inside `<install-dir>/Gei`. No need to manually update anything after that.
 
@@ -117,6 +132,8 @@ unzip Gei-codex-plugin.zip -d <install-dir>
       plugin.json
     skills/
       using-gei/
+        SKILL.md
+      learn/
         SKILL.md
       work/
         SKILL.md
@@ -156,6 +173,8 @@ unzip Gei-skills.zip -d <install-dir>
 <install-dir>/
   Gei/
     using-gei/
+      SKILL.md
+    learn/
       SKILL.md
     work/
       SKILL.md
@@ -197,6 +216,8 @@ git -C <install-dir>/Gei pull
     skills/
       using-gei/
         SKILL.md
+      learn/
+        SKILL.md
       work/
         SKILL.md
       code-review/
@@ -220,6 +241,8 @@ If the host does not recursively detect skills under `Gei/`, move or copy the sk
 ```text
 <skills-dir>/
   using-gei/
+    SKILL.md
+  learn/
     SKILL.md
   work/
     SKILL.md

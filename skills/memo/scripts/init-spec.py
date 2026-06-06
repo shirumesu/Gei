@@ -196,7 +196,7 @@ def main() -> int:
     print("\nNext steps:")
     print(" - Edit spec/OVERVIEW.md with project-specific context")
     print(" - Edit spec/ARCHITECTURE.md with module structure")
-    print(" - Create memory entries in spec/memory/ as patterns emerge")
+    print(" - Use the learn skill to create memory entries in spec/memory/ as patterns emerge")
     print(" - Use spec/current-work.md for active file-changing work (created on demand)")
     return 0
 

@@ -109,8 +109,8 @@ function buildMemoryIndexBlock(projectDir) {
     return [
       ...base,
       "",
-      "The current project maintains a spec/MEMORY.md index. The injected content below lists project-specific operational patterns.",
-      "Read the linked memory files under spec/memory/ when working on related tasks.",
+      "The current project maintains a spec/MEMORY.md index. The injected content below is a retrieval router for Gei Learn.",
+      "Scan its `Read when ...` lines before task decisions. Read linked files under spec/memory/ only when a trigger matches.",
       ...warning,
       "",
       "--- spec/MEMORY.md ---",

@@ -31,10 +31,12 @@
 
 ### 主流程
 
-/using-gei ──→ /consider ──→ /memo ──→ /work ──→ /memo
+/using-gei ──→ /learn(读取记忆) ──→ /consider | /memo | /work | /code-review | /see
 
 
 **`/using-gei`** — 总路由，管理整个任务的生命周期
+
+**`/learn`** — 项目记忆层，负责读取、应用、写入、更新、压缩 `spec/MEMORY.md` 与 `spec/memory/`
 
 **`/consider`** — 追问并搜索主流做法，帮助你收敛与扩展思路，明确边界和影响，讨论好坏处
 
@@ -54,6 +56,8 @@
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
 
+**`/learn`** ↩ — Stop hook 会在有锚点任务结束前要求进行记忆读取/写入检查
+
 ---
 
 ### 独立 Skill
@@ -71,6 +75,7 @@
 | Skill | 使用时机 | 用处 |
 | --- | --- | --- |
 | `/using-gei` | 任何会话开始前 | 总路由和任务生命周期维护层 |
+| `/learn` | 项目记忆读取、写入、更新、清理或用户要求记住/忘记时 | 管理 `spec/MEMORY.md` 索引和 `spec/memory/` 条目，并在任务开始/结束处应用记忆 |
 | `/consider` | 讨论任何新想法时 | 帮助收敛需求；需求模糊时提供详细的设计方案 |
 | `/memo` | 全工程文档维护 | 维护项目 Spec 层：架构、当前工作、更改日志和方案设计 |
 | `/work` | 任何代码执行任务 | 完整的编码、测试、版本维护及发布流程 |
@@ -80,14 +85,14 @@
 
 ## Hooks
 
-本 Skill 提供两个 SessionStart Hook：`inject_using_gei` 自动注入 `using-gei` 全文，`inject_overview` 自动注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文。
-`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准；Claude Code 和 Codex 都会通过第二个 Hook 自动注入 *spec/OVERVIEW.md* 全文。
+本 Skill 提供三个 Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引，`stop_record_memory` 在有锚点任务停止前要求完成 Learn 记忆检查。
+`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。OVERVIEW 与 MEMORY 保持拆分，避免单个 hook 输出过长。
 
 ### 常见使用路径
 
 | 场景 | 路径 | 备注 |
 | --- | --- | --- |
-| 完整的一次工作 | `using-gei` → `consider` → `memo` → `work` → `memo` | 几乎不需要主动调用任何命令 |
+| 完整的一次工作 | `using-gei` → `learn` 读取记忆 → `consider` / `work` → `memo` → `learn` 结束检查 | 几乎不需要主动调用任何命令 |
 | 代码审查 | `using-gei` → `code-review` | 只读审查，不进入 `work` 的实现生命周期 |
 | 想法讨论 | `using-gei` → `consider` → `work` | 可显式使用 `consider`，思路更明确 |
 | 对外搜索 | `using-gei` → `consider`（可选）→ `see` | `see` 要求澄清歧义、使用权威数据，结果更严谨 |
@@ -140,6 +145,7 @@ git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
 Windows (PowerShell):
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\learn" -Target "$HOME\.agents\Gei\skills\learn"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "$HOME\.agents\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
@@ -151,6 +157,7 @@ New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "$
 Unix (Bash/Zsh):
 ```shell
 ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
+ln -s ~/.agents/Gei/skills/learn ~/.claude/skills/learn
 ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
 ln -s ~/.agents/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
@@ -159,7 +166,7 @@ ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
 ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
-**配置 SessionStart hooks：**
+**配置 SessionStart / Stop hooks：**
 
 编辑 `~/.claude/settings.json`，添加以下内容（如果 `hooks` 字段已存在，合并进去）：
 
@@ -184,6 +191,18 @@ ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"~/.agents/Gei/hooks/stop_record_memory.mjs\"",
+            "statusMessage": "Checking Gei learn memory gate",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }
@@ -201,6 +220,8 @@ Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用�
 <skills-dir>/
   Gei/
     using-gei/
+      SKILL.md
+    learn/
       SKILL.md
     work/
       SKILL.md
@@ -221,10 +242,6 @@ Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用�
 #### git 安装
 
 也可以直接 `git clone https://github.com/shirumesu/gei.git`，后续用 `git pull` 更新
-
-## 未来想法
-
-- [ ] `/learn`，记忆系统？辅助学习？编写新skill的指南？我不知道…但总感觉如果是 芸 他需要这个。 
 
 ## 更新日志 / 新发现
 
