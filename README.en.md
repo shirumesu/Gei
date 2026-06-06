@@ -53,7 +53,7 @@ So I wrote this skill suite.
 
 **`/work`** — Complete code workflow
 
-- Starts from `current-work` and covers detailed test-writing guidance, beginning work from an expected-to-fail test
+- Starts from `current-work`, chooses tests, builds, lint, script checks, or release gates by behavior risk, and begins from an expected-to-fail test when new tests are needed
 - Code modification maintenance rules · test verification · release process
 
 **`/memo`** ↩ — Maintains new Spec changes based on Work output
