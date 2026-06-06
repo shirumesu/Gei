@@ -1,0 +1,20 @@
+{
+  "name": "gei",
+  "interface": {
+    "displayName": "Gei"
+  },
+  "plugins": [
+    {
+      "name": "gei",
+      "source": {
+        "source": "local",
+        "path": "./.agents/Gei"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

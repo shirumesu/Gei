@@ -1,49 +1,80 @@
-# AGENTS.md — User Preferences and Working Rules
+# AGENTS.md - User Preferences and Working Rules
 
-## General Workflow
-- These are default working preferences for Codex across tasks unless a more specific `AGENTS.md`, project instruction, system/developer instruction, or direct user request overrides them.
-- **Bias toward caution over speed on non-trivial work.** Use judgment on trivial tasks: do the simple thing directly when the risk is low and the intent is clear.
-- Before doing non-trivial work, state the important assumptions, success criteria, and any uncertainty that could change the approach. If the request has multiple plausible interpretations, present them instead of silently choosing one.
-- If something is unclear, conflicting, or technically suspect, stop long enough to name what is unclear. Ask rather than guessing when the answer would affect scope, behavior, data, risk, or user-visible results.
+## About Me
+
+- **Tech stack**: Flexible. Prefer mainstream, well-supported solutions and current best practices over bleeding-edge choices.
+- **Working style**: Values understanding the "why" before implementation. Prefer clarity over terse answers.
+
+## Core Contract
+
+- Bias toward clear judgment over both speed and excessive caution. Before acting on non-trivial work, state important assumptions, success criteria, and uncertainty that could change the approach.
+- If something is unclear, conflicting, or technically suspect, ask instead of guessing when the answer affects scope, behavior, data, risk, or user-visible results.
 - Push back when a simpler approach would satisfy the goal. Do not add architecture, abstractions, dependencies, or workflow steps just because they might be useful later.
+- Prefer explanations that make the tradeoff understandable, especially when the decision is not obvious.
 
-## What Users Will Appreciate
-- Taking the time to think things through
-- Challenging users on any points they might overlook
-- Helping users uncover their true needs
+## Design Judgment
 
-## Progressive Disclosure
-- Even if the current task aligns with your SKILL, **do not** load it in its entirety; load it only when you are truly ready to use it.
-- Good loading process:
-	- Load the planning SKILL after brainstorming is complete, and load the execution SKILL only after planning is finished.
-	- Load the SKILL that provides reply guidance when the task is complete and you are ready to respond.
-- Bad loading process:
-	- Upon recognizing the need for planning and execution, reading all the brainstorming, planning, response guideline, and execution SKILLs right from the start.
+- For architecture, product direction, workflow design, or other high-level decisions, open the design space before narrowing to the current implementation.
+- Identify the real decision, the desired end state, and the inherited constraints. Treat compatibility, migration difficulty, old names, current package layout, and partial implementations as constraints to price, not automatic masters.
+- Preserve compatibility only when it protects a real contract: public API, persisted data, documented integration, user promise, deployment constraint, compliance requirement, or explicit user instruction.
+- Do not preserve technical debt merely to keep the patch small. If the current design, name, wrapper, compatibility shim, or partial implementation encodes the wrong model, say so and recommend the cleaner change.
+- Avoid over-cautious local optimization. A small diff is not automatically better when it leaves the system harder to understand, extends a broken concept, or creates future migration work.
+- State a strong, useful hypothesis when it clarifies the direction, then make it testable: what evidence would confirm it, what would falsify it, and what the cheapest proof point is.
+- Separate target design from migration path. Recommend the clean target first, then describe staged execution only when useful.
+- Be willing to say that a concept should be deleted, merged, split, or renamed. Deletion is a valid design choice when a concept exists mainly because of history.
+- Do not over-apply high-level framing to simple local fixes. Stay surgical when the task is already clear and small.
 
-### Task Execution
-- Work step by step. For complex tasks, use the available planning or task-list tool to show the user your current task list.
-- Use a visible task list only after you have gathered enough information and are ready to begin, not at the very start.
-- If the expected future work changes because the conversation or the available information changes, update your todo list.
-- Define what success means for the task, then iterate until that result is verified. The plan is allowed to change when the current steps no longer serve the success criteria.
-- Default to the smallest coherent modification. When only one section or a few lines need to change, edit that local part directly instead of deleting and rewriting the whole file.
-- Make surgical changes: touch only what is necessary for the requested outcome, clean up only the mess created by the current work, and avoid opportunistic refactors, formatting churn, or adjacent "improvements."
-- Keep solutions simple and bounded. Write the minimum code that solves the real problem; do not add speculative features, single-use abstractions, or generality that was not requested.
-- Match the existing codebase conventions even when another style seems preferable. If a convention appears harmful, surface the concern instead of silently forking the style.
-- When two local patterns contradict each other, do not blend them. Choose the pattern that is more recent, more tested, or more clearly aligned with the surrounding code, then mention the conflict and the reason for the choice.
-- For complex or long-running tasks, checkpoint after significant steps: summarize what changed, what has been verified, and what remains. If you lose track of the current state, stop and restate it before continuing.
+## Context And Progressive Disclosure
 
-### Confirmation Rules
-- For most tasks, clearly state what you are about to do and then begin immediately. Do not ask for a second confirmation.
-- Ask for confirmation only when important context is missing or when the task involves destructive operations.
+- Use sub-agents for noisy exploration when available, such as recursive file searches, extensive log parsing, web research with multiple queries, or independent second opinions.
+- Keep the main context small: prefer targeted searches, concise command output, `rg`, `head`/`tail`, and quiet flags when appropriate.
+- Do not repeat exploration that a sub-agent or earlier tool call is already performing. If no action is necessary, wait patiently.
+- Parallelize independent reads and searches when possible.
+- For Skills or long instruction sets, load only what is needed for the current phase. Do not preload likely future Skills, references, templates, or reply guidance before they are actually needed.
 
-### Non-Negotiables
-- Verify the result after finishing a task (when making any change). **Do not** skip checks.
-- **Fail loud.** Do not report "completed" if anything important was skipped, guessed, blocked, or left unverified. Do not report "tests pass" if tests were skipped or only partially run.
-- Surface uncertainty, limitations, and residual risk in the final response. Hidden uncertainty is worse than a clear caveat.
-- Tests should verify intent, not just execution. A useful test should fail when the relevant business rule, user expectation, or contract is broken; a test that only proves the current implementation ran is usually too weak.
+## Task Execution
+
+- Work step by step. For complex tasks, use a visible task list only after enough context has been gathered to make the list meaningful.
+- Define success for the task, then iterate until that result is verified. Update the plan when new information changes the expected work.
+- Default to the smallest coherent modification that actually solves the problem. If the smallest patch preserves a bad abstraction, stale compatibility path, confusing lifecycle, or obvious technical debt, surface that tradeoff and prefer the cleaner target when it is within scope.
+- Make focused changes: touch only what is necessary for the chosen target, clean up the mess created by the current work, and avoid unrelated refactors, formatting churn, or adjacent improvements.
+- Match existing codebase conventions. If local patterns conflict, choose the pattern that is newer, more tested, or more clearly aligned with the surrounding code, then mention the reason.
+- For review requests, lead with bugs, risks, behavioral regressions, and missing tests. Do not edit files unless the user asks for fixes.
+- For complex or long-running tasks, checkpoint after significant steps: what changed, what was verified, and what remains.
+
+## Confirmation Rules
+
+**Auto-proceed for:**
+
+- Reading files, searching, grep/rg operations, local tests, builds, lint, and diagnostics.
+- Single-file edits and clearly scoped low-blast-radius changes.
+- Installing or updating local tools, environments, packages, and project dependencies when needed.
+
+**Always confirm before:**
+
+- Deleting more than three files or deleting entire directories.
+- Destructive git operations: force push, `git reset --hard`, branch deletion, or history rewriting.
+- Production deploys or modifying live configurations.
+- Architectural changes: new frameworks, major refactors, structural reorganization, or replacing a core stack.
+
+## Minimum Acceptance
+
+- Verify after every change. Do not skip checks.
+- Do not report "completed", "fixed", or "tests pass" if anything important was skipped, guessed, blocked, or only partially verified.
+- Final responses should state what changed, what verification ran, the relevant result, and any uncertainty, limitation, residual risk, or installation performed.
+- If a command is rejected, verify the restriction once. Do not attempt to bypass it using unconventional methods. Respect the permission settings, inform the user of the required action, and stop that path.
 
 ## Project Conventions
 
-### Paths and Documentation
-- **Never** hard-code absolute paths or any other sensitive information in code or local environments. Keep the project publishable at all times. If such data must exist, store it in configuration files or separate local-only files, load it from code, and make sure those files are listed in `.gitignore`.
-- **Never** write the internal content that should be placed in the response within the task results. Assume that everything you write will be made public immediately. Users don’t want to see information that is meant for them only.
+### Paths And Documentation
+
+- Never hard-code absolute paths or sensitive information in code or project environments. Keep projects publishable. If local-only data is required, store it in configuration or ignored local files.
+- Never write private scratch notes, internal reasoning, or response-only content into project files. Assume project files may become public immediately.
+
+### Comment Style
+
+- Write code comments in English.
+- Add comments to complex functions to explain their purpose and parameters.
+- Add comments to complex code blocks when the logic would otherwise be hard to follow.
+- Avoid single-line comments unless they are truly necessary.
+- Focus comments on "why" rather than "what"; the code itself should explain the "what".

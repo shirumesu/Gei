@@ -1,0 +1,16 @@
+{
+  "name": "gei-claude",
+  "owner": {
+    "name": "shirumesu",
+    "url": "https://github.com/shirumesu"
+  },
+  "description": "Gei ~ 芸：面向 AI 的全套路由式 Skill 集合，单一入口按任务分流，覆盖设计、文档、项目管理、测试、编码、审查、发布、搜索等场景。",
+  "plugins": [
+    {
+      "name": "gei",
+      "source": "./Gei",
+      "description": "Gei ~ 芸：路由式渐进披露 Skill 集合，覆盖设计、文档、项目管理、测试、编码、审查、发布、搜索、记忆等场景。",
+      "category": "productivity"
+    }
+  ]
+}

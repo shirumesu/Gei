@@ -40,14 +40,16 @@
 
 **`/consider`** — 追问并搜索主流做法，帮助你收敛与扩展思路，明确边界和影响，讨论好坏处
 
-**`/memo`** — 完整文档维护层
+**`/memo`** — 完整文档维护层，负责维护整个 `spec/` 文档
 
 | 模块 | 职责 |
 | --- | --- |
 | `current-work` | 系列连续任务的完整记录 |
-| `OVERVIEW & ARCHITECTURE` | 快速恢复上下文 |
+| `OVERVIEW` | 快速恢复上下文，描述项目，如何进行任务，如何阅读 `spec/`，透过 Hook 注入到会话开始 |
+| `ARCHITECTURE & architecture/ ` | 在需要时提供整个系统的完整详细架构描述，包括系统运行、模块，改动影响范围，相关文件等 |
 | `Docs / Spec-Plan` | 依据严谨流程编写，负责复杂 Plan 执行 |
 | `CHANGELOG` | 辅助版本发布维护，固定发布流程，一句话发布 |
+| `MEMORY & memory/` | 完整的记忆层，负责维护整个系统的记忆，包括任何可重复的，重复踩坑的各种记忆，透过 Hook 注入到会话开始与会话结束时要求处理 |
 
 **`/work`** — 完整的代码工作流程
 
@@ -116,101 +118,17 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 > 预计节省约 10000 Token
 
-#### Codex / Codex CLI
+#### Claude Code / Codex / Codex CLI
 
-对 `Codex` 和 `Codex CLI`，可以按 **plugin** 方式安装。  
-
-```shell
-codex plugin marketplace add https://github.com/shirumesu/gei.git --sparse .agents/plugins
-```
-
-之后在 Codex app 的 Plugins 页面，或 Codex CLI 的 `/plugins` 中安装并启用 `gei`。
-
-当前阶段如果你的 Codex 版本、marketplace 内容或环境暂时还不能完整走通这条路径，可以按顺序尝试：
-
-1. 更新 `~/.codex/config.toml` 中的 marketplace / plugin 配置；
-2. 把插件目录直接放到 `~/.codex/plugins/cache/gei/` 下，让 Codex 先识别本地插件；
-3. 最后再退回 release 包里的 `Gei-codex-plugin.zip` 手动解压。
-
-#### Claude Code Plugin 安装（含 Hook）
-
-需要 Node.js 可用。将仓库 clone 到任意位置后，手动创建 skill 链接并配置 hooks：
+对 `Claude Code`、`Codex` 和 `Codex CLI`，可以按 **plugin** 方式安装。  
 
 ```shell
-git clone https://github.com/shirumesu/gei.git ~/.agents/Gei
+codex plugin marketplace add https://github.com/shirumesu/gei.git
 ```
 
-**创建 skill 链接：**
+之后在 Codex app 的 Plugins 页面，或 Codex CLI 的 `/plugins` 中安装并启用 `gei`。  
 
-Windows (PowerShell):
-```powershell
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\learn" -Target "$HOME\.agents\Gei\skills\learn"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "$HOME\.agents\Gei\skills\code-review"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "$HOME\.agents\Gei\skills\see"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "$HOME\.agents\Gei\skills\consider"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "$HOME\.agents\Gei\skills\create-skill"
-```
-
-Unix (Bash/Zsh):
-```shell
-ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
-ln -s ~/.agents/Gei/skills/learn ~/.claude/skills/learn
-ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
-ln -s ~/.agents/Gei/skills/code-review ~/.claude/skills/code-review
-ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
-ln -s ~/.agents/Gei/skills/see ~/.claude/skills/see
-ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
-ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
-```
-
-**配置 SessionStart / Stop hooks：**
-
-编辑 `~/.claude/settings.json`，添加以下内容（如果 `hooks` 字段已存在，合并进去）：
-
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"~/.agents/Gei/hooks/inject_overview.mjs\"",
-            "statusMessage": "Loading Gei project overview",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"~/.agents/Gei/hooks/inject_memory.mjs\"",
-            "statusMessage": "Loading Gei memory index",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"~/.agents/Gei/hooks/stop_record_memory.mjs\"",
-            "statusMessage": "Checking Gei learn memory gate",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用双反斜杠或正斜杠。
-
-重启 Claude Code 后生效。后续只需 `git pull` 更新仓库。
+Claude Code 类似
 
 #### 非Plugin / 其他 Agent
 
@@ -223,18 +141,7 @@ Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用�
       SKILL.md
     learn/
       SKILL.md
-    work/
-      SKILL.md
-    code-review/
-      SKILL.md
-    memo/
-      SKILL.md
-    see/
-      SKILL.md
-    consider/
-      SKILL.md
-    create-skill/
-      SKILL.md
+    ...
 ```
 
 甚至再套一层 `Gei/skills/<skill>` 也可以

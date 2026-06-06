@@ -1,271 +1,181 @@
 # Install Gei
 
-This document is for the installing Agent. Execute the steps, verify the final layout, then report the result to the user.
+This document is for the installing AI agent. Install only Gei, verify the selected install path, and report the result.
 
-## Inputs
+## Boundaries
 
-Before installing, determine:
+- Do not install, copy, or modify `AGENTS.md`, `CLAUDE.md`, shell profiles, PATH, credentials, or unrelated host configuration.
+- Do not delete or overwrite an existing plugin, skill directory, or settings file unless the user explicitly confirms that exact action.
+- Do not hand-edit Claude or Codex hook settings when plugin installation is available; plugin metadata owns hooks.
+- Stop and ask the user for the target directory when the host's plugin or skills directory cannot be determined from the environment.
+- Stop before writing if the target plugin or skill directory already exists and the user did not ask to update that exact installation.
+- Stop and report the exact blocker if a command is unavailable, rejected, requires interactive UI you cannot operate, or needs permission outside this installation request.
 
-- `<install-dir>`: the directory scanned by the host for skills or plugins.
-- `<method>`: one of `claude-plugin`, `codex-plugin`, `skills-zip`, or `git`.
+## Select Method
 
-If `<install-dir>` cannot be determined from the host environment, ask the user for the target directory before writing files.
+Use the first matching method:
 
-## Method: Claude Plugin
+1. `codex-plugin`: Codex or Codex CLI with plugin marketplace support.
+2. `claude-plugin`: Claude Code with plugin marketplace support.
+3. `skills-zip`: any host that scans skill directories but has no usable plugin installer.
+4. `git-skills`: any host that scans skill directories and should receive an updateable checkout.
 
-Use this when the host is Claude Code and you want plugin-style installation with automatic hook registration.
-
-1. Clone the repository to any location (recommended: `~/.agents/Gei`):
-
-```shell
-git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
-```
-
-2. Create skill symlinks or junctions manually:
-
-```shell
-# On Windows (PowerShell):
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "<install-dir>\Gei\skills\using-gei"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\learn" -Target "<install-dir>\Gei\skills\learn"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "<install-dir>\Gei\skills\work"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "<install-dir>\Gei\skills\code-review"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "<install-dir>\Gei\skills\memo"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "<install-dir>\Gei\skills\see"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "<install-dir>\Gei\skills\consider"
-New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "<install-dir>\Gei\skills\create-skill"
-
-# On Unix (symlinks):
-ln -s <install-dir>/Gei/skills/using-gei ~/.claude/skills/using-gei
-ln -s <install-dir>/Gei/skills/learn ~/.claude/skills/learn
-ln -s <install-dir>/Gei/skills/work ~/.claude/skills/work
-ln -s <install-dir>/Gei/skills/code-review ~/.claude/skills/code-review
-ln -s <install-dir>/Gei/skills/memo ~/.claude/skills/memo
-ln -s <install-dir>/Gei/skills/see ~/.claude/skills/see
-ln -s <install-dir>/Gei/skills/consider ~/.claude/skills/consider
-ln -s <install-dir>/Gei/skills/create-skill ~/.claude/skills/create-skill
-```
-
-3. Add SessionStart and Stop hooks to `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"<install-dir>/Gei/hooks/inject_overview.mjs\"",
-            "statusMessage": "Loading Gei project overview",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"<install-dir>/Gei/hooks/inject_memory.mjs\"",
-            "statusMessage": "Loading Gei memory index",
-            "timeout": 5
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"<install-dir>/Gei/hooks/stop_record_memory.mjs\"",
-            "statusMessage": "Checking Gei learn memory gate",
-            "timeout": 5
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-Replace `<install-dir>` with the actual path. On Windows, use double backslashes or forward slashes.
-
-4. Verify this layout:
+The required skills are:
 
 ```text
-~/.claude/
-  skills/
-    using-gei/  -> <install-dir>/Gei/skills/using-gei
-    learn/      -> <install-dir>/Gei/skills/learn
-    work/        -> <install-dir>/Gei/skills/work
-    code-review/ -> <install-dir>/Gei/skills/code-review
-    memo/        -> <install-dir>/Gei/skills/memo
-    see/         -> <install-dir>/Gei/skills/see
-    consider/    -> <install-dir>/Gei/skills/consider
-    create-skill/ -> <install-dir>/Gei/skills/create-skill
-  settings.json  (contains SessionStart and Stop hook entries)
+using-gei
+learn
+consider
+memo
+work
+code-review
+see
+create-skill
 ```
-
-Termination condition: every skill directory under `~/.claude/skills/` resolves to a path inside `<install-dir>/Gei/skills/`, and `~/.claude/settings.json` contains `SessionStart` hook entries pointing to `<install-dir>/Gei/hooks/inject_overview.mjs` and `<install-dir>/Gei/hooks/inject_memory.mjs`, plus a `Stop` hook entry pointing to `<install-dir>/Gei/hooks/stop_record_memory.mjs`.
-
-For updates, run `git pull` inside `<install-dir>/Gei`. No need to manually update anything after that.
 
 ## Method: Codex Plugin
 
-Use this when the user wants the Codex plugin package.
+Use this for Codex or Codex CLI when `codex plugin marketplace` is available.
 
-1. Download `Gei-codex-plugin.zip` from the latest release:
-
-```shell
-curl -L -o Gei-codex-plugin.zip https://github.com/shirumesu/gei/releases/latest/download/Gei-codex-plugin.zip
-```
-
-2. Extract the archive into `<install-dir>`:
+1. Add the Gei plugin source:
 
 ```shell
-unzip Gei-codex-plugin.zip -d <install-dir>
+codex plugin marketplace add https://github.com/shirumesu/gei.git
 ```
 
-3. Verify this layout:
+2. Install and enable `gei` through the Codex plugin mechanism available in the current host.
+
+3. Verify the installed plugin exposes:
 
 ```text
-<install-dir>/
-  gei/
-    .codex-plugin/
-      plugin.json
-    skills/
-      using-gei/
-        SKILL.md
-      learn/
-        SKILL.md
-      work/
-        SKILL.md
-      code-review/
-        SKILL.md
-      memo/
-        SKILL.md
-      see/
-        SKILL.md
-      consider/
-        SKILL.md
-      create-skill/
-        SKILL.md
+gei
+  .codex-plugin/plugin.json
+  skills/using-gei/SKILL.md
+  skills/learn/SKILL.md
+  skills/consider/SKILL.md
+  skills/memo/SKILL.md
+  skills/work/SKILL.md
+  skills/code-review/SKILL.md
+  skills/see/SKILL.md
+  skills/create-skill/SKILL.md
+  hooks/codex-hooks.json
 ```
 
-Termination condition: `<install-dir>/gei/.codex-plugin/plugin.json` exists and every listed skill directory contains `SKILL.md`.
+Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+
+## Method: Claude Plugin
+
+Use this for Claude Code when plugin marketplace installation is available.
+
+1. Add `https://github.com/shirumesu/gei.git` as a Claude Code plugin marketplace source using the host's plugin command or UI tooling.
+
+2. Install and enable the `gei` plugin.
+
+3. Verify the installed plugin exposes:
+
+```text
+Gei
+  .claude-plugin/plugin.json
+  hooks/hooks.json
+  skills/using-gei/SKILL.md
+  skills/learn/SKILL.md
+  skills/consider/SKILL.md
+  skills/memo/SKILL.md
+  skills/work/SKILL.md
+  skills/code-review/SKILL.md
+  skills/see/SKILL.md
+  skills/create-skill/SKILL.md
+```
+
+Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Skills Zip
 
-Use this when the host can recursively detect skill folders under a grouped directory.
+Use this when the host scans skill directories and plugin installation is unavailable.
 
-1. Download `Gei-skills.zip` from the latest release:
+1. Determine `<skills-dir>`, the host directory that is scanned for skills.
+
+2. Download the latest skills archive into a temporary directory:
 
 ```shell
 curl -L -o Gei-skills.zip https://github.com/shirumesu/gei/releases/latest/download/Gei-skills.zip
 ```
 
-2. Extract the archive into `<install-dir>`:
+3. Extract it into `<skills-dir>`.
+
+Windows PowerShell:
+
+```powershell
+Expand-Archive -LiteralPath .\Gei-skills.zip -DestinationPath '<skills-dir>'
+```
+
+Unix shell:
 
 ```shell
-unzip Gei-skills.zip -d <install-dir>
+unzip Gei-skills.zip -d <skills-dir>
 ```
 
-3. Verify this layout:
-
-```text
-<install-dir>/
-  Gei/
-    using-gei/
-      SKILL.md
-    learn/
-      SKILL.md
-    work/
-      SKILL.md
-    code-review/
-      SKILL.md
-    memo/
-      SKILL.md
-    see/
-      SKILL.md
-    consider/
-      SKILL.md
-    create-skill/
-      SKILL.md
-```
-
-Termination condition: `<install-dir>/Gei/using-gei/SKILL.md` exists and every listed skill directory contains `SKILL.md`.
-
-## Method: Git
-
-Use this when the host can recursively detect skill folders under a repository checkout.
-
-1. Clone the repository under `<install-dir>`:
-
-```shell
-git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
-```
-
-2. For updates, run:
-
-```shell
-git -C <install-dir>/Gei pull
-```
-
-3. Verify this layout:
-
-```text
-<install-dir>/
-  Gei/
-    skills/
-      using-gei/
-        SKILL.md
-      learn/
-        SKILL.md
-      work/
-        SKILL.md
-      code-review/
-        SKILL.md
-      memo/
-        SKILL.md
-      see/
-        SKILL.md
-      consider/
-        SKILL.md
-      create-skill/
-        SKILL.md
-```
-
-Termination condition: `<install-dir>/Gei/skills/using-gei/SKILL.md` exists and every listed skill directory contains `SKILL.md`.
-
-## Troubleshooting
-
-If the host does not recursively detect skills under `Gei/`, move or copy the skill folders so the final layout is:
+4. Verify this layout:
 
 ```text
 <skills-dir>/
-  using-gei/
-    SKILL.md
-  learn/
-    SKILL.md
-  work/
-    SKILL.md
-  code-review/
-    SKILL.md
-  memo/
-    SKILL.md
-  see/
-    SKILL.md
-  consider/
-    SKILL.md
-  create-skill/
-    SKILL.md
+  Gei/
+    using-gei/SKILL.md
+    learn/SKILL.md
+    consider/SKILL.md
+    memo/SKILL.md
+    work/SKILL.md
+    code-review/SKILL.md
+    see/SKILL.md
+    create-skill/SKILL.md
 ```
 
-After moving files, verify that `<skills-dir>/using-gei/SKILL.md` exists and that every installed skill directory contains `SKILL.md`.
+If the host does not scan nested directories, ask before moving the skill directories directly under `<skills-dir>`.
 
-## Completion Message
+Termination condition: every required skill directory contains `SKILL.md` in a location scanned by the host.
 
-When installation is verified, tell the user:
+## Method: Git Skills
 
-1. Gei is installed.
-2. They need to restart the host application so it reloads the skills or plugin.
-3. `AGENTS.md` is optional reference material and is not installed by default.
+Use this when the host scans skill directories and the user wants updates through `git pull`.
 
-Then ask the user whether they want to synchronize `AGENTS.md` into their host instructions, making clear that this is optional.
+1. Determine `<skills-dir>`, the host directory that is scanned for skills.
+
+2. Clone the repository:
+
+```shell
+git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
+```
+
+3. Verify this layout:
+
+```text
+<skills-dir>/
+  Gei/
+    skills/using-gei/SKILL.md
+    skills/learn/SKILL.md
+    skills/consider/SKILL.md
+    skills/memo/SKILL.md
+    skills/work/SKILL.md
+    skills/code-review/SKILL.md
+    skills/see/SKILL.md
+    skills/create-skill/SKILL.md
+```
+
+If the host does not scan nested directories, ask before creating links or copying skill directories directly under `<skills-dir>`.
+
+For updates, run:
+
+```shell
+git -C <skills-dir>/Gei pull
+```
+
+Termination condition: every required skill directory contains `SKILL.md` in a location scanned by the host.
+
+## Completion
+
+Report only:
+
+1. Selected method.
+2. Installation path or plugin name.
+3. Verification result.
+4. Any required user action, limited to host restart or plugin enablement when the agent could not perform it.
