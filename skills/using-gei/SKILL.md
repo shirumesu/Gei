@@ -3,7 +3,7 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `work`, or `create-skill`.
+Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `work`, `code-review`, or `create-skill`.
 
 ## Core Contract
 
@@ -21,6 +21,7 @@ Route by the user's primary intended outcome, not by the first visible verb.
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
 - Creating, improving, reviewing, or validating agent Skills -> `create-skill`
+- Non-Skill code review, PR review, diff audit, commit review, working-tree review, or implementation audit as the final deliverable -> `code-review`
 - Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
 - No matching skill -> exit Gei

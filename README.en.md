@@ -49,13 +49,15 @@ So I wrote these skills.
 **`/work`** — Complete code workflow
 
 - Starts from `current-work`, covering detailed test-writing guidance (begin work from an expected-to-fail test)
-- Code modification guidelines · Review · Sub-agent usage · Release process
+- Code modification guidelines · test verification · release process
 
 **`/memo`** ↩ — Based on the work done, maintains new Spec changes
 
 ---
 
 ### Standalone Skills
+
+**`/code-review`** — Standalone read-only code review workflow for PRs, diffs, commits, working trees, and implementations, covering correctness, tests, maintainability, UX/DX, and security risk
 
 **`/create-skill`** — Detailed skill-writing guide covering tone, standard conventions, and more; also provides skill optimization, quick format review, and testing workflows
 
@@ -70,7 +72,8 @@ So I wrote these skills.
 | `/using-gei` | Before any session starts | Main router and task lifecycle maintenance layer |
 | `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
 | `/memo` | Project-wide documentation maintenance | Maintains the project Spec layer: architecture, current work, changelog, and solution design |
-| `/work` | Any coding task | Complete coding, testing, review, version maintenance, and release workflow |
+| `/work` | Any code execution task | Complete coding, testing, version maintenance, and release workflow |
+| `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review for correctness, test quality, maintainability, UX/DX, security, and release risk |
 | `/see` | Any external web access | Comprehensive search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) as a helper reader for known URLs |
 | `/create-skill` | When working with Skills | Create and review Skills, verify optimization opportunities |
 
@@ -84,6 +87,7 @@ This Skill provides two SessionStart hooks: `inject_using_gei` injects the full 
 | Scenario | Path | Notes |
 | --- | --- | --- |
 | A complete work session | `using-gei` → `consider` → `memo` → `work` → `memo` | Almost no need to manually invoke any commands |
+| Code review | `using-gei` → `code-review` | Read-only review; does not enter Work's implementation lifecycle |
 | Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
 | External search | `using-gei` → `consider` (optional) → `see` | `see` requires disambiguating queries and using authoritative data, resulting in more rigorous output |
 
@@ -136,18 +140,22 @@ Windows (PowerShell):
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "$HOME\.agents\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "$HOME\.agents\Gei\skills\see"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "$HOME\.agents\Gei\skills\consider"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "$HOME\.agents\Gei\skills\create-skill"
 ```
 
 Unix (Bash/Zsh):
 ```shell
 ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
 ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
+ln -s ~/.agents/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
 ln -s ~/.agents/Gei/skills/see ~/.claude/skills/see
 ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
+ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
 **Configure SessionStart hooks:**
@@ -195,11 +203,15 @@ Most agents accept recursive subdirectory search, so your install directory can 
       SKILL.md
     work/
       SKILL.md
+    code-review/
+      SKILL.md
     memo/
       SKILL.md
     see/
       SKILL.md
     consider/
+      SKILL.md
+    create-skill/
       SKILL.md
 ```
 

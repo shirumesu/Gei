@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### 新增
+- 新增独立 `code-review` Skill，用于只读审查 PR、diff、commit、working tree 和实现结果，并包含安全审查参考流程。
+
+### 优化
+- 从 `work` 中移除 code review 和子 Agent 指引，让 Work 只负责代码执行、验证和发布生命周期。
+- 更新 README 与安装文档中的 Skill 列表，补齐 `code-review` 和 `create-skill`。
+
 ## v0.4.5 - 2026-06-02
 
 ### 移除

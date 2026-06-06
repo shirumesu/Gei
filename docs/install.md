@@ -27,16 +27,20 @@ git clone https://github.com/shirumesu/gei.git <install-dir>/Gei
 # On Windows (PowerShell):
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "<install-dir>\Gei\skills\using-gei"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "<install-dir>\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "<install-dir>\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "<install-dir>\Gei\skills\memo"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "<install-dir>\Gei\skills\see"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "<install-dir>\Gei\skills\consider"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "<install-dir>\Gei\skills\create-skill"
 
 # On Unix (symlinks):
 ln -s <install-dir>/Gei/skills/using-gei ~/.claude/skills/using-gei
 ln -s <install-dir>/Gei/skills/work ~/.claude/skills/work
+ln -s <install-dir>/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s <install-dir>/Gei/skills/memo ~/.claude/skills/memo
 ln -s <install-dir>/Gei/skills/see ~/.claude/skills/see
 ln -s <install-dir>/Gei/skills/consider ~/.claude/skills/consider
+ln -s <install-dir>/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
 3. Add SessionStart hooks to `~/.claude/settings.json`:
@@ -76,9 +80,11 @@ Replace `<install-dir>` with the actual path. On Windows, use double backslashes
   skills/
     using-gei/  -> <install-dir>/Gei/skills/using-gei
     work/        -> <install-dir>/Gei/skills/work
+    code-review/ -> <install-dir>/Gei/skills/code-review
     memo/        -> <install-dir>/Gei/skills/memo
     see/         -> <install-dir>/Gei/skills/see
     consider/    -> <install-dir>/Gei/skills/consider
+    create-skill/ -> <install-dir>/Gei/skills/create-skill
   settings.json  (contains SessionStart hook entries)
 ```
 
@@ -114,11 +120,15 @@ unzip Gei-codex-plugin.zip -d <install-dir>
         SKILL.md
       work/
         SKILL.md
+      code-review/
+        SKILL.md
       memo/
         SKILL.md
       see/
         SKILL.md
       consider/
+        SKILL.md
+      create-skill/
         SKILL.md
 ```
 
@@ -149,11 +159,15 @@ unzip Gei-skills.zip -d <install-dir>
       SKILL.md
     work/
       SKILL.md
+    code-review/
+      SKILL.md
     memo/
       SKILL.md
     see/
       SKILL.md
     consider/
+      SKILL.md
+    create-skill/
       SKILL.md
 ```
 
@@ -185,11 +199,15 @@ git -C <install-dir>/Gei pull
         SKILL.md
       work/
         SKILL.md
+      code-review/
+        SKILL.md
       memo/
         SKILL.md
       see/
         SKILL.md
       consider/
+        SKILL.md
+      create-skill/
         SKILL.md
 ```
 
@@ -205,11 +223,15 @@ If the host does not recursively detect skills under `Gei/`, move or copy the sk
     SKILL.md
   work/
     SKILL.md
+  code-review/
+    SKILL.md
   memo/
     SKILL.md
   see/
     SKILL.md
   consider/
+    SKILL.md
+  create-skill/
     SKILL.md
 ```
 

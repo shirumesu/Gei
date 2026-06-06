@@ -50,13 +50,15 @@
 **`/work`** — 完整的代码工作流程
 
 - 从 `current-work` 开始，覆盖详细的测试编写指引（依据预期失败的测试开始工作）
-- 代码修改维护准则 · 审查 · 子 Agent 运用 · 发布流程
+- 代码修改维护准则 · 测试验证 · 发布流程
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
 
 ---
 
 ### 独立 Skill
+
+**`/code-review`** — 独立只读代码审查流程，覆盖 PR / diff / commit / working tree 的正确性、测试、维护性、UX/DX 与安全风险
 
 **`/create-skill`** — 详细的 Skill 编写指导，覆盖语气、标准写法等方方面面；另提供 Skill 优化、快速格式审查和测试流程
 
@@ -71,7 +73,8 @@
 | `/using-gei` | 任何会话开始前 | 总路由和任务生命周期维护层 |
 | `/consider` | 讨论任何新想法时 | 帮助收敛需求；需求模糊时提供详细的设计方案 |
 | `/memo` | 全工程文档维护 | 维护项目 Spec 层：架构、当前工作、更改日志和方案设计 |
-| `/work` | 任何代码任务 | 完整的编码、测试、审查、版本维护及发布流程 |
+| `/work` | 任何代码执行任务 | 完整的编码、测试、版本维护及发布流程 |
+| `/code-review` | 审查 PR、diff、commit、working tree 或实现结果时 | 只读审查代码正确性、测试质量、维护性、UX/DX、安全与发布风险 |
 | `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；对已知 URL 可透过 [Jina](https://jina.ai/) 辅助读取网页 |
 | `/create-skill` | Skill 相关操作时 | 创建与审核 Skill，验证可优化空间 |
 
@@ -85,6 +88,7 @@
 | 场景 | 路径 | 备注 |
 | --- | --- | --- |
 | 完整的一次工作 | `using-gei` → `consider` → `memo` → `work` → `memo` | 几乎不需要主动调用任何命令 |
+| 代码审查 | `using-gei` → `code-review` | 只读审查，不进入 `work` 的实现生命周期 |
 | 想法讨论 | `using-gei` → `consider` → `work` | 可显式使用 `consider`，思路更明确 |
 | 对外搜索 | `using-gei` → `consider`（可选）→ `see` | `see` 要求澄清歧义、使用权威数据，结果更严谨 |
 
@@ -137,18 +141,22 @@ Windows (PowerShell):
 ```powershell
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\using-gei" -Target "$HOME\.agents\Gei\skills\using-gei"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\work" -Target "$HOME\.agents\Gei\skills\work"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\code-review" -Target "$HOME\.agents\Gei\skills\code-review"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\memo" -Target "$HOME\.agents\Gei\skills\memo"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\see" -Target "$HOME\.agents\Gei\skills\see"
 New-Item -ItemType Junction -Path "$HOME\.claude\skills\consider" -Target "$HOME\.agents\Gei\skills\consider"
+New-Item -ItemType Junction -Path "$HOME\.claude\skills\create-skill" -Target "$HOME\.agents\Gei\skills\create-skill"
 ```
 
 Unix (Bash/Zsh):
 ```shell
 ln -s ~/.agents/Gei/skills/using-gei ~/.claude/skills/using-gei
 ln -s ~/.agents/Gei/skills/work ~/.claude/skills/work
+ln -s ~/.agents/Gei/skills/code-review ~/.claude/skills/code-review
 ln -s ~/.agents/Gei/skills/memo ~/.claude/skills/memo
 ln -s ~/.agents/Gei/skills/see ~/.claude/skills/see
 ln -s ~/.agents/Gei/skills/consider ~/.claude/skills/consider
+ln -s ~/.agents/Gei/skills/create-skill ~/.claude/skills/create-skill
 ```
 
 **配置 SessionStart hooks：**
@@ -196,11 +204,15 @@ Windows 系统请将路径中的 `~` 替换为实际的 home 目录，并使用�
       SKILL.md
     work/
       SKILL.md
+    code-review/
+      SKILL.md
     memo/
       SKILL.md
     see/
       SKILL.md
     consider/
+      SKILL.md
+    create-skill/
       SKILL.md
 ```
 
