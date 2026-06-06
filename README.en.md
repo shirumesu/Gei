@@ -49,7 +49,7 @@ So I wrote this skill suite.
 | `ARCHITECTURE & architecture/` | Provides the complete detailed architecture of the whole system when needed, including system operation, modules, change impact scope, related files, and more |
 | `Docs / Spec-Plan` | Written through a rigorous process and responsible for complex Plan execution |
 | `CHANGELOG` | Assists release maintenance with a fixed release process and one-sentence release flow |
-| `MEMORY & memory/` | Complete memory layer, responsible for maintaining system memory, including repeatable patterns and repeated pitfalls; injected by Hook at session start and checked at session end |
+| `MEMORY & memory/` | Complete memory layer for repeatable patterns and repeated pitfalls; the index is injected by Hook at session start, and the close check is handled by Learn/Work before the final response |
 
 **`/work`** — Complete code workflow
 
@@ -58,7 +58,7 @@ So I wrote this skill suite.
 
 **`/memo`** ↩ — Maintains new Spec changes based on Work output
 
-**`/learn`** ↩ — In projects with `spec/MEMORY.md`, the Stop hook injects a memory recall/write check before every session stop
+**`/learn`** ↩ — Runs the memory recall/write close check before task end and keeps it in the same final response
 
 ---
 
@@ -87,7 +87,7 @@ So I wrote this skill suite.
 
 ## Hooks
 
-This Skill provides three Hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, `inject_memory` injects the `spec/MEMORY.md` memory index, and `stop_record_memory` injects a Learn memory check before every session stop in projects with `spec/MEMORY.md`.
+This Skill provides two SessionStart Hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, and `inject_memory` injects the `spec/MEMORY.md` memory index.
 `project_has_spec` is based only on whether *spec/OVERVIEW.md* exists. OVERVIEW and MEMORY stay split to avoid oversized output from a single hook.
 
 ### Common Usage Paths

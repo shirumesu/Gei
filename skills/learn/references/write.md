@@ -13,6 +13,8 @@ Save or update memory only when the fact is likely to change future agent behavi
 - **Non-obvious gotcha:** code or docs alone do not make the risk clear.
 - **Explicit request:** the user says to remember, learn, forget, or not repeat something.
 
+When a turn includes both a one-time outcome and a repeatable process, split them before deciding: skip the completed status, logs, run ids, and routine verification output, but save the reusable workflow, ordering constraint, permission boundary, or user correction if it will change future agent behavior.
+
 ## Skip Criteria
 
 Do not save:

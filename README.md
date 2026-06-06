@@ -48,7 +48,7 @@
 | `ARCHITECTURE & architecture/ ` | 在需要时提供整个系统的完整详细架构描述，包括系统运行、模块，改动影响范围，相关文件等 |
 | `Docs / Spec-Plan` | 依据严谨流程编写，负责复杂 Plan 执行 |
 | `CHANGELOG` | 辅助版本发布维护，固定发布流程，一句话发布 |
-| `MEMORY & memory/` | 完整的记忆层，负责维护整个系统的记忆，包括任何可重复的，重复踩坑的各种记忆，透过 Hook 注入到会话开始与会话结束时要求处理 |
+| `MEMORY & memory/` | 完整的记忆层，负责维护整个系统的记忆，包括任何可重复的、重复踩坑的各种记忆；索引透过 Hook 注入到会话开始，结束检查由 Learn/Work 的收尾规则执行 |
 
 **`/work`** — 完整的代码工作流程
 
@@ -57,7 +57,7 @@
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
 
-**`/learn`** ↩ — Stop hook 会在带 `spec/MEMORY.md` 的项目中，每次会话停止前注入记忆读取/写入检查
+**`/learn`** ↩ — 在任务结束前完成记忆读取/写入检查，并把结果放在同一条最终回复里
 
 ---
 
@@ -86,7 +86,7 @@
 
 ## Hooks
 
-本 Skill 提供三个 Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引，`stop_record_memory` 在带 `spec/MEMORY.md` 的项目中，每次会话停止前注入 Learn 记忆检查。
+本 Skill 提供两个 SessionStart Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引。
 `project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。OVERVIEW 与 MEMORY 保持拆分，避免单个 hook 输出过长。
 
 ### 常见使用路径

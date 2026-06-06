@@ -63,7 +63,9 @@ For memory recall:
 3. State the result with `Memory applied:`, `Memory skipped:`, or `Memory checked:` so the constraint is visible.
 4. Repeat the check when scope changes enough to involve new files, commands, errors, or workflows.
 
-Memory writing is handled by `learn` and the Stop hook, not by `using-gei`.
+Memory writing is handled by `learn`, not by `using-gei` or host Stop hooks.
+
+At task end, run Learn's close check before the final response. Keep the check in the same final response flow so the user's answer is not split by an extra hook-triggered continuation.
 
 When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, and `CHANGELOG.md` third.
 
@@ -71,5 +73,6 @@ When project context sources disagree, trust repository code/config/tests/Git hi
 
 - State the routing path briefly, for example: `using-gei` -> `consider`.
 - If lifecycle state was required, state whether `spec/current-work.md` was created, reused, or explicitly skipped.
+- Include the Learn close-check marker required by `skills/learn/SKILL.md`.
 - If multiple skills seem relevant, load only the shortest first-hop path and wait for that skill to complete or hand off.
 - If no skill matches, exit this router and continue normally.

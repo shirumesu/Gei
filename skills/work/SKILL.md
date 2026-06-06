@@ -141,7 +141,7 @@ When every section is done and all tests are green:
 - If relevant files changed, invoke `memo` for anchor reconciliation so `spec/CHANGELOG.md` records the work under `Unreleased`. If the user declined Memo persistence, state the unrecorded note explicitly.
 - If durable routing, architecture, shipped outcome, or checkpoint information was exposed, set `Promotion: pending` in `spec/current-work.md` and invoke `memo` for the triggered event.
 - Close or clear `spec/current-work.md`.
-- Run the Learn close check. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke `learn`; otherwise include `Learn checked: no memory write needed` in the final response.
+- Run the Learn close check from `skills/learn/SKILL.md` in the same final-response flow. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke `learn`; otherwise include `Learn checked: no memory write needed` in the final response.
 
 If the task includes versioning, packaging, deployment, or publication, read `references/ship.md` and run the release gate before calling the task complete.
 

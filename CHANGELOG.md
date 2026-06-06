@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### 移除
+- 移除 `stop_record_memory` Stop hook，避免会话结束时为了 Learn 记忆检查额外追加一轮回复。
+
+### 优化
+- 将 Learn 结束检查规则迁回 `learn`、`using-gei` 和 `work` 的技能契约，保留记忆写入门禁，但要求在同一条最终回复中完成。
+
 ## v0.6.1 - 2026-06-07
 
 ### 修复
