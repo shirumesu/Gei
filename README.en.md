@@ -58,7 +58,7 @@ So I wrote this skill suite.
 
 **`/memo`** ↩ — Maintains new Spec changes based on Work output
 
-**`/learn`** ↩ — The Stop hook asks for a memory recall/write check before anchored tasks end
+**`/learn`** ↩ — In projects with `spec/MEMORY.md`, the Stop hook injects a memory recall/write check before every session stop
 
 ---
 
@@ -87,7 +87,7 @@ So I wrote this skill suite.
 
 ## Hooks
 
-This Skill provides three Hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, `inject_memory` injects the `spec/MEMORY.md` memory index, and `stop_record_memory` asks for a Learn memory check before anchored tasks stop.
+This Skill provides three Hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, `inject_memory` injects the `spec/MEMORY.md` memory index, and `stop_record_memory` injects a Learn memory check before every session stop in projects with `spec/MEMORY.md`.
 `project_has_spec` is based only on whether *spec/OVERVIEW.md* exists. OVERVIEW and MEMORY stay split to avoid oversized output from a single hook.
 
 ### Common Usage Paths

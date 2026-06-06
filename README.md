@@ -57,7 +57,7 @@
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
 
-**`/learn`** ↩ — Stop hook 会在有锚点任务结束前要求进行记忆读取/写入检查
+**`/learn`** ↩ — Stop hook 会在带 `spec/MEMORY.md` 的项目中，每次会话停止前注入记忆读取/写入检查
 
 ---
 
@@ -86,7 +86,7 @@
 
 ## Hooks
 
-本 Skill 提供三个 Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引，`stop_record_memory` 在有锚点任务停止前要求完成 Learn 记忆检查。
+本 Skill 提供三个 Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引，`stop_record_memory` 在带 `spec/MEMORY.md` 的项目中，每次会话停止前注入 Learn 记忆检查。
 `project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。OVERVIEW 与 MEMORY 保持拆分，避免单个 hook 输出过长。
 
 ### 常见使用路径

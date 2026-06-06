@@ -38,7 +38,7 @@ At task start and after meaningful scope changes, scan the injected `spec/MEMORY
 - `Memory skipped: <memory-name> -> <why it does not apply>`
 - `Memory checked: no relevant entries`
 
-At task end, decide whether the turn produced a learnable fact. The Stop hook enforces this by asking the agent to continue when an anchored file-changing task tries to stop without a Learn marker.
+At task end, decide whether the turn produced a learnable fact. In spec-backed projects, the Stop hook injects this close check at every Stop and then lets the continuation finish without re-triggering itself.
 
 ## Minimum Acceptance
 

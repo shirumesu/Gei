@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+## v0.6.1 - 2026-06-07
+
+### 修复
+- 修复 `stop_record_memory` Stop hook 的记忆检查触发条件：现在只要项目包含 `spec/MEMORY.md`，每次会话停止前都会注入 Learn 记忆检查，不再因为 `current-work` 已归档或最终回复已有记忆标记而跳过。
+
 ## v0.6.0 - 2026-06-06
 
 ### 新增

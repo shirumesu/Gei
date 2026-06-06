@@ -1,5 +1,5 @@
 {
-  "description": "Inject Gei project overview and memory index at session start, then enforce a Learn memory check before anchored tasks stop.",
+  "description": "Inject Gei project overview and memory index at session start, then enforce a Learn memory check before every Stop in spec-backed projects.",
   "hooks": {
     "SessionStart": [
       {
