@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "gei",
   "displayName": "Gei",
-  "version": "0.6.1",
-  "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, learning, and project state.",
+  "version": "0.6.2",
+  "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, memory, and project state.",
   "author": {
     "name": "shirumesu"
   },

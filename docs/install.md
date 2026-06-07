@@ -24,7 +24,6 @@ The required skills are:
 
 ```text
 using-gei
-learn
 consider
 memo
 work
@@ -51,7 +50,6 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git
 gei
   .codex-plugin/plugin.json
   skills/using-gei/SKILL.md
-  skills/learn/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
   skills/work/SKILL.md
@@ -78,7 +76,6 @@ Gei
   .claude-plugin/plugin.json
   hooks/hooks.json
   skills/using-gei/SKILL.md
-  skills/learn/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
   skills/work/SKILL.md
@@ -121,7 +118,6 @@ unzip Gei-skills.zip -d <skills-dir>
 <skills-dir>/
   Gei/
     using-gei/SKILL.md
-    learn/SKILL.md
     consider/SKILL.md
     memo/SKILL.md
     work/SKILL.md
@@ -152,7 +148,6 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 <skills-dir>/
   Gei/
     skills/using-gei/SKILL.md
-    skills/learn/SKILL.md
     skills/consider/SKILL.md
     skills/memo/SKILL.md
     skills/work/SKILL.md

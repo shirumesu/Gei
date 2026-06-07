@@ -31,16 +31,13 @@ So I wrote this skill suite.
 
 ### Main Flow
 
-/using-gei ──→ /learn(recall memory) ──→ /consider | /memo | /work | /code-review | /see
-
+/using-gei ──→ /consider | /memo | /work | /code-review | /see
 
 **`/using-gei`** — Top-level router that manages the lifecycle of the entire task
 
-**`/learn`** — Project memory layer, responsible for recalling, applying, writing, updating, and compacting `spec/MEMORY.md` and `spec/memory/`
-
 **`/consider`** — Asks follow-up questions and searches for mainstream approaches to help you converge and expand ideas, clarify boundaries and impact, and discuss pros and cons
 
-**`/memo`** — Complete documentation maintenance layer, responsible for maintaining the entire `spec/` documentation system
+**`/memo`** — Complete spec maintenance layer, responsible for maintaining the entire `spec/` system, including project memory
 
 | Module | Responsibility |
 | --- | --- |
@@ -49,7 +46,7 @@ So I wrote this skill suite.
 | `ARCHITECTURE & architecture/` | Provides the complete detailed architecture of the whole system when needed, including system operation, modules, change impact scope, related files, and more |
 | `Docs / Spec-Plan` | Written through a rigorous process and responsible for complex Plan execution |
 | `CHANGELOG` | Assists release maintenance with a fixed release process and one-sentence release flow |
-| `MEMORY & memory/` | Complete memory layer for repeatable patterns and repeated pitfalls; the index is injected by Hook at session start, and the close check is handled by Learn/Work before the final response |
+| `MEMORY & memory/` | Complete memory layer for repeatable patterns, repeated pitfalls, and project conventions; the index is injected by Hook at session start, and the close check is handled by Memo memory rules before the final response |
 
 **`/work`** — Complete code workflow
 
@@ -57,8 +54,6 @@ So I wrote this skill suite.
 - Code modification maintenance rules · test verification · release process
 
 **`/memo`** ↩ — Maintains new Spec changes based on Work output
-
-**`/learn`** ↩ — Runs the memory recall/write close check before task end and keeps it in the same final response
 
 ---
 
@@ -77,9 +72,8 @@ So I wrote this skill suite.
 | Skill | When to Use | Purpose |
 | --- | --- | --- |
 | `/using-gei` | Before any session starts | Top-level router and task lifecycle maintenance layer |
-| `/learn` | When project memory needs to be read, written, updated, cleaned up, or when the user asks to remember or forget something | Manages the `spec/MEMORY.md` index and `spec/memory/` entries, and applies memory at task start and task end |
 | `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
-| `/memo` | Project-wide documentation maintenance | Maintains the project Spec layer: architecture, current work, changelog, and plan design |
+| `/memo` | Project-wide spec and memory maintenance | Maintains the project Spec layer: architecture, current work, changelog, plan design, and project memory |
 | `/work` | Any code execution task | Complete coding, testing, version maintenance, and release workflow |
 | `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review of code correctness, test quality, maintainability, UX/DX, security, and release risk |
 | `/see` | Any external network access | Complete search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) to help read known URLs |
@@ -94,7 +88,7 @@ This Skill provides two SessionStart Hooks: `inject_overview` injects the `proje
 
 | Scenario | Path | Notes |
 | --- | --- | --- |
-| Complete work session | `using-gei` → `learn` recall memory → `consider` / `work` → `memo` → `learn` close check | Almost no need to call any command manually |
+| Complete work session | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | Almost no need to call any command manually |
 | Code review | `using-gei` → `code-review` | Read-only review that does not enter the `work` implementation lifecycle |
 | Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
 | External search | `using-gei` → `consider` (optional) → `see` | `see` requires ambiguity clarification and authoritative data, making results more rigorous |
@@ -142,7 +136,7 @@ Most Agents can recursively search subdirectories, so your install directory can
   Gei/
     using-gei/
       SKILL.md
-    learn/
+    memo/
       SKILL.md
     ...
 ```

@@ -30,16 +30,13 @@
 
 ### 主流程
 
-/using-gei ──→ /learn(读取记忆) ──→ /consider | /memo | /work | /code-review | /see
-
+/using-gei ──→ /consider | /memo | /work | /code-review | /see
 
 **`/using-gei`** — 总路由，管理整个任务的生命周期
 
-**`/learn`** — 项目记忆层，负责读取、应用、写入、更新、压缩 `spec/MEMORY.md` 与 `spec/memory/`
-
 **`/consider`** — 追问并搜索主流做法，帮助你收敛与扩展思路，明确边界和影响，讨论好坏处
 
-**`/memo`** — 完整文档维护层，负责维护整个 `spec/` 文档
+**`/memo`** — 完整 spec 维护层，负责维护整个 `spec/`，包括项目记忆
 
 | 模块 | 职责 |
 | --- | --- |
@@ -48,7 +45,7 @@
 | `ARCHITECTURE & architecture/ ` | 在需要时提供整个系统的完整详细架构描述，包括系统运行、模块，改动影响范围，相关文件等 |
 | `Docs / Spec-Plan` | 依据严谨流程编写，负责复杂 Plan 执行 |
 | `CHANGELOG` | 辅助版本发布维护，固定发布流程，一句话发布 |
-| `MEMORY & memory/` | 完整的记忆层，负责维护整个系统的记忆，包括任何可重复的、重复踩坑的各种记忆；索引透过 Hook 注入到会话开始，结束检查由 Learn/Work 的收尾规则执行 |
+| `MEMORY & memory/` | 完整的记忆层，负责维护可重复流程、重复踩坑和项目约定；索引透过 Hook 注入到会话开始，结束检查由 Memo memory 收尾规则执行 |
 
 **`/work`** — 完整的代码工作流程
 
@@ -56,8 +53,6 @@
 - 代码修改维护准则 · 测试验证 · 发布流程
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
-
-**`/learn`** ↩ — 在任务结束前完成记忆读取/写入检查，并把结果放在同一条最终回复里
 
 ---
 
@@ -76,9 +71,8 @@
 | Skill | 使用时机 | 用处 |
 | --- | --- | --- |
 | `/using-gei` | 任何会话开始前 | 总路由和任务生命周期维护层 |
-| `/learn` | 项目记忆读取、写入、更新、清理或用户要求记住/忘记时 | 管理 `spec/MEMORY.md` 索引和 `spec/memory/` 条目，并在任务开始/结束处应用记忆 |
 | `/consider` | 讨论任何新想法时 | 帮助收敛需求；需求模糊时提供详细的设计方案 |
-| `/memo` | 全工程文档维护 | 维护项目 Spec 层：架构、当前工作、更改日志和方案设计 |
+| `/memo` | 全工程 spec 与记忆维护 | 维护项目 Spec 层：架构、当前工作、更改日志、方案设计和项目记忆 |
 | `/work` | 任何代码执行任务 | 完整的编码、测试、版本维护及发布流程 |
 | `/code-review` | 审查 PR、diff、commit、working tree 或实现结果时 | 只读审查代码正确性、测试质量、维护性、UX/DX、安全与发布风险 |
 | `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；对已知 URL 可透过 [Jina](https://jina.ai/) 辅助读取网页 |
@@ -93,7 +87,7 @@
 
 | 场景 | 路径 | 备注 |
 | --- | --- | --- |
-| 完整的一次工作 | `using-gei` → `learn` 读取记忆 → `consider` / `work` → `memo` → `learn` 结束检查 | 几乎不需要主动调用任何命令 |
+| 完整的一次工作 | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | 几乎不需要主动调用任何命令 |
 | 代码审查 | `using-gei` → `code-review` | 只读审查，不进入 `work` 的实现生命周期 |
 | 想法讨论 | `using-gei` → `consider` → `work` | 可显式使用 `consider`，思路更明确 |
 | 对外搜索 | `using-gei` → `consider`（可选）→ `see` | `see` 要求澄清歧义、使用权威数据，结果更严谨 |
@@ -138,7 +132,7 @@ Claude Code 类似
   Gei/
     using-gei/
       SKILL.md
-    learn/
+    memo/
       SKILL.md
     ...
 ```

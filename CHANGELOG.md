@@ -3,10 +3,12 @@
 ## Unreleased
 
 ### 移除
-- 移除 `stop_record_memory` Stop hook，避免会话结束时为了 Learn 记忆检查额外追加一轮回复。
+- 移除 `stop_record_memory` Stop hook，避免会话结束时为了记忆检查额外追加一轮回复。
+- 移除独立 `learn` Skill，项目记忆读取、写入、维护和结束检查重新归入 `memo`。
 
 ### 优化
-- 将 Learn 结束检查规则迁回 `learn`、`using-gei` 和 `work` 的技能契约，保留记忆写入门禁，但要求在同一条最终回复中完成。
+- 将记忆结束检查规则迁回 `memo`、`using-gei` 和 `work` 的技能契约，保留记忆写入门禁，但要求在同一条最终回复中完成。
+- 将原 `learn` 的 recall、write gate、maintenance 和安全规则迁入 Memo memory 子流程。
 
 ## v0.6.1 - 2026-06-07
 

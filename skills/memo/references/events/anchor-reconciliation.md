@@ -45,7 +45,7 @@ Cleanup is not a shortcut to `CHANGELOG.md`, and it is not a direct deletion pas
 - Behavior, release, rollback, workflow, or future-agent maintenance value -> update `spec/CHANGELOG.md`.
 - Structure, routing, command, module boundary, interface, important data flow, or diagram value -> route through `architecture-change.md` and update `spec/ARCHITECTURE.md`.
 - Cold-start project purpose, core capability, technology baseline, document map, task-start route, or authority/staleness value -> read the overview contract and update `spec/OVERVIEW.md`.
-- Operational pattern, gotcha, or usage convention worth remembering -> invoke Learn's write gate. If Learn stores it, update `spec/MEMORY.md` and `spec/memory/` through `skills/learn/references/write.md`.
+- Operational pattern, gotcha, or usage convention worth remembering -> invoke Memo's memory write gate. If Memo stores it, update `spec/MEMORY.md` and `spec/memory/` through `references/events/memory.md`.
 - Accepted durable plan, complex task context, long-lived handoff, or recovery details that do not belong in the root architecture or changelog -> create or update the owning `spec/docs/#NNN-{work-description}.md`.
 - Uncertain intent or insufficient evidence for a safe durable update -> capture the uncertainty in `spec/INBOX.md` before removing the entry.
 - No durable value after review -> set `Promotion: none` with a short `Promotion note`.
@@ -59,7 +59,7 @@ Only after that decision is complete may the entry be archived or removed. If th
 - File changes with durable maintenance, release, rollback, user-visible, workflow, or future-agent value -> update `CHANGELOG.md` before archiving the entry.
 - Architecture-visible change -> update `ARCHITECTURE.md` through the architecture event.
 - Overview-visible change -> update `OVERVIEW.md` through the overview contract.
-- Operational pattern, gotcha, or usage convention worth remembering -> invoke Learn's write gate. If Learn stores it, update `MEMORY.md` and create/update the linked `spec/memory/` entry through `skills/learn/references/write.md`.
+- Operational pattern, gotcha, or usage convention worth remembering -> invoke Memo's memory write gate. If Memo stores it, update `MEMORY.md` and create/update the linked `spec/memory/` entry through `references/events/memory.md`.
 - Durable implementation plan is needed -> create or update a task spec.
 - Intent is still uncertain -> capture a short `spec/INBOX.md` entry instead of guessing.
 - No durable value after review -> set `Status: archived`, `Promotion: none`, and a short `Promotion note`.

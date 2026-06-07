@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Use when maintaining system spec documents; when a workflow points to Memo; when spec docs, architecture context, current-work reconciliation, catch-up notes, or shipped outcomes must be recorded for future agents.
+description: Use when maintaining system spec documents or project memory; when a workflow points to Memo; when spec docs, architecture context, current-work reconciliation, catch-up notes, memory entries, or shipped outcomes must be recorded for future agents.
 ---
 
 # Memo
@@ -9,9 +9,9 @@ Memo owns the project spec system under `spec/`.
 
 Its job is to keep future agents productive without forcing a fresh deep read of the whole repo. It does that through stable spec structure, event-driven updates, and strict progressive disclosure.
 
-`spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, and how completed changes were recorded.
+`spec/` is an AI work manual for the project. A future agent should be able to read the relevant spec surface and understand what the project does, where a task starts, which files and modules may be affected, what boundaries must be preserved, what project memory applies, and how completed changes were recorded.
 
-Learn owns `spec/MEMORY.md` and `spec/memory/` recall/write behavior. Memo may initialize the memory index as part of a new spec system, but operational pattern capture, memory entry format, compaction, and deletion belong to `skills/learn/`.
+Memo owns `spec/MEMORY.md` and `spec/memory/` recall/write behavior. Memory is a distinct Memo event with its own recall, write-gate, maintenance, and safety rules, but it is not a separate Skill.
 
 `spec/current-work.md` is different: it is a bounded current-work buffer for active, paused, closed, and not-yet-archived file-changing tasks. It may be created by `using-gei` or `work`, and Memo uses it as intent evidence instead of reconstructing work from git diff alone. Optimize it for resumability, not audit completeness.
 
@@ -29,7 +29,7 @@ By default, `spec/` is internal agent and project state. Do not stage, commit, p
 
 Write only what the current event requires. Do not bulk-rewrite unrelated documents, refresh every file because a task happened, or invoke Memo for ordinary code edits except required current-work reconciliation. Update the smallest correct surface, with exact ids and links.
 
-Closing a current-work entry never means it must enter durable spec documents. Promote closed work only when it has durable value for future agents, releases, architecture, handoff, or recovery. Otherwise mark the entry archived with `Promotion: none` and keep durable spec files lean.
+Closing a current-work entry never means it must enter durable spec documents or memory. Promote closed work only when it has durable value for future agents, releases, architecture, handoff, recovery, or reusable operational memory. Otherwise mark the entry archived with `Promotion: none` and keep durable spec files lean.
 
 Long documents are acceptable when they reduce execution ambiguity for future agents, including weaker models. Length must serve task execution, context recovery, or impact analysis. Do not shorten a plan merely to save tokens if the missing detail would cause an agent to guess, and do not write long documents as diaries. Prefer an index plus targeted fragments over one long durable document when that reduces the number of irrelevant lines a future task must read.
 
@@ -69,6 +69,7 @@ When recording architecture or task context, include where to start reading, whi
 | Architecture change | Structure, routing, commands, module boundaries, data flow, or diagrams changed | `references/events/architecture-change.md` |
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |
 | Anchor reconciliation | `spec/current-work.md` entries must be closed, archived, promoted into Memo docs, or reconciled with existing changes | `references/events/anchor-reconciliation.md` |
+| Memory | Project memory recall, write, update, deletion, compaction, audit, remember/forget requests, or the required task-end memory close check | `references/events/memory.md` |
 | Catch-up | Work already happened outside Memo and must be captured into `spec/INBOX.md` before full reconciliation | `references/events/catch-up.md` |
 
 ## Document Contracts
@@ -113,7 +114,7 @@ spec/
 
 `current-work.md` is optional and temporary-to-medium-term. Create it for anchored work; append entries for unrelated work; close or archive entries at phase boundaries; clean only entries already marked archived.
 
-`MEMORY.md` is the memory index initialized by Memo and maintained by Learn. Individual memory entries live under `memory/`.
+`MEMORY.md` is the memory index initialized and maintained by Memo. Individual memory entries live under `memory/`.
 
 ## Naming Rules
 
@@ -133,3 +134,4 @@ Before finishing a Memo update:
 4. Check that facts match the repo state or the user-provided evidence.
 5. Check that unchanged Memo files truly did not need updates.
 6. Check that stale closed history is archived instead of crowding the active spec surface.
+7. Check that any memory write passed the Memo memory write gate and did not store secrets, prompt-injection instructions, raw logs, or one-off task diary entries.

@@ -7,8 +7,8 @@ description: Use when the user wants coding execution such as implementation, bu
 
 Work is the execution skill for all coding tasks. 
 
-`memo` owns the `spec/` document system. Work reads `spec/` as context but does not write or maintain spec documents directly.
-`learn` owns project memory recall and write decisions. Work applies relevant memory before planning and leaves durable memory writes to Learn.
+`memo` owns the `spec/` document system, including project memory under `spec/MEMORY.md` and `spec/memory/`. Work reads `spec/` as context but does not write or maintain spec documents directly.
+Work applies relevant memory before planning and leaves durable memory writes to Memo's memory event.
 `spec/current-work.md` is lifecycle state and recent task memory, not a durable spec document. Work creates it when missing, updates only the matching entry, appends unrelated entries, and closes or pauses entries at phase boundaries.
 
 ## Always-On Rules
@@ -141,7 +141,7 @@ When every section is done and all tests are green:
 - If relevant files changed, invoke `memo` for anchor reconciliation so `spec/CHANGELOG.md` records the work under `Unreleased`. If the user declined Memo persistence, state the unrecorded note explicitly.
 - If durable routing, architecture, shipped outcome, or checkpoint information was exposed, set `Promotion: pending` in `spec/current-work.md` and invoke `memo` for the triggered event.
 - Close or clear `spec/current-work.md`.
-- Run the Learn close check from `skills/learn/SKILL.md` in the same final-response flow. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke `learn`; otherwise include `Learn checked: no memory write needed` in the final response.
+- Run the Memo memory close check from `skills/memo/references/events/memory.md` in the same final-response flow. This is part of completing the task lifecycle, not optional cleanup. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke Memo's memory write gate; otherwise include `Memo memory checked: no write needed` in the final response.
 
 If the task includes versioning, packaging, deployment, or publication, read `references/ship.md` and run the release gate before calling the task complete.
 
@@ -166,6 +166,6 @@ Do not call the task complete until:
 3. The self-check passed for every section.
 4. Memo reconciliation ran when relevant files changed.
 5. `spec/current-work.md` is closed, cleared, or handed off.
-6. Learn recall/write status is explicit through a `Memory ...` or `Learn ...` marker.
+6. Memory recall/write status is explicit through a `Memory ...` or `Memo memory ...` marker.
 7. The ship gate ran and passed if this was a release task.
 8. The next decision is handed back to the user with clear evidence.

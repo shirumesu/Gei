@@ -3,7 +3,7 @@ name: using-gei
 description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
 ---
 
-Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `learn`, `work`, `code-review`, or `create-skill`.
+Gei's entry router and lifecycle starter. Use it before any other Gei skill when a request may belong to `consider`, `see`, `memo`, `work`, `code-review`, or `create-skill`.
 
 ## Core Contract
 
@@ -21,9 +21,8 @@ Route by the user's primary intended outcome, not by the first visible verb.
 - Idea exploration, feature planning, feasibility, product direction, unclear scope, or "I want to..." before execution -> `consider`
 - Implementation, bug fixing, Git diagnosis, tests, build, release, refactor, or code execution -> `work`
 - Creating, improving, reviewing, or validating agent Skills -> `create-skill`
-- Recalling, creating, updating, deleting, compacting, or auditing project memory -> `learn`
+- Spec files, project memory, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - Non-Skill code review, PR review, diff audit, commit review, working-tree review, or implementation audit as the final deliverable -> `code-review`
-- Spec files, current-work reconciliation, changelog/checkpoint maintenance, documentation maintenance, or alignment checks -> `memo`
 - External research, fact-checking, web search, comparison, source-backed summary, or public information as the final deliverable -> `see`
 - No matching skill -> exit Gei
 
@@ -41,7 +40,7 @@ Examples:
 
 Do not route to `see` or `memo` only because context may be needed. The selected first-hop skill gathers its own project, external, Git, test, build, spec, or source context.
 
-Do not route to `learn` only because memory may be relevant. Memory recall is lifecycle context unless the user's final objective is memory itself.
+Do not route to `memo` only because memory recall may be relevant. Memory recall is lifecycle context unless the user's final objective is spec or memory maintenance.
 
 ## Lifecycle State
 
@@ -63,9 +62,9 @@ For memory recall:
 3. State the result with `Memory applied:`, `Memory skipped:`, or `Memory checked:` so the constraint is visible.
 4. Repeat the check when scope changes enough to involve new files, commands, errors, or workflows.
 
-Memory writing is handled by `learn`, not by `using-gei` or host Stop hooks.
+Memory writing is handled by `memo`, not by `using-gei` or host Stop hooks.
 
-At task end, run Learn's close check before the final response. Keep the check in the same final response flow so the user's answer is not split by an extra hook-triggered continuation.
+At task end, run Memo's memory close check before the final response. This is part of the task lifecycle, not optional cleanup after the work seems finished. Keep the check in the same final response flow so the user's answer is not split by an extra hook-triggered continuation.
 
 When project context sources disagree, trust repository code/config/tests/Git history first, `spec/current-work.md` second, and durable spec files such as `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, and `CHANGELOG.md` third.
 
@@ -73,6 +72,6 @@ When project context sources disagree, trust repository code/config/tests/Git hi
 
 - State the routing path briefly, for example: `using-gei` -> `consider`.
 - If lifecycle state was required, state whether `spec/current-work.md` was created, reused, or explicitly skipped.
-- Include the Learn close-check marker required by `skills/learn/SKILL.md`.
+- Include the Memo memory close-check marker required by `skills/memo/references/events/memory.md`.
 - If multiple skills seem relevant, load only the shortest first-hop path and wait for that skill to complete or hand off.
 - If no skill matches, exit this router and continue normally.

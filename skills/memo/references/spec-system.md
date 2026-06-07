@@ -34,7 +34,7 @@ spec/
 
 `spec/architecture/` is optional. Create it only when root `ARCHITECTURE.md` has earned a domain split under the architecture contract. The root file remains the index; fragments hold domain details.
 
-`MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`. Memo initializes this surface; Learn owns recall, write, update, deletion, and compaction behavior.
+`MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`. Memo owns recall, write, update, deletion, and compaction behavior through the memory event.
 
 `current-work.md` is optional lifecycle state and recent task memory. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies. It can also preserve recent debug, release, handoff, or reconciliation context that has not yet been promoted into durable spec files.
 
@@ -45,10 +45,10 @@ spec/
 For a new task in an established project, use this order:
 
 1. `spec/OVERVIEW.md`
-2. `spec/MEMORY.md` through Learn recall when the task may involve project-specific operational patterns
+2. `spec/MEMORY.md` through Memo memory recall when the task may involve project-specific operational patterns
 3. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
 4. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
-5. the relevant `spec/memory/*.md` entry only when Learn recall or the memory index points to it
+5. the relevant `spec/memory/*.md` entry only when Memo memory recall or the memory index points to it
 6. `spec/current-work.md` for active or paused file-changing work, recent related task memory, debug/release handoff context, reconciliation, or before file edits as required by the lifecycle
 7. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
 8. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping

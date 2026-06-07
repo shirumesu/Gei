@@ -11,7 +11,7 @@ Save or update memory only when the fact is likely to change future agent behavi
 - **Hidden constraint:** an environment, initialization, permission, timing, packaging, or host behavior constraint is easy to miss.
 - **Operational convention:** future work should use one method, command, workflow, or storage path instead of another.
 - **Non-obvious gotcha:** code or docs alone do not make the risk clear.
-- **Explicit request:** the user says to remember, learn, forget, or not repeat something.
+- **Explicit request:** the user says to remember, forget, save a lesson, or not repeat something.
 
 When a turn includes both a one-time outcome and a repeatable process, split them before deciding: skip the completed status, logs, run ids, and routine verification output, but save the reusable workflow, ordering constraint, permission boundary, or user correction if it will change future agent behavior.
 
@@ -92,10 +92,10 @@ Bad:
 5. Use one final marker:
 
 ```text
-Learn write: created <memory-name>
-Learn write: updated <memory-name>
-Learn write: deleted <memory-name>
-Learn checked: no memory write needed
+Memo memory write: created <memory-name>
+Memo memory write: updated <memory-name>
+Memo memory write: deleted <memory-name>
+Memo memory checked: no write needed
 ```
 
 If uncertain whether the user wants a personal preference saved into a project-local spec, ask before writing.
