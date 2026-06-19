@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "gei",
-      "source": "./Gei",
+      "source": "./",
       "description": "Gei ~ 芸：路由式渐进披露 Skill 集合，覆盖设计、文档、项目管理、测试、编码、审查、发布、搜索、记忆等场景。",
       "category": "productivity"
     }

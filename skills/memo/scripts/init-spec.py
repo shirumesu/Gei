@@ -197,7 +197,7 @@ def main() -> int:
     print(" - Edit spec/OVERVIEW.md with project-specific context")
     print(" - Edit spec/ARCHITECTURE.md with module structure")
     print(" - Use the memo memory event to create memory entries in spec/memory/ as patterns emerge")
-    print(" - Use spec/current-work.md for active file-changing work (created on demand)")
+    print(" - Record changelog-worthy work under spec/CHANGELOG.md ## Unreleased at completion")
     return 0
 
 

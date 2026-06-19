@@ -13,29 +13,24 @@ Run recall when any of these are true:
 
 ## Process
 
-1. Start from the injected `spec/MEMORY.md` index. If no index exists, state `Memory checked: no MEMORY.md found` only when memory would otherwise matter.
-2. Compare each `Read when ...` line against the current task intent, files, commands, errors, environment, and current-work entry.
+1. Start from the injected `spec/MEMORY.md` index. If no index exists, continue silently unless memory would otherwise matter to the answer.
+2. Compare each `Read when ...` line against the current task intent, files, commands, errors, and environment.
 3. Read only linked entries whose trigger plausibly matches. Do not bulk-read `spec/memory/`.
 4. Convert each read entry into a concrete current-task constraint, verification step, or non-goal.
 5. If an entry conflicts with repository code, tests, config, or a direct user instruction, verify the higher-authority source and state the conflict.
 6. Repeat recall after meaningful scope changes.
 
-## Output Markers
+## User Visibility
 
-Use one concise marker so hooks and future agents can see that recall happened:
+Memory recall is usually internal. Mention it to the user only when a recalled entry changed the answer, created a constraint worth surfacing, conflicts with higher-authority context, or the user asked about memory state.
 
-```text
-Memory applied: <memory-name> -> <current constraint>
-Memory skipped: <memory-name> -> <why it does not apply>
-Memory checked: no relevant entries
-```
+Do not output no-op statuses for "no index", "no relevant entries", or "not applicable" in ordinary responses.
 
-Examples:
+Examples worth mentioning:
 
 ```text
-Memory applied: config-save-effects -> I will verify the Main-side consumer, not just the save path.
-Memory skipped: ship-release-process -> this is not a release/versioning task.
-Memory checked: no relevant entries
+I applied the config-save-effects memory, so I verified the Main-side consumer instead of only the save path.
+I ignored the ship-release-process memory because this task is not a release or versioning task.
 ```
 
 ## Do Not

@@ -1,6 +1,6 @@
 # Catch-up Event
 
-Use this event when work already happened outside Memo and must be captured before full reconciliation.
+Use this event when work already happened outside Memo and must be captured before promoting into canonical spec files.
 
 Catch-up is a temporary evidence capture. It should not become a second spec system.
 
@@ -9,8 +9,8 @@ Catch-up is a temporary evidence capture. It should not become a second spec sys
 Trigger this event when any of these are true:
 
 - useful work already happened, but the intent or scope is unclear
-- changed files exist without a usable `spec/current-work.md`
-- the user asks to capture state before deciding how to reconcile it
+- changed files exist without a clear recorded intent
+- the user asks to capture state before deciding how to record it
 - there is not enough evidence to safely update `ARCHITECTURE.md`, `CHANGELOG.md`, or a task spec
 
 Do not use catch-up to avoid required ship, architecture, or changelog updates when the target files and evidence are already clear.
@@ -36,7 +36,7 @@ Append a short entry to `spec/INBOX.md`:
 - Known files:
 - Known intent:
 - Unknowns:
-- Suggested next event: anchor reconciliation | architecture change | ship | task start
+- Suggested next event: changelog | architecture change | ship | task start
 ```
 
 `INBOX.md` is a temporary capture surface. It is not a replacement for `ARCHITECTURE.md`, `CHANGELOG.md`, or active task specs.

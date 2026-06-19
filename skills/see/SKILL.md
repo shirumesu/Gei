@@ -22,7 +22,7 @@ This skill can still start from a document, page, article link, or local file, b
 - `explore`: read [references/explore.md](references/explore.md)
 - `howto`: read [references/howto.md](references/howto.md)
 - `public-opinion`: read [references/public.md](references/public.md)
-- `tool`: read [references/tool.md](references/tool.md)
+- `tool` overlay: read [references/tool.md](references/tool.md) in addition to the primary task reference when the network access rules require it
 - `summary / write-to-file` overlay: follow the overlay rules in this root file; do not load a separate summary reference
 
 If one request contains several actions, identify the main question first and treat the rest as overlays or answer constraints. Do not split a clear task into several main branches just to make the structure look tidy.
@@ -53,7 +53,7 @@ Default to the lowest level that can safely satisfy the task. Do not turn every 
 
 ### 3. Network Access Rules
 
-When the task needs to access these sites, read [references/tool.md](references/tool.md):
+When the task needs to access these sites, read the [tool overlay](references/tool.md) in addition to the selected primary task reference:
 Xiaohongshu, Twitter, X, Reddit
 
 For source discovery and ordinary search, use the installed search or web backend first. Jina is not a search backend.

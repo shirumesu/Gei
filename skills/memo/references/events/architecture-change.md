@@ -26,7 +26,7 @@ Read:
 
 1. Update only the architecture sections that changed.
 2. Keep the routing and command guidance exact.
-3. If the task is closing now, ensure `CHANGELOG.md` records the closed file-changing work through anchor reconciliation.
+3. If the task is closing now, ensure `CHANGELOG.md` records the closed file-changing work through `../contracts/changelog.md`.
 4. Do not rewrite unrelated diagrams or broad project descriptions.
 
 ## Completion Check

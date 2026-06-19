@@ -31,7 +31,7 @@ So I wrote this skill suite.
 
 ### Main Flow
 
-/using-gei ──→ /consider | /memo | /work | /code-review | /see
+/using-gei ──→ /consider | /memo | /work | /code-review | /see | /create-skill
 
 **`/using-gei`** — Top-level router that manages the lifecycle of the entire task
 
@@ -41,16 +41,15 @@ So I wrote this skill suite.
 
 | Module | Responsibility |
 | --- | --- |
-| `current-work` | Complete record of a series of continuous tasks |
 | `OVERVIEW` | Quickly restores context, describes the project, explains how to run tasks and read `spec/`, and is injected by Hook at session start |
 | `ARCHITECTURE & architecture/` | Provides the complete detailed architecture of the whole system when needed, including system operation, modules, change impact scope, related files, and more |
 | `Docs / Spec-Plan` | Written through a rigorous process and responsible for complex Plan execution |
-| `CHANGELOG` | Assists release maintenance with a fixed release process and one-sentence release flow |
+| `CHANGELOG` | The project task tracker and release maintenance: completed changes go straight into `## Unreleased`, then compress into a version section on release |
 | `MEMORY & memory/` | Complete memory layer for repeatable patterns, repeated pitfalls, and project conventions; the index is injected by Hook at session start, and the close check is handled by Memo memory rules before the final response |
 
 **`/work`** — Complete code workflow
 
-- Starts from `current-work`, chooses tests, builds, lint, script checks, or release gates by behavior risk, and begins from an expected-to-fail test when new tests are needed
+- Chooses tests, builds, lint, script checks, or release gates by behavior risk; adds new tests only for behavior with durable regression value, preferably starting from an expected-to-fail test
 - Code modification maintenance rules · test verification · release process
 
 **`/memo`** ↩ — Maintains new Spec changes based on Work output
@@ -73,22 +72,22 @@ So I wrote this skill suite.
 | --- | --- | --- |
 | `/using-gei` | Before any session starts | Top-level router and task lifecycle maintenance layer |
 | `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
-| `/memo` | Project-wide spec and memory maintenance | Maintains the project Spec layer: architecture, current work, changelog, plan design, and project memory |
+| `/memo` | Project-wide spec and memory maintenance | Maintains the project Spec layer: architecture, changelog, plan design, and project memory |
 | `/work` | Any code execution task | Complete coding, testing, version maintenance, and release workflow |
 | `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review of code correctness, test quality, maintainability, UX/DX, security, and release risk |
-| `/see` | Any external network access | Complete search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) to help read known URLs |
+| `/see` | When external research, fact-checking, or source synthesis is the final deliverable | Complete search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) to help read known URLs |
 | `/create-skill` | When working with Skills | Creates and reviews Skills, and verifies optimization opportunities |
 
 ## Hooks
 
-This Skill provides two SessionStart Hooks: `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, and `inject_memory` injects the `spec/MEMORY.md` memory index.
-`project_has_spec` is based only on whether *spec/OVERVIEW.md* exists. OVERVIEW and MEMORY stay split to avoid oversized output from a single hook.
+This Skill provides three SessionStart Hooks: `inject_using_gei` injects the `using-gei` router, `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, and `inject_memory` injects the `spec/MEMORY.md` memory index.
+`project_has_spec` is based only on whether *spec/OVERVIEW.md* exists. The three hooks stay split to avoid oversized output from a single hook.
 
 ### Common Usage Paths
 
 | Scenario | Path | Notes |
 | --- | --- | --- |
-| Complete work session | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | Almost no need to call any command manually |
+| Complete work session | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | Almost no need to call any command manually; no-op lifecycle status stays out of the final response by default |
 | Code review | `using-gei` → `code-review` | Read-only review that does not enter the `work` implementation lifecycle |
 | Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
 | External search | `using-gei` → `consider` (optional) → `see` | `see` requires ambiguity clarification and authoritative data, making results more rigorous |

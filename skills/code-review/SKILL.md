@@ -104,6 +104,15 @@ Run this pass when the change affects developers, operators, extension authors, 
 - Are escape hatches present where the API is opinionated?
 - Are docs, examples, migrations, and compatibility notes updated when the contract changed?
 
+**Operations, Release, And Recovery**
+
+Run this pass when the risk map includes deployment, release process, observability, data migration, rollback, job scheduling, background work, incident recovery, or operational ownership.
+
+- Can the change be released, rolled back, or disabled without leaving partial state behind?
+- Are migration, retry, timeout, idempotency, and cleanup behavior clear where they matter?
+- Would operators know that the change failed, degraded, or needs intervention?
+- Are release notes, feature flags, metrics, logs, alerts, and runbooks updated when the operational contract changed?
+
 ## Finding Rules
 
 Report only actionable issues grounded in evidence.
@@ -125,45 +134,32 @@ Severity guidance:
 - `medium`: material edge case, maintainability risk, incomplete behavior, weak test, or failure mode that should be fixed soon.
 - `low`: local issue that is worth fixing but should not block by itself.
 - `nit`: style or polish only. Use sparingly and never mix many nits into the main findings.
+- `informational`: useful note, not a defect.
 
 Do not inflate severity because an issue sounds important in the abstract. Calibrate by realistic reachability, affected users, blast radius, reversibility, and evidence.
 
 ## Output Contract
 
-Use this shape unless the user requested a stricter format:
+Use this shape unless the user requested a stricter format. Keep it compact; add Fix-Now/Deferable grouping only when there are multiple findings and the grouping helps the user decide next action.
 
 ```text
 Findings:
 1. [severity] title
-   why: ...
+   why it matters: ...
    evidence: ...
    confidence: 1-10
    status: confirmed | pending confirmation
-
-Fix-Now Set:
-- finding ids or none
-
-Deferable Set:
-- finding ids or none
 
 Coverage:
 - reviewed: ...
 - not reviewed: ...
 - verification seen: ...
 
-Lake Score:
-- NN/100
-
 Residual Risk:
 - what still needs another pass, if anything
 ```
 
-Lake Score is a readiness score for the reviewed change:
-
-- `90-100`: no material findings; routine owner confirmation remains.
-- `75-89`: mostly solid but has fix-now issues.
-- `50-74`: multiple material gaps remain.
-- `0-49`: not close to merge, release, or handoff.
+If the user asks for a readiness judgment, provide a short qualitative status such as "ready to merge", "fix before merge", or "needs another pass" instead of a numeric score.
 
 If there are no material issues, say that clearly:
 
@@ -172,7 +168,7 @@ Findings:
 - No material issues found.
 ```
 
-Then still report coverage, verification seen, residual risk, and Lake Score.
+Then still report coverage, verification seen, and residual risk.
 
 ## Minimum Acceptance
 
@@ -180,7 +176,7 @@ A review is complete only when:
 
 1. The reviewed target and unreviewed areas are explicit.
 2. Findings lead the response and are sorted by severity.
-3. Every finding has evidence, impact, confidence, and status.
+3. Every finding has evidence, why it matters, confidence, and status.
 4. Security-sensitive changes received the security reference workflow.
 5. Missing tests or skipped verification are reported as risk, not hidden in the summary.
 6. The final answer does not imply fixes were made or tests passed unless that evidence exists.

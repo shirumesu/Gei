@@ -2,7 +2,7 @@
 
 Read this file after the root skill routes the task to `public-opinion`.
 
-If the task depends on Jina access for Reddit, X/Twitter, or Xiaohongshu, read `references/tool.md` first and then continue here.
+If the task depends on Jina access for Reddit, X/Twitter, or Xiaohongshu, also read the root skill's `tool` overlay. The tool overlay is additive; this file remains the primary public-opinion branch.
 
 This branch is about user voices, platform feedback, and public discussion samples. It is not the same thing as fact-checking. User voices can prove that people are saying, reporting, or feeling something. They do not automatically prove that the underlying fact is established.
 

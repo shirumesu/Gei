@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, memory, and project state.",
   "author": {
     "name": "shirumesu",
@@ -11,7 +11,6 @@
   "license": "MIT",
   "keywords": ["agent", "skills", "workflow", "codex"],
   "skills": "./skills/",
-  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Progressive skill routing for practical agent workflows.",
@@ -25,7 +24,6 @@
     "defaultPrompt": [
       "How about adding a login feature for good?",
       "Complete this plan and update the documentation.",
-      "update project state.",
       "remember this project workflow."
     ],
     "brandColor": "#839f9f",

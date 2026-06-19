@@ -26,7 +26,6 @@ spec/
   memory/
     <pattern-name>.md
   CHANGELOG.md
-  current-work.md
   test/
   docs/
     #NNN-{work-description}.md
@@ -36,7 +35,7 @@ spec/
 
 `MEMORY.md` is the memory index, injected at session start. Individual memory entries live under `memory/`. Memo owns recall, write, update, deletion, and compaction behavior through the memory event.
 
-`current-work.md` is optional lifecycle state and recent task memory. It may be absent in a fresh spec system, but file-changing work should create it before edits unless a valid no-anchor exemption applies. It can also preserve recent debug, release, handoff, or reconciliation context that has not yet been promoted into durable spec files.
+`CHANGELOG.md` `## Unreleased` is the task tracker: changelog-worthy work is recorded there at completion, and a release compresses it into a version or checkpoint section. There is no separate current-work file.
 
 `spec/docs/` is optional execution context. Create task specs only for explicit plans, handoffs, or complex spec-backed work.
 
@@ -49,14 +48,13 @@ For a new task in an established project, use this order:
 3. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
 4. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
 5. the relevant `spec/memory/*.md` entry only when Memo memory recall or the memory index points to it
-6. `spec/current-work.md` for active or paused file-changing work, recent related task memory, debug/release handoff context, reconciliation, or before file edits as required by the lifecycle
-7. `spec/CHANGELOG.md` only when recent closed work may affect the current decision
-8. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
-9. related test files in `spec/test/` when the task includes verification work
+6. `spec/CHANGELOG.md` `## Unreleased` for recent closed-but-unreleased work, then released sections when older closed work may affect the current decision
+7. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
+8. related test files in `spec/test/` when the task includes verification work
 
 Read code after that only where the docs are insufficient or possibly stale.
 
-Use confidence tiers when documents disagree: code, tests, configuration, build scripts, and Git history outrank Memo documents; `current-work.md` outranks durable spec files for recent task state; durable spec files are long-term memory and may lag until promotion.
+Use confidence tiers when documents disagree: code, tests, configuration, build scripts, and Git history outrank Memo documents; `spec/CHANGELOG.md` `## Unreleased` outranks durable spec files for recent task state; durable spec files are long-term memory and may lag until promotion.
 
 ## Write Order
 
@@ -104,8 +102,7 @@ Bad pattern:
 
 Good pattern:
 
-- update `current-work.md` for active file-changing work
-- update `CHANGELOG.md` when file-changing work closes
+- update `CHANGELOG.md` `## Unreleased` when changelog-worthy file-changing work closes
 - update a combined spec-task file when an explicit spec-backed task changes scope
 - update architecture only when structure changes
 - checkpoint or compress `CHANGELOG.md` when closed history starts to hide current context

@@ -31,7 +31,6 @@ Do not save:
 Before writing memory, decide whether another spec surface is the better home:
 
 - Structure, routing, commands, module boundaries, data flow -> `spec/ARCHITECTURE.md`
-- Current in-flight task state -> `spec/current-work.md`
 - User-visible or release-worthy outcome -> `spec/CHANGELOG.md`
 - Accepted detailed plan or handoff -> `spec/docs/#NNN-*.md`
 - Operational pattern, gotcha, correction, or durable preference -> `spec/MEMORY.md` and `spec/memory/*.md`
@@ -89,13 +88,14 @@ Bad:
 2. Apply the save, skip, destination, duplication, and security checks.
 3. Search `spec/MEMORY.md` and directly related memory entries for an existing entry to update before creating a new one.
 4. Create, update, or delete exactly the relevant entry and index line.
-5. Use one final marker:
+5. Report only meaningful memory changes:
 
 ```text
 Memo memory write: created <memory-name>
 Memo memory write: updated <memory-name>
 Memo memory write: deleted <memory-name>
-Memo memory checked: no write needed
 ```
+
+If no memory should be written, keep the no-write decision internal unless the user asked about memory status or the skip reason is non-obvious and useful.
 
 If uncertain whether the user wants a personal preference saved into a project-local spec, ask before writing.

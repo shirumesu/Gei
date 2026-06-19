@@ -19,10 +19,16 @@ Do not use strict evaluation rituals for every small Skill. Do not skip behavior
 
 ## 2. Run Format Validation
 
-From the skill directory or repository root:
+From the `skills/create-skill/` directory:
 
 ```bash
 python scripts/quick_validate.py <path-to-skill>
+```
+
+From the repository root:
+
+```bash
+python skills/create-skill/scripts/quick_validate.py <path-to-skill>
 ```
 
 This catches mechanical issues only:
@@ -32,7 +38,7 @@ This catches mechanical issues only:
 - missing `name` or `description`
 - invalid `name`
 - overlong or unsafe `description`
-- broken local markdown links
+- broken local markdown links in `SKILL.md` and reference Markdown files
 - obvious placeholders
 
 It does not prove the Skill is useful.

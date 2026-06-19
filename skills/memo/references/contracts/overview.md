@@ -64,11 +64,11 @@ The full starter template is `references/templates/OVERVIEW.template.md`.
 - If the file exceeds 250 lines, keep it valid but treat that as a compression warning that should be surfaced to the user during the task or final handoff.
 - State facts that explain the project before its structure.
 - Point to root `ARCHITECTURE.md` for durable structure, routing, data flow, module boundaries, cross-file impact context, and any architecture fragments it routes to. Do not link directly to architecture fragments unless the project has no root architecture index.
-- Describe `current-work.md` as recent task memory and lifecycle evidence for active, paused, debug, release, reconciliation, or file-changing work. Do not make it a generic cold-start context file.
+- Point recent-work readers to `CHANGELOG.md` `## Unreleased`; there is no separate current-work file to describe.
 - Link to `CHANGELOG.md` and relevant `spec/docs/` files by role, not by copying their contents.
 - Keep `Technology Baseline` to stable maintenance facts: runtime, frameworks, package manager, build/test/typecheck commands, and platform assumptions.
 - Do not record long provider lists, full dependency inventories, implementation details, full verification matrices, history, durable risk ledgers, or task diary notes.
-- State confidence order when it matters: repository code/config/tests first, `current-work.md` second as recent task memory, durable spec files third because they may lag until promotion.
+- State confidence order when it matters: repository code/config/tests first, `CHANGELOG.md` `## Unreleased` second as recent task memory, durable spec files third because they may lag until promotion.
 
 ## Completion Check
 
@@ -76,5 +76,5 @@ The full starter template is `references/templates/OVERVIEW.template.md`.
 - A zero-context AI maintainer can choose the next spec file to read.
 - The technology baseline is visible without duplicating package manifests.
 - Structural details remain in `ARCHITECTURE.md`.
-- Current-work is described without duplicating the lifecycle contract.
+- Recent work points to `CHANGELOG.md` without duplicating its contents.
 - Task-specific details remain in `spec/docs/`.

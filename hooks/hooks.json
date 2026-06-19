@@ -1,10 +1,16 @@
 {
-  "description": "Inject Gei project overview and memory index at session start.",
+  "description": "Inject the Gei router, project overview, and memory index at session start.",
   "hooks": {
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_using_gei.mjs\"",
+            "statusMessage": "Loading Gei router",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_overview.mjs\"",

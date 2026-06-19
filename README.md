@@ -30,7 +30,7 @@
 
 ### 主流程
 
-/using-gei ──→ /consider | /memo | /work | /code-review | /see
+/using-gei ──→ /consider | /memo | /work | /code-review | /see | /create-skill
 
 **`/using-gei`** — 总路由，管理整个任务的生命周期
 
@@ -40,16 +40,15 @@
 
 | 模块 | 职责 |
 | --- | --- |
-| `current-work` | 系列连续任务的完整记录 |
 | `OVERVIEW` | 快速恢复上下文，描述项目，如何进行任务，如何阅读 `spec/`，透过 Hook 注入到会话开始 |
 | `ARCHITECTURE & architecture/ ` | 在需要时提供整个系统的完整详细架构描述，包括系统运行、模块，改动影响范围，相关文件等 |
 | `Docs / Spec-Plan` | 依据严谨流程编写，负责复杂 Plan 执行 |
-| `CHANGELOG` | 辅助版本发布维护，固定发布流程，一句话发布 |
+| `CHANGELOG` | 项目任务追踪与版本发布维护：完成的变更直接记入 `## Unreleased`，发布时压缩成版本段，一句话发布 |
 | `MEMORY & memory/` | 完整的记忆层，负责维护可重复流程、重复踩坑和项目约定；索引透过 Hook 注入到会话开始，结束检查由 Memo memory 收尾规则执行 |
 
 **`/work`** — 完整的代码工作流程
 
-- 从 `current-work` 开始，按行为风险选择测试、构建、lint、脚本检查或发布门禁；需要新增测试时从预期失败测试开始
+- 按行为风险选择测试、构建、lint、脚本检查或发布门禁；只有新增或改变有稳定测试价值的行为时才新增测试，并优先从预期失败测试开始
 - 代码修改维护准则 · 测试验证 · 发布流程
 
 **`/memo`** ↩ — 依据 work 的工作，维护新的 Spec 变更
@@ -72,22 +71,22 @@
 | --- | --- | --- |
 | `/using-gei` | 任何会话开始前 | 总路由和任务生命周期维护层 |
 | `/consider` | 讨论任何新想法时 | 帮助收敛需求；需求模糊时提供详细的设计方案 |
-| `/memo` | 全工程 spec 与记忆维护 | 维护项目 Spec 层：架构、当前工作、更改日志、方案设计和项目记忆 |
+| `/memo` | 全工程 spec 与记忆维护 | 维护项目 Spec 层：架构、更改日志、方案设计和项目记忆 |
 | `/work` | 任何代码执行任务 | 完整的编码、测试、版本维护及发布流程 |
 | `/code-review` | 审查 PR、diff、commit、working tree 或实现结果时 | 只读审查代码正确性、测试质量、维护性、UX/DX、安全与发布风险 |
-| `/see` | 任何对外网络访问 | 完善的搜索流程，确保信息准确、可靠、具时效性；对已知 URL 可透过 [Jina](https://jina.ai/) 辅助读取网页 |
+| `/see` | 外部研究、事实核查或来源综合是最终交付物时 | 完善的搜索流程，确保信息准确、可靠、具时效性；对已知 URL 可透过 [Jina](https://jina.ai/) 辅助读取网页 |
 | `/create-skill` | Skill 相关操作时 | 创建与审核 Skill，验证可优化空间 |
 
 ## Hooks
 
-本 Skill 提供两个 SessionStart Hook：`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引。
-`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。OVERVIEW 与 MEMORY 保持拆分，避免单个 hook 输出过长。
+本 Skill 提供三个 SessionStart Hook：`inject_using_gei` 注入 `using-gei` 路由器，`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引。
+`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。三个 hook 保持拆分，避免单个 hook 输出过长。
 
 ### 常见使用路径
 
 | 场景 | 路径 | 备注 |
 | --- | --- | --- |
-| 完整的一次工作 | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | 几乎不需要主动调用任何命令 |
+| 完整的一次工作 | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | 几乎不需要主动调用任何命令；无操作 lifecycle 状态默认不打扰最终回复 |
 | 代码审查 | `using-gei` → `code-review` | 只读审查，不进入 `work` 的实现生命周期 |
 | 想法讨论 | `using-gei` → `consider` → `work` | 可显式使用 `consider`，思路更明确 |
 | 对外搜索 | `using-gei` → `consider`（可选）→ `see` | `see` 要求澄清歧义、使用权威数据，结果更严谨 |

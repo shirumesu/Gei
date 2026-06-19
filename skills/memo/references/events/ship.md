@@ -2,7 +2,7 @@
 
 Use this event when a task reaches a durable checkpoint, release, publication, or formal handoff.
 
-Ship is also a lifecycle boundary. Reconcile relevant `spec/current-work.md` entries before finishing the ship event.
+Ship is the release boundary. Compress `spec/CHANGELOG.md` `## Unreleased` into a version or checkpoint section before finishing the ship event.
 
 When a project has a release-specific memory entry, apply it before writing the ship record. Treat it as a checklist for project-local ordering, public-note style, publish boundaries, and post-release verification.
 
@@ -22,26 +22,24 @@ Trigger this event when any of these are true:
 Read:
 
 1. `references/contracts/changelog.md`
-2. `references/contracts/work-anchor.md` and `spec/current-work.md` if the anchor exists
-3. `spec/CHANGELOG.md`
-4. Matching `spec/MEMORY.md` entries when a release, publish, tag, or project-specific ship workflow trigger applies
-5. The public changelog or release notes file when the ship event publishes user-facing notes
-6. The active spec-task file only when this is spec-backed work
-7. `references/contracts/task-spec.md` only when updating the active spec-task file
-8. `references/contracts/architecture.md` and `spec/ARCHITECTURE.md` only for the stale diagram audit or when architecture changed
+2. `spec/CHANGELOG.md`
+3. Matching `spec/MEMORY.md` entries when a release, publish, tag, or project-specific ship workflow trigger applies
+4. The public changelog or release notes file when the ship event publishes user-facing notes
+5. The active spec-task file only when this is spec-backed work
+6. `references/contracts/task-spec.md` only when updating the active spec-task file
+7. `references/contracts/architecture.md` and `spec/ARCHITECTURE.md` only for the stale diagram audit or when architecture changed
 
 ## Actions
 
-1. Reconcile relevant `spec/current-work.md` entries; if durable changed work exists, ensure `CHANGELOG.md` `Unreleased` has a typed entry.
+1. Ensure `CHANGELOG.md` `## Unreleased` has a typed entry for every durable change being shipped.
 2. If the project has a version scheme or the user asked for a version, rename `Unreleased` to `## vX.Y.Z - YYYY-MM-DD`.
 3. If the project has no fixed version scheme, rename `Unreleased` to `## Checkpoint YYYY-MM-DD` or `## Checkpoint YYYY-MM`.
-4. Add or compress `Summary`, `Changed Files`, and `Commits` inside the version/checkpoint section.
+4. Add or compress a `Summary` inside the version/checkpoint section.
 5. Recreate a fresh `## Unreleased` section at the top.
-6. When public release notes are part of the ship event, write them for the user-visible outcome and omit internal spec/test/reconciliation logs unless the user explicitly wants operational notes.
+6. When public release notes are part of the ship event, write them for the user-visible outcome and omit internal spec/test logs unless the user explicitly wants operational notes.
 7. Update the active spec-task file only when this work is explicitly spec-backed.
 8. Run a stale diagram audit against `ARCHITECTURE.md` only when architecture changed or the release depends on diagram accuracy.
-9. Archive promoted entries in `spec/current-work.md`; clean only entries already marked archived. If the project keeps `spec/current-work.md` as a stable buffer, reset it to an empty buffer instead of deleting it.
-10. If a release publish step exists outside Memo, leave a clear handoff for Work's ship gate or the release workflow to commit, tag, push, publish, and verify the generated release.
+9. If a release publish step exists outside Memo, leave a clear handoff for Work's ship gate or the release workflow to commit, tag, push, publish, and verify the generated release.
 
 Never invent metrics. If coverage, completion rate, or other evidence is unavailable, write `not measured` or `not instrumented`.
 
@@ -78,6 +76,6 @@ Before finishing:
 - Changed files and related commits are listed or marked unavailable.
 - The active task spec records final outcome only when the task was spec-backed.
 - Architecture diagrams were checked when relevant.
-- `spec/current-work.md` no longer contains stale active work, and promoted shipped entries are archived.
+- `CHANGELOG.md` `## Unreleased` is empty or reset after the shipped work moved into the version/checkpoint section.
 - Public release notes, when present, are user-facing rather than an operation log.
 - Any external publish, tag, release artifact, or generated release-note verification needed after Memo is recorded as a handoff or verified by the release workflow.

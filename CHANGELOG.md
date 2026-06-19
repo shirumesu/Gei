@@ -9,6 +9,17 @@
 ### 优化
 - 将记忆结束检查规则迁回 `memo`、`using-gei` 和 `work` 的技能契约，保留记忆写入门禁，但要求在同一条最终回复中完成。
 - 将原 `learn` 的 recall、write gate、maintenance 和安全规则迁入 Memo memory 子流程。
+- 降低 lifecycle 输出噪音：普通 memory/current-work 无操作状态默认不再进入最终回复，仅在影响决策、发生写入/冲突或用户询问时说明。
+- 优化 `work`：保留保守的 current-work 记录边界，同时允许低风险任务走 fast path，避免为短期、临时或命令行即可验证的改动新增低价值测试和 section checkpoint。
+- 优化 `consider`：保留完整设计审批门槛，但在用户提出新问题时回到对应讨论阶段，等局部问题解决后再重新给完整方案请求审批。
+- 压轻 `code-review` 输出契约，移除强制 Lake Score，并补齐 operations/release/recovery 审查 pass。
+
+### 修复
+- 修复 README 主流程漏列 `/create-skill`，并将 `/see` 的触发边界从“任何外部网络访问”收窄为外部研究/事实核查/来源综合作为最终交付物。
+- 修复 `see` 的 `tool.md` progressive disclosure 定位，将其明确为受限平台/Jina 场景下叠加读取的 overlay。
+- 修复 `create-skill` 的验证路线不一致，将 `testing.md` 作为创建/改进后的 validation overlay。
+- 修复 `quick_validate.py` 与文档不一致的问题，现在会检查所有 Skill Markdown 文件中的本地链接。
+- 将 Codex plugin `defaultPrompt` 从 4 条收敛到 3 条，避免超过当前宿主支持上限。
 
 ## v0.6.1 - 2026-06-07
 

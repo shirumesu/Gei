@@ -19,15 +19,15 @@ Create, improve, and review Skills as reusable agent workflows, not long prompts
 
 ## Route
 
-Choose one primary route, then read only the referenced file.
+Choose one primary route for the task. Then read `references/testing.md` as a validation overlay when the user asks for validation, a Skill file was created or changed, or the final answer will claim the Skill is ready.
 
 | User goal | Read |
 | --- | --- |
 | Create a new Skill from an idea, workflow, prior conversation, or source material | `references/create.md` |
 | Improve an existing Skill, incorporate user feedback or new material, or review a Skill for quality | `references/improve-review.md` |
-| Validate a Skill's structure, trigger behavior, or real task behavior | `references/testing.md` |
+| Validate a Skill's structure, trigger behavior, or real task behavior without changing it | `references/testing.md` |
 
-If the request combines creation and review, start with `references/create.md`; creation must include the relevant review checks before handoff.
+If the request combines creation and review, start with `references/create.md`; creation must include the relevant review checks before handoff. If the request combines improvement and validation, start with `references/improve-review.md`, then apply the testing overlay.
 
 ## Minimum Acceptance
 

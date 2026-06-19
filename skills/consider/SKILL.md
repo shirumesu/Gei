@@ -1,6 +1,6 @@
 ---
 name: consider
-description: Use before implementation begins, when a user has an idea that needs design before code — clarifying scope, feasibility, approach, and boundaries. Use when Codex should recover project context, challenge ambiguity, research comparable solutions, define the full technical path, and stop until the user gives full-design approval. Not for tasks that are already clearly scoped and ready to implement.
+description: Use before implementation begins, when a user has an idea that needs design before code — clarifying scope, feasibility, approach, and boundaries. Use when Codex should recover project context, challenge ambiguity, research comparable solutions when they can affect the decision, define the full technical path, and stop until the user gives full-design approval. Not for tasks that are already clearly scoped and ready to implement.
 ---
 
 # Consider
@@ -18,7 +18,7 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 ### Design First
 
-- Spend roughly 80% of the effort on design. The simpler the project looks, the more likely hidden assumptions can waste the work.
+- Spend most of the effort on design. The simpler the project looks, the more important it is to check whether hidden assumptions would waste the implementation.
 - Every project must go through enough design discussion to make the key decisions explicit.
 - Keep the design as broad and deep as the task truly requires, but do not expand it speculatively. Every added subsystem, abstraction, option, or future-proofing choice must be tied to a stated requirement, risk, constraint, or approved long-term direction.
 - When approaches conflict, separate them and recommend one instead of blending incompatible assumptions into a compromise design.
@@ -117,7 +117,9 @@ When asking, prefer 2-3 options with a recommendation, tradeoff, and downside. D
 
 ### Phase 3: Feasibility And Alternatives
 
-Use comparable products and similar implementations to test whether the design is realistic. Once the user's requirement is clear enough to enter detailed design, search the web before writing the proposal.
+Use comparable products and similar implementations to test whether the design is realistic. Search externally before writing the proposal when outside facts can materially change the design, such as product behavior, framework choice, platform constraints, integration style, compliance expectations, or user-facing workflow norms.
+
+For local workflow, Skill, prompt, template, or spec wording changes, inspect the local context first. Search the web only when it would change a real design decision; do not make external research a ritual for text-only local workflow design.
 
 - Study mainstream commercial or closed-source products, open-source projects, and similar implementations.
 - Inspect their feature set, visual presentation, usage pattern, chosen technical stack, public implementation details, and concrete implementation shape.
@@ -212,7 +214,9 @@ Only full-design approval allows handoff. Full-design approval means the user cl
 
 When the user gives partial approval, acknowledge the approved part, update or continue the design, and stay in the current phase. **NEVER** treat partial approval as permission to implement.
 
-After a full design has been presented, classify follow-up discussion by impact. If the user is revising one assumption, wording choice, section, rule, boundary, or example, keep the discussion focused on that point, state the exact delta, and say whether the rest of the design still stands. Avoid restating the full design unless the change affects the goal, scope, selected approach, architecture, success standard, or acceptance check, or the user asks for the complete revised design.
+After a full design has been presented, classify follow-up discussion by impact. If the user finds a new problem, rejects a part, or opens a new discussion point, return to the relevant earlier phase and focus only on that point until it is resolved. Do not repeat the full final design in every reply.
+
+When a follow-up revises one assumption, wording choice, section, rule, boundary, or example, keep the discussion focused on that point, state the exact delta, and say whether the rest of the design still stands. Ask any needed local approval for that delta first. Present the complete revised design and ask for full-design approval only after the new discussion point is resolved, when the change affects the goal, scope, selected approach, architecture, success standard, acceptance check, or the user asks for the complete revised design.
 
 **Exit only when:**
 

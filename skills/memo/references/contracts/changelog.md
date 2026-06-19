@@ -4,11 +4,24 @@ Use this contract when creating or updating `spec/CHANGELOG.md`.
 
 ## Responsibility
 
-`CHANGELOG.md` records durable closed file-changing work and durable release or checkpoint history. It is not a diary and not a raw git log.
+`spec/CHANGELOG.md` is the project's single task tracker. It records durable changed work and durable release or checkpoint history. There is no separate `current-work` ledger: changelog-worthy work is recorded here at completion, and release events compress `## Unreleased` into a named version or checkpoint.
 
-Closed work enters `CHANGELOG.md` only when it passes the durable relevance gate: it changes behavior, release contents, rollback expectations, architecture, workflow rules, public files, or future-agent maintenance context. Release or checkpoint events compress `Unreleased` into a named version or checkpoint.
+`## Unreleased` holds work that is done but not yet released. A release renames it to a version section. This is the surface a future agent reads to learn what changed recently and what is waiting to ship.
 
-Do not add entries for stage-only work, failed attempts, exploratory checks, temporary debugging, partial work with no durable outcome, or mechanical edits that future agents do not need to recover.
+It is not a diary and not a raw git log.
+
+## What To Record
+
+Add one concise typed entry under `## Unreleased` when changed work passes the durable relevance gate: it changes behavior, release contents, rollback expectations, architecture, workflow rules, public files, or future-agent maintenance context.
+
+Do not add entries for stage-only work, failed attempts, exploratory checks, temporary debugging, partial work with no durable outcome, pure reads, or mechanical edits future agents do not need to recover (a typo fix, a local rename already proven by build).
+
+Record the entry at completion, not before starting. In-progress work needs no entry. Work that genuinely must be resumed across sessions belongs in a `spec/docs/#NNN-{work-description}.md` task spec, not here.
+
+## Who Writes It
+
+- Work may append a single typed line under `## Unreleased` at task close. This is a trivial append and does not require invoking Memo.
+- Memo owns every other `CHANGELOG.md` operation: the release or checkpoint transition, the `Summary`, compaction, and any architecture, overview, or memory promotion that the same work also requires through its own event.
 
 ## Entry Shape
 
@@ -26,7 +39,7 @@ Pending.
 - Add the new workflow.
 
 ### fix
-- Correct stale anchor reconciliation.
+- Correct the stale routing check.
 ```
 
 Use conventional type headings such as `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `build`, `ci`, `perf`, and `breaking`. Omit empty type headings.

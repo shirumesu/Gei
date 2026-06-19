@@ -14,7 +14,7 @@ Trigger this event when any of these changed:
 - verification command or test strategy
 - test file path under `spec/test/`
 
-For ordinary file-changing tasks that are not spec-backed, use `anchor-reconciliation.md` at close instead of creating a task spec.
+For ordinary file-changing tasks that are not spec-backed, record a typed entry under `spec/CHANGELOG.md` `## Unreleased` following `../contracts/changelog.md` at close instead of creating a task spec.
 
 ## Required Reading
 
