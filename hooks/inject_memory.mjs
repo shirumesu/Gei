@@ -109,8 +109,9 @@ function buildMemoryIndexBlock(projectDir) {
     return [
       ...base,
       "",
-      "The current project maintains a spec/MEMORY.md index. The injected content below is a retrieval router for Gei Memo memory.",
-      "Scan its `Read when ...` lines before task decisions. Read linked files under spec/memory/ only when a trigger matches.",
+      "This project keeps a Gei Memo memory index at spec/MEMORY.md, injected below. It is a retrieval router, not the memory itself.",
+      "Before you plan, review, or edit, scan its `Read when ...` lines against the current task. When one matches, read the linked spec/memory/*.md entry and apply it as a constraint, verification step, or non-goal.",
+      "Do not bulk-read spec/memory/. Re-scan after scope moves into new files, commands, errors, or workflows. Tell the user about a memory entry only when it changed the answer or conflicts with repository or user instructions.",
       ...warning,
       "",
       "--- spec/MEMORY.md ---",

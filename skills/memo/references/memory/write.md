@@ -2,6 +2,8 @@
 
 Use this route when deciding whether to create, update, delete, or skip a memory entry.
 
+Project memory exists to carry a lesson into a future session that the repository, tests, and docs would not reveal on their own. Write an entry only when skipping it would let a future agent repeat a mistake, miss a hidden constraint, or rediscover something the hard way; otherwise prefer the no-write decision.
+
 ## Save Criteria
 
 Save or update memory only when the fact is likely to change future agent behavior and fits at least one category:
