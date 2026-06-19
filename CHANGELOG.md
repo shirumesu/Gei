@@ -1,16 +1,20 @@
 # Changelog
 
-## Unreleased
+## v0.6.3 - 2026-06-19
 
 ### 移除
+- 移除 `spec/current-work.md` 任务锚点，`spec/CHANGELOG.md` 的 `## Unreleased` 现在是唯一任务追踪面；一并移除 `work-anchor` 契约、`anchor-reconciliation` 事件和 active/paused/closed 锚点状态，需要跨会话续做的重活改用 `spec/docs/#NNN` task spec。
+- 移除独立 `learn` Skill，项目记忆的读取、写入、维护和结束检查重新归入 `memo`。
 - 移除 `stop_record_memory` Stop hook，避免会话结束时为了记忆检查额外追加一轮回复。
-- 移除独立 `learn` Skill，项目记忆读取、写入、维护和结束检查重新归入 `memo`。
+
+### 新增
+- 新增 `inject_using_gei.mjs` SessionStart hook，每次会话开始注入完整 `using-gei` 路由（在 `hooks/hooks.json` 与 `hooks/codex-hooks.json` 中均最先注册），以 `skills/using-gei/SKILL.md` 为唯一来源。
 
 ### 优化
 - 将记忆结束检查规则迁回 `memo`、`using-gei` 和 `work` 的技能契约，保留记忆写入门禁，但要求在同一条最终回复中完成。
 - 将原 `learn` 的 recall、write gate、maintenance 和安全规则迁入 Memo memory 子流程。
-- 降低 lifecycle 输出噪音：普通 memory/current-work 无操作状态默认不再进入最终回复，仅在影响决策、发生写入/冲突或用户询问时说明。
-- 优化 `work`：保留保守的 current-work 记录边界，同时允许低风险任务走 fast path，避免为短期、临时或命令行即可验证的改动新增低价值测试和 section checkpoint。
+- 降低 lifecycle 输出噪音：普通 memory 无操作状态默认不再进入最终回复，仅在影响决策、发生写入/冲突或用户询问时说明。
+- 优化 `work`：按行为风险选择验证强度，允许低风险任务走 fast path，避免为短期、临时或命令行即可验证的改动新增低价值测试和 section checkpoint。
 - 优化 `consider`：保留完整设计审批门槛，但在用户提出新问题时回到对应讨论阶段，等局部问题解决后再重新给完整方案请求审批。
 - 压轻 `code-review` 输出契约，移除强制 Lake Score，并补齐 operations/release/recovery 审查 pass。
 
