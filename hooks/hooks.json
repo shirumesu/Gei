@@ -1,5 +1,4 @@
 {
-  "description": "Inject the Gei router, project overview, and memory index at session start.",
   "hooks": {
     "SessionStart": [
       {

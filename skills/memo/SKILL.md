@@ -104,7 +104,6 @@ spec/
   MEMORY.md
   CHANGELOG.md
   memory/
-  test/
   docs/
     #NNN-{work-description}.md
 ```

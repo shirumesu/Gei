@@ -165,7 +165,7 @@ Do not leave these patterns in a live plan:
 - Prefer dense implementation details over protocol-heavy checklists.
 - Include detailed examples, pseudocode, or small code blocks when they prevent implementation ambiguity; omit them when they merely restate a straightforward local edit.
 - For complex work, include impacted files, call paths, interfaces, rollback notes, edge cases, and verification commands.
-- Use spec-managed tests under `spec/test/` only when the task needs durable fixtures or verification assets.
+- Keep ordinary tests in the repository's normal test locations; do not treat `spec/` as a test home.
 - Do not store ordinary progress updates or full decision history here.
 - Update status as the task moves from Draft to Approved, In Progress, and Shipped.
 

@@ -12,7 +12,7 @@ Trigger this event when any of these changed:
 - affected file list
 - interface
 - verification command or test strategy
-- test file path under `spec/test/`
+- repository test file path
 
 For ordinary file-changing tasks that are not spec-backed, record a typed entry under `spec/CHANGELOG.md` `## Unreleased` following `../contracts/changelog.md` at close instead of creating a task spec.
 
@@ -33,7 +33,7 @@ Update the active combined spec-task file when:
 - scope changes
 - assumptions become facts
 - important files or interfaces change
-- spec-managed test files or verification strategy change
+- repository test files or verification strategy change
 
 Do not touch `ARCHITECTURE.md` unless system structure, routing, entry points, boundaries, or major flow actually changed.
 

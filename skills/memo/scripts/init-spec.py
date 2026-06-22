@@ -18,7 +18,6 @@ TEMPLATE_MAP = {
 DIRECTORIES = [
     "spec/docs",
     "spec/memory",
-    "spec/test",
 ]
 
 CONFLICT_MARKERS = [
@@ -94,7 +93,7 @@ def ensure_directories(project_root: Path) -> None:
         dir_path = project_root / relative_path
         dir_path.mkdir(parents=True, exist_ok=True)
         # Create .gitkeep for empty directories
-        if relative_path in ("spec/test", "spec/memory"):
+        if relative_path == "spec/memory":
             gitkeep = dir_path / ".gitkeep"
             if not gitkeep.exists():
                 gitkeep.touch()

@@ -36,7 +36,7 @@ Read:
 3. If the project has no fixed version scheme, rename `Unreleased` to `## Checkpoint YYYY-MM-DD` or `## Checkpoint YYYY-MM`.
 4. Add or compress a `Summary` inside the version/checkpoint section.
 5. Recreate a fresh `## Unreleased` section at the top.
-6. When public release notes are part of the ship event, write them for the user-visible outcome and omit internal spec/test logs unless the user explicitly wants operational notes.
+6. When public release notes are part of the ship event, write them for the user-visible outcome and omit internal spec or verification logs unless the user explicitly wants operational notes.
 7. Update the active spec-task file only when this work is explicitly spec-backed.
 8. Run a stale diagram audit against `ARCHITECTURE.md` only when architecture changed or the release depends on diagram accuracy.
 9. If a release publish step exists outside Memo, leave a clear handoff for Work's ship gate or the release workflow to commit, tag, push, publish, and verify the generated release.
