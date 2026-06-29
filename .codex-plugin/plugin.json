@@ -16,6 +16,7 @@
     "codex"
   ],
   "skills": "./skills/",
+  "hooks": "./hooks/codex-hooks.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Progressive skill routing for practical agent workflows.",

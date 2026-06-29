@@ -36,10 +36,10 @@ function stripFrontmatter(text) {
 function buildRouterBlock() {
   try {
     const skillPath = path.join(pluginRoot, "skills", "using-gei", "SKILL.md");
-    if (!fs.existsSync(skillPath)) return "";
+    if (!fs.existsSync(skillPath)) return buildRouterDiagnosticBlock();
 
     const body = stripFrontmatter(fs.readFileSync(skillPath, "utf8").trimEnd());
-    if (!body) return "";
+    if (!body) return buildRouterDiagnosticBlock();
 
     return [
       "<gei-router>",
@@ -51,8 +51,17 @@ function buildRouterBlock() {
       "</gei-router>",
     ].join("\n");
   } catch {
-    return "";
+    return buildRouterDiagnosticBlock();
   }
+}
+
+function buildRouterDiagnosticBlock() {
+  return [
+    "<gei-router>",
+    "Warning: using-gei router could not be loaded.",
+    "Expected `skills/using-gei/SKILL.md` under the Gei plugin root. Load the installed `using-gei` skill before acting if the host did not inject it automatically.",
+    "</gei-router>",
+  ].join("\n");
 }
 
 writeSessionStartContext(buildRouterBlock());
