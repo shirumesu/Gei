@@ -27,21 +27,24 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 
 - Do not take implementation action, scaffold, or write the full implementation until the user gives full-design approval.
 
-### Ask Before Deciding
+### Ask Only When It Changes The Design
 
 - Do not silently choose the user's goal, product direction, priority, system boundary, or success standard.
-- If a meaningful decision depends on an assumption you are making, expose the assumption and ask before continuing.
-- Treat every unresolved ambiguity as blocking unless it is a trivial implementation detail that follows from existing context and would not affect the design.
-- If the request is ambiguous, complex, or likely inaccurate, ask a question or decompose the work before proposing a full design.
-- Even when the user asks for a plan or solution, ask first if a missing answer would materially change the result.
-- When asking a blocking question, provide 2-3 options, explain why each option matters, recommend one option, and state the likely downside or risk.
+- Ask only for unresolved user-owned decisions that would materially change the design, scope, acceptance check, risk posture, or build order.
+- Do not ask about facts that are researchable from local context, previous discussion, specs, code, logs, docs, or the user's current message. Inspect first, then ask only if the evidence is missing or contradictory.
+- Do not repeat a question that has already been answered. Carry the prior answer forward, state it as context, and ask only about the new delta if something changed.
+- Do not ask a question just to satisfy process. If there is no blocking user-owned decision, state the relevant assumptions and continue to alternatives or design.
+- Do not present obviously wrong, incompatible, unavailable, or already rejected choices as options. If one credible direction remains, explain why and continue with it as a recommendation or assumption.
+- If a meaningful decision depends on an assumption you are making, expose the assumption and ask before continuing only when the assumption is user-owned and would materially change the design.
+- If the request is ambiguous, complex, or likely inaccurate, ask a question or decompose the work before proposing a full design only when proceeding would require guessing a user-owned decision.
+- When asking a blocking question, provide 2-3 credible options, explain why each option matters, recommend one option, and state the likely downside or risk. If fewer than two credible options exist, ask a direct question instead of manufacturing choices.
 - Prefer a dedicated question tool when one is available instead of simulating the format in plain text.
 
 ### Decision Ownership
 
 Before expanding an idea, classify each unresolved point:
 
-1. **User-owned decision:** ask before continuing.
+1. **User-owned decision:** ask before continuing only if it is unresolved and would materially change the design.
 2. **Researchable fact:** inspect local or external context before asking.
 3. **Codex-owned detail:** decide later and disclose in the design.
 
@@ -96,9 +99,9 @@ Codex may decide only low-cost, reversible details that follow from existing pro
 - Existing project constraints are known enough to avoid an incompatible design.
 - Researchable local facts have been checked before asking the user to decide.
 
-### Phase 2: Clarification
+### Phase 2: Clarification When Needed
 
-Ask questions so the user clarifies user-owned decisions, risks, ambiguities, and hidden requirements. Ask exactly one blocking question at a time, then **STOP** and wait for the response.
+Ask questions only when unresolved user-owned decisions, risks, ambiguities, or hidden requirements would materially change the design. If context recovery and prior discussion already answer the relevant decisions, do not run a clarification round; carry the answers forward and continue. If a question is needed, ask exactly one blocking question at a time, then **STOP** and wait for the response.
 
 The request must be clear enough to include:
 
@@ -108,6 +111,8 @@ The request must be clear enough to include:
 - **Success:** how the user will judge that the result is good enough.
 
 When asking, prefer 2-3 options with a recommendation, tradeoff, and downside. Do not ask "Can you clarify?" by itself.
+
+The options must be credible. Do not include choices that conflict with known constraints, repeat rejected ideas, ignore prior answers, or exist only to make the question look balanced.
 
 **Exit only when:**
 
