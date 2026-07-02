@@ -14,8 +14,8 @@ Run recall when any of these are true:
 ## Process
 
 1. Start from the injected `spec/MEMORY.md` index. If no index exists, continue silently unless memory would otherwise matter to the answer.
-2. Compare each `Read when ...` line against the current task intent, files, commands, errors, and environment.
-3. Read only linked entries whose trigger plausibly matches. Do not bulk-read `spec/memory/`.
+2. Compare each linked summary line against the current task intent, files, commands, errors, and environment. The summary is a hint, not the full rule.
+3. Read only linked entries whose summary plausibly matters. Do not bulk-read `spec/memory/`.
 4. Convert each read entry into a concrete current-task constraint, verification step, or non-goal.
 5. If an entry conflicts with repository code, tests, config, or a direct user instruction, verify the higher-authority source and state the conflict.
 6. Repeat recall after meaningful scope changes.
@@ -35,7 +35,7 @@ I ignored the ship-release-process memory because this task is not a release or 
 
 ## Do Not
 
-- Treat the index as a to-do list. It is a router.
+- Treat the index as a to-do list or complete instruction set. It is a router to fuller memory entries.
 - Read entries after implementation just to satisfy process.
 - Apply a memory blindly when code or user instructions contradict it.
 - Save new memory during recall. Use `write.md` for that decision.

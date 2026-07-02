@@ -27,7 +27,7 @@ If `spec/` exists in the current workspace, read the relevant spec documents bef
 
 When context sources disagree, trust repository code/config/tests/Git history first, `spec/CHANGELOG.md` `## Unreleased` second for recent task state, and durable spec files third because they may lag until Memo promotion.
 
-If `spec/MEMORY.md` exists, scan its injected index before feasibility planning. Read linked memory entries only when their `Read when ...` trigger matches the task. Apply matching entries internally, and mention memory to the user only when it changes the decision, conflicts with higher-authority context, writes memory, or the user asks.
+If `spec/MEMORY.md` exists, scan its injected index before feasibility planning. Treat index lines as short summaries, not complete rules; read linked memory entries when a summary might matter to the task. Apply matching entries internally, and mention memory to the user only when it changes the decision, conflicts with higher-authority context, writes memory, or the user asks.
 
 If `spec/` does not exist, do not create it. Proceed without it.
 

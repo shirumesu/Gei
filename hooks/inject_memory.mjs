@@ -62,37 +62,16 @@ function getHookStartDir(hookInput) {
     : process.env.CLAUDE_PROJECT_DIR || process.cwd();
 }
 
-function buildProjectSpecFlag(projectDir) {
-  const projectHasSpec = Boolean(projectDir);
-
-  return [
-    "<gei-project-spec>",
-    `project_has_spec: ${projectHasSpec ? "true" : "false"}`,
-    ...(projectHasSpec ? [`spec_root: ${path.join(projectDir, "spec")}`] : []),
-  ];
-}
-
 function buildMemoryIndexBlock(projectDir) {
   try {
-    const base = buildProjectSpecFlag(projectDir);
     if (!projectDir) {
-      return [
-        ...base,
-        "",
-        "No MEMORY.md found for the current project.",
-        "</gei-project-spec>",
-      ].join("\n");
+      return "";
     }
 
     const specRoot = path.join(projectDir, "spec");
     const memoryPath = path.join(specRoot, "MEMORY.md");
     if (!fs.existsSync(memoryPath)) {
-      return [
-        ...base,
-        "",
-        "No spec/MEMORY.md found for the current project.",
-        "</gei-project-spec>",
-      ].join("\n");
+      return "";
     }
 
     const memory = fs.readFileSync(memoryPath, "utf8").trimEnd();
@@ -107,17 +86,16 @@ function buildMemoryIndexBlock(projectDir) {
         : [];
 
     return [
-      ...base,
+      "Gei memory index context",
       "",
       "This project keeps a Gei Memo memory index at spec/MEMORY.md, injected below. It is a retrieval router, not the memory itself.",
-      "Before you plan, review, or edit, scan its `Read when ...` lines against the current task. When one matches, read the linked spec/memory/*.md entry and apply it as a constraint, verification step, or non-goal.",
+      "Before you plan, review, or edit, scan its linked summaries against the current task. If a line might matter, read the linked spec/memory/*.md entry before relying on the summary.",
       "Do not bulk-read spec/memory/. Re-scan after scope moves into new files, commands, errors, or workflows. Tell the user about a memory entry only when it changed the answer or conflicts with repository or user instructions.",
       ...warning,
       "",
       "--- spec/MEMORY.md ---",
       memory,
       "----------------------",
-      "</gei-project-spec>",
     ].join("\n");
   } catch {
     return "";

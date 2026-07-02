@@ -9,7 +9,6 @@ Trigger this event when any of these are true:
 - `spec/` does not exist.
 - One of `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, `CHANGELOG.md`, `memory/`, or `docs/` is missing.
 - The current repo clearly has no working spec system yet.
-- The project has no current `spec/docs/#NNN-{work-description}.md` for an accepted spec-backed task.
 
 ## Required Reading
 
@@ -29,8 +28,8 @@ Use templates from `references/templates/` when creating files from scratch.
 4. Write the first pass of `OVERVIEW.md`.
 5. Write the first pass of `ARCHITECTURE.md`.
 6. Ensure `MEMORY.md`, `CHANGELOG.md`, `spec/memory/`, and `spec/docs/` exist.
-7. Create or update `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task.
-8. Keep `MEMORY.md` as a short retrieval index. Do not seed detailed memory entries unless a durable project-specific rule already passes the Memo memory write gate.
+7. Do not create a default task spec. Create or update `spec/docs/#NNN-{work-description}.md` only through the task-start or active-work event when there is an accepted spec-backed task.
+8. Keep `MEMORY.md` as a short index of memory summaries. Do not seed detailed memory entries unless a durable project-specific rule already passes the Memo memory write gate.
 9. Record the document map in `OVERVIEW.md` and routing rules in `ARCHITECTURE.md` so future agents know which document to read first.
 
 ## Script Rules
@@ -49,9 +48,9 @@ Rules:
 Before finishing:
 
 - The required `spec/` layout exists.
-- The active spec-task file uses the next correct id when one was created.
+- No default spec-task file was created; if an accepted spec-backed task required one, it uses the next correct id.
 - `OVERVIEW.md` explains the project and points to the next spec files.
 - `ARCHITECTURE.md` has enough routing context for a future agent.
-- `MEMORY.md` exists as a concise trigger-shaped index, and `spec/memory/` exists for future entries.
+- `MEMORY.md` exists as a concise memory summary index, and `spec/memory/` exists for future entries.
 - `CHANGELOG.md` has an `Unreleased` section.
 - All newly created files follow their contracts.

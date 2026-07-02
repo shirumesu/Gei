@@ -80,8 +80,8 @@ So I wrote this skill suite.
 
 ## Hooks
 
-This Skill provides three SessionStart Hooks: `inject_using_gei` injects the `using-gei` router, `inject_overview` injects the `project_has_spec: true|false` flag and project OVERVIEW context, and `inject_memory` injects the `spec/MEMORY.md` memory index.
-`project_has_spec` is based only on whether *spec/OVERVIEW.md* exists. The three hooks stay split to avoid oversized output from a single hook.
+This Skill provides three SessionStart Hooks: `inject_using_gei` injects the `using-gei` router, `inject_overview` injects project OVERVIEW context when `spec/OVERVIEW.md` exists, and `inject_memory` injects the memory index when `spec/MEMORY.md` exists.
+The three hooks stay split to avoid oversized output from a single hook.
 
 ### Common Usage Paths
 

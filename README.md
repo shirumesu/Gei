@@ -79,8 +79,8 @@
 
 ## Hooks
 
-本 Skill 提供三个 SessionStart Hook：`inject_using_gei` 注入 `using-gei` 路由器，`inject_overview` 注入 `project_has_spec: true|false` Flag 和项目 OVERVIEW 上下文，`inject_memory` 注入 `spec/MEMORY.md` 记忆索引。
-`project_has_spec` 仅以是否存在 *spec/OVERVIEW.md* 为准。三个 hook 保持拆分，避免单个 hook 输出过长。
+本 Skill 提供三个 SessionStart Hook：`inject_using_gei` 注入 `using-gei` 路由器，`inject_overview` 在存在 `spec/OVERVIEW.md` 时注入项目 OVERVIEW 上下文，`inject_memory` 在存在 `spec/MEMORY.md` 时注入记忆索引。
+三个 hook 保持拆分，避免单个 hook 输出过长。
 
 ### 常见使用路径
 

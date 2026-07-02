@@ -46,7 +46,7 @@ For a new task in an established project, use this order:
 2. `spec/MEMORY.md` through Memo memory recall when the task may involve project-specific operational patterns
 3. `spec/ARCHITECTURE.md` when durable structure, routing, data flow, module boundaries, or cross-file impact context is needed
 4. the relevant `spec/architecture/*.md` fragment only when root `ARCHITECTURE.md` routes the task there
-5. the relevant `spec/memory/*.md` entry only when Memo memory recall or the memory index points to it
+5. the relevant `spec/memory/*.md` entry only when Memo memory recall or a memory index summary points to it
 6. `spec/CHANGELOG.md` `## Unreleased` for recent closed-but-unreleased work, then released sections when older closed work may affect the current decision
 7. the newest relevant combined spec-task file in `spec/docs/` only when directly linked or clearly overlapping
 8. related repository test files only when the task includes verification work
@@ -63,7 +63,7 @@ When creating the system for the first time:
 2. `ARCHITECTURE.md`
 3. `MEMORY.md`
 4. `CHANGELOG.md`
-6. the first combined spec-task file at `spec/docs/#001-{work-description}.md` only when there is an accepted spec-backed task
+6. no default spec-task file; create the first combined spec-task file at `spec/docs/#001-{work-description}.md` only through the task-start or active-work event when there is an accepted spec-backed task
 
 When updating during normal work, touch only the files required by the current event.
 

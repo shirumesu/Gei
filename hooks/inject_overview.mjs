@@ -62,26 +62,10 @@ function getHookStartDir(hookInput) {
     : process.env.CLAUDE_PROJECT_DIR || process.cwd();
 }
 
-function buildProjectSpecFlag(projectDir) {
-  const projectHasSpec = Boolean(projectDir);
-
-  return [
-    "<gei-project-spec>",
-    `project_has_spec: ${projectHasSpec ? "true" : "false"}`,
-    ...(projectHasSpec ? [`spec_root: ${path.join(projectDir, "spec")}`] : []),
-  ];
-}
-
 function buildProjectSpecBlock(projectDir) {
   try {
-    const base = buildProjectSpecFlag(projectDir);
     if (!projectDir) {
-      return [
-        ...base,
-        "",
-        "No complete Gei spec is present for the current project because spec/OVERVIEW.md was not found.",
-        "</gei-project-spec>",
-      ].join("\n");
+      return "";
     }
 
     const specRoot = path.join(projectDir, "spec");
@@ -100,7 +84,7 @@ function buildProjectSpecBlock(projectDir) {
         : [];
 
     return [
-      ...base,
+      "Gei project overview context",
       "",
       "This project maintains a Gei spec/ system. The spec/OVERVIEW.md content below is its cold-start context: read it first to recover the project's purpose and document map, then use it to choose which spec surface to read next.",
       "Do not read spec/ARCHITECTURE.md, spec/CHANGELOG.md, or spec/docs/ by default. Open them only on demand:",
@@ -112,7 +96,6 @@ function buildProjectSpecBlock(projectDir) {
       "--- spec/OVERVIEW.md ---",
       overview,
       "------------------------",
-      "</gei-project-spec>",
     ].join("\n");
   } catch {
     return "";

@@ -53,7 +53,7 @@ metadata:
 
 State the rule or lesson in one direct paragraph.
 
-**Read when:** Name the task condition that should trigger this memory.
+**Applies to:** Name the task condition, workflow, file area, or situation where this memory may matter.
 
 **Why:** Explain the discovered constraint, correction, or failure mode.
 
@@ -66,16 +66,16 @@ State the rule or lesson in one direct paragraph.
 
 ## Index Line
 
-Every entry must have one line in `spec/MEMORY.md`. Keep it short and trigger-shaped:
+Every entry must have one linked line in `spec/MEMORY.md`. Keep it short and summary-shaped. The line should convey the core reminder and make clear that the linked entry holds the details:
 
 ```markdown
-- [Title](memory/name.md) — Read when {task condition}; {actionable routing hint}.
+- [Title](memory/name.md) — {short applicability or reminder}; read details before relying on this memory.
 ```
 
 Good:
 
 ```markdown
-- [Config save effects](memory/config-save-effects.md) — Read when changing config keys consumed by Main; verify runtime consumers, not only persistence.
+- [Config save effects](memory/config-save-effects.md) — Config keys consumed by Main require runtime consumer verification, not only persistence checks.
 ```
 
 Bad:

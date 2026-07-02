@@ -44,7 +44,7 @@ Do not route to `see` or `memo` only because context or memory might be needed. 
 
 `using-gei` starts lifecycle state; downstream skills enforce it. Do not ask downstream skills to remember this file.
 
-- **Memory recall:** at task start, scan the injected `spec/MEMORY.md` index. When a `Read when ...` line matches, read the linked `spec/memory/*.md` entry and apply it as a constraint, verification step, or non-goal before planning, reviewing, or editing. Re-check after scope changes into new files, commands, errors, or workflows. Mention memory only when it changed the answer, conflicts with repository or user instructions, wrote memory, or the user asked.
+- **Memory recall:** at task start, scan the injected `spec/MEMORY.md` index. Treat index lines as short summaries, not complete rules; when a linked summary might matter, read the linked `spec/memory/*.md` entry and apply it as a constraint, verification step, or non-goal before planning, reviewing, or editing. Re-check after scope changes into new files, commands, errors, or workflows. Mention memory only when it changed the answer, conflicts with repository or user instructions, wrote memory, or the user asked.
 - **Recording changed work:** When changelog-worthy work completes, record one typed entry under `spec/CHANGELOG.md` `## Unreleased` (see `memo/references/contracts/changelog.md`). Trivial, non-durable, or read-only work records nothing; heavy work that must resume across sessions uses a `spec/docs/#NNN` task spec.
 - **Memory close check:** at task end, run Memo's memory close check inside the same final-response flow, not a separate hook-triggered reply. Omit no-op memory status from the answer.
 

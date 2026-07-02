@@ -12,7 +12,6 @@ TEMPLATE_MAP = {
     "ARCHITECTURE.template.md": "spec/ARCHITECTURE.md",
     "MEMORY.template.md": "spec/MEMORY.md",
     "CHANGELOG.template.md": "spec/CHANGELOG.md",
-    "task-spec.template.md": "spec/docs/#001-work.md",
 }
 
 DIRECTORIES = [
@@ -190,7 +189,8 @@ def main() -> int:
     print("\nDirectories:")
     for directory_name in DIRECTORIES:
         print(f" - {project_root / directory_name}/")
-    print(f"\nTask spec example:\n - {project_root / 'spec/docs/#001-work.md'}")
+    print("\nTask specs:")
+    print(" - Create spec/docs/#NNN-{work-description}.md only for an accepted spec-backed task")
     print(f"\n{git_message}")
     print("\nNext steps:")
     print(" - Edit spec/OVERVIEW.md with project-specific context")

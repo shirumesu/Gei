@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, memory, and project state.",
   "author": {
     "name": "shirumesu",
@@ -9,12 +9,7 @@
   "homepage": "https://github.com/shirumesu/gei",
   "repository": "https://github.com/shirumesu/gei",
   "license": "MIT",
-  "keywords": [
-    "agent",
-    "skills",
-    "workflow",
-    "codex"
-  ],
+  "keywords": ["agent", "skills", "workflow", "codex"],
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
@@ -23,11 +18,7 @@
     "longDescription": "Gei packages a small set of skills for routing work, planning, research, memory, and project state.",
     "developerName": "shirumesu",
     "category": "Productivity",
-    "capabilities": [
-      "Read",
-      "Write",
-      "Interactive"
-    ],
+    "capabilities": ["Read", "Write", "Interactive"],
     "websiteURL": "https://github.com/shirumesu/gei",
     "privacyPolicyURL": "https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement",
     "termsOfServiceURL": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",

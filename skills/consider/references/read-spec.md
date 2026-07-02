@@ -7,7 +7,7 @@ Use this guide only when `consider` is recovering project context from an existi
 Start from `spec/OVERVIEW.md`, or from the injected OVERVIEW context if it is already present. Do not reread it just to satisfy this guide.
 
 - Use OVERVIEW as the document map and cold-start context.
-- If the injected `spec/MEMORY.md` index has not already been checked, scan it and apply matching entries through Memo memory recall before design decisions.
+- If the injected `spec/MEMORY.md` index has not already been checked, scan its linked summaries and apply relevant entries through Memo memory recall before design decisions.
 - Do not start from `spec/docs/` or bulk-read the `spec/` tree.
 - Read the next spec surface only when it answers a design-relevant question.
 - Read source code only after the spec surface has narrowed the likely files, modules, or interfaces.
