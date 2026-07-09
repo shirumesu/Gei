@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6.5 - 2026-07-09
+
+### 调整
+- Claude-fable-5 验证
+- 基于 Claude-skill 进行一轮自检和强化
+- 优化 `/memo` 记忆相关的描述
+- 补全License
+- 强化 `/consider` 在提问上的描述决策
+
 ## v0.6.3 - 2026-06-19
 
 ### 移除
