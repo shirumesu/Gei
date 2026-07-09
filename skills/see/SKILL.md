@@ -114,6 +114,8 @@ User-provided material enters the evidence pool by default. In the `summary / wr
 
 Verification is not only "find more support." Try to break the working conclusion and see whether it still stands.
 
+For high-cost research that may be reused later, keep a compact evidence packet while working: source, role/tier, date accessed when relevant, the claim it supports, and open refresh targets. Do this only when the user's decision, cost, or future planning justifies it; ordinary `standard` research should not turn into a dossier.
+
 ## Shared Answer Obligations
 
 Do not force a rigid template, but make sure the answer lets the user see these things clearly:

@@ -45,6 +45,16 @@ Confirm what the task is changing, what it might break, and what a successful re
 
 Identify the blast radius: which files, modules, and behaviors are affected.
 
+For module-level failures, broad regressions, or "this feature is broken" requests, use a focused-fix pass before editing:
+
+1. Scope the affected feature boundary and the user-visible failure.
+2. Trace the real call/data path through the smallest supporting files.
+3. Diagnose the first broken invariant or missing contract.
+4. Fix only that cause and nearby fallout.
+5. Verify the exact failing path plus the narrow affected surface.
+
+Do not use this pass for tiny typo/null-check fixes where the broken line and verification are already obvious.
+
 ## Step 2: Plan The Work
 
 Choose the smallest planning structure that still protects recovery and verification.
@@ -130,6 +140,8 @@ When every section or fast-path task is done and verification is green:
 - Run the Memo memory close check from `skills/memo/references/events/memory.md` in the same final-response flow. This is part of completing the task lifecycle, not optional cleanup. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke Memo's memory write gate. Omit no-op memory status from the user-facing final response.
 
 If the task includes versioning, packaging, deployment, or publication, read `references/ship.md` and run the release gate before calling the task complete.
+
+If the user expresses deploy, publish, release, "ship it", or production mutation intent before the release gate has run, pause execution and route through `references/ship.md`. Do not perform the release action first and audit afterward.
 
 ## Stop Conditions
 

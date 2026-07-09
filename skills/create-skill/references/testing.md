@@ -43,6 +43,14 @@ This catches mechanical issues only:
 
 It does not prove the Skill is useful.
 
+If the Skill has Python scripts, also smoke-test the entrypoints:
+
+```bash
+python skills/create-skill/scripts/smoke_skill_scripts.py <path-to-skill>
+```
+
+This is intentionally narrow: it verifies shipped script entrypoints can show help without broken imports or startup errors. It does not replace behavior tests.
+
 ## 3. Test With Fresh Agents
 
 Prefer fresh-agent or subagent checks for behavior. The point is to see whether another agent can use the Skill without inheriting the current conversation's hidden context.

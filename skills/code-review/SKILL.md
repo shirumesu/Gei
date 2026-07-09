@@ -85,6 +85,8 @@ Read [security.md](references/security.md) when the user asks for security revie
 
 For ordinary low-risk changes, still notice obvious security regressions, but do not turn every review into a broad vulnerability scan.
 
+When the user asks for a hard challenge pass, or the change is high-stakes and the first review finds no material issues, run one adversarial pass before finalizing. Use distinct lenses such as careless new maintainer, abuse/security reviewer, and rollback/operator. Promote only issues that remain evidence-backed; do not invent findings to satisfy the pass.
+
 **UX And Product Behavior**
 
 Run this pass when the change affects UI, CLI, flows, wording, errors, accessibility, onboarding, or repeated use.

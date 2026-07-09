@@ -15,6 +15,8 @@ Memo owns `spec/MEMORY.md` and `spec/memory/` recall/write behavior. Memory is a
 
 `spec/CHANGELOG.md` `## Unreleased` is the project's task tracker: changelog-worthy work is recorded there at completion, and there is no separate `current-work` buffer. Work may append a typed `Unreleased` line directly; Memo owns the release or checkpoint transition, compaction, and any architecture, overview, or memory promotion the same work needs.
 
+Only accepted decisions become durable project facts. Raw discussion, rejected options, provisional hypotheses, and user-visible brainstorming can be referenced as context only when clearly labeled; do not promote them into memory, architecture, or changelog as if they were approved direction. If a future agent should remember a rejection, store the boundary directly, not the whole debate.
+
 Treat project context by confidence tier:
 
 1. Repository code, tests, configuration, build scripts, and Git history are authoritative.
