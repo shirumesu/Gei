@@ -38,6 +38,8 @@ spec/
 
 `spec/docs/` is optional execution context. Create task specs only for explicit plans, handoffs, or complex spec-backed work.
 
+`spec/INBOX.md` is an optional temporary capture surface written by the catch-up event; promote its entries into canonical spec files through a formal event.
+
 ## Read Order
 
 For a new task in an established project, use this order:
@@ -63,7 +65,7 @@ When creating the system for the first time:
 2. `ARCHITECTURE.md`
 3. `MEMORY.md`
 4. `CHANGELOG.md`
-6. no default spec-task file; create the first combined spec-task file at `spec/docs/#001-{work-description}.md` only through the task-start or active-work event when there is an accepted spec-backed task
+5. no default spec-task file; create the first combined spec-task file at `spec/docs/#001-{work-description}.md` only through the task-start or active-work event when there is an accepted spec-backed task
 
 When updating during normal work, touch only the files required by the current event.
 

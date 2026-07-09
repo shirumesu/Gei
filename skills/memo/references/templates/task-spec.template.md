@@ -39,7 +39,7 @@ State the intended approach in two or three precise paragraphs. Name the affecte
 
 ## Plan Contract
 
-- Execution mode: single-thread Codex execution with section checkpoints.
+- Execution mode: single-thread agent execution with section checkpoints.
 - Checkpoint unit: Section.
 - Phase/Task: optional; use only when they reduce ambiguity.
 - Approval gates: [User decision or `none`.]

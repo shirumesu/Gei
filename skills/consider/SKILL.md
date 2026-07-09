@@ -1,6 +1,6 @@
 ---
 name: consider
-description: Use before implementation begins, when a user has an idea that needs design before code — clarifying scope, feasibility, approach, and boundaries. Use when Codex should recover project context, challenge ambiguity, research comparable solutions when they can affect the decision, define the full technical path, and stop until the user gives full-design approval. Not for tasks that are already clearly scoped and ready to implement.
+description: Use before implementation begins, when a user has an idea that needs design before code — clarifying scope, feasibility, approach, and boundaries. Use when the agent should recover project context, challenge ambiguity, research comparable solutions when they can affect the decision, define the full technical path, and stop until the user gives full-design approval. Not for tasks that are already clearly scoped and ready to implement.
 ---
 
 # Consider
@@ -35,8 +35,7 @@ Turn an unclear idea into an explicit, approved design before implementation beg
 - Do not repeat a question that has already been answered. Carry the prior answer forward, state it as context, and ask only about the new delta if something changed.
 - Do not ask a question just to satisfy process. If there is no blocking user-owned decision, state the relevant assumptions and continue to alternatives or design.
 - Do not present obviously wrong, incompatible, unavailable, or already rejected choices as options. If one credible direction remains, explain why and continue with it as a recommendation or assumption.
-- If a meaningful decision depends on an assumption you are making, expose the assumption and ask before continuing only when the assumption is user-owned and would materially change the design.
-- If the request is ambiguous, complex, or likely inaccurate, ask a question or decompose the work before proposing a full design only when proceeding would require guessing a user-owned decision.
+- If proceeding would require guessing a user-owned decision — including one hidden inside an assumption you are making — expose it and ask, or decompose the work first.
 - When asking a blocking question, provide 2-3 credible options, explain why each option matters, recommend one option, and state the likely downside or risk. If fewer than two credible options exist, ask a direct question instead of manufacturing choices.
 - Prefer a dedicated question tool when one is available instead of simulating the format in plain text.
 
@@ -46,11 +45,11 @@ Before expanding an idea, classify each unresolved point:
 
 1. **User-owned decision:** ask before continuing only if it is unresolved and would materially change the design.
 2. **Researchable fact:** inspect local or external context before asking.
-3. **Codex-owned detail:** decide later and disclose in the design.
+3. **Agent-owned detail:** decide later and disclose in the design.
 
-A decision is user-owned when it affects the goal, scope, priority, user workflow, data boundary, risk tolerance, compatibility, success standard, or whether Codex may choose among alternatives. **NEVER** replace a user-owned decision with a reasonable assumption.
+A decision is user-owned when it affects the goal, scope, priority, user workflow, data boundary, risk tolerance, compatibility, success standard, or whether the agent may choose among alternatives. **NEVER** replace a user-owned decision with a reasonable assumption.
 
-Codex may decide only low-cost, reversible details that follow from existing project conventions and do not change user-visible behavior, data handling, architecture, or long-term maintenance.
+The agent may decide only low-cost, reversible details that follow from existing project conventions and do not change user-visible behavior, data handling, architecture, or long-term maintenance.
 
 ### Match The Scale
 
@@ -80,7 +79,7 @@ Codex may decide only low-cost, reversible details that follow from existing pro
 **Exit only when:**
 
 - The task is one bounded problem, or the user has selected the first subproject.
-- Codex is not about to choose the goal, scope, priority, product direction, technical boundary, or build order silently.
+- The agent is not about to choose the goal, scope, priority, product direction, technical boundary, or build order silently.
 
 **Good example:** "Build a platform with chat, file storage, billing, and analytics." First decompose it into chat, storage, billing, and analytics subprojects. Explain dependencies and ask which subproject to design first.
 
@@ -110,9 +109,7 @@ The request must be clear enough to include:
 - **How:** examples of how it should work, using code fragments, local core logic, direct explanation, or pseudocode instead of full code.
 - **Success:** how the user will judge that the result is good enough.
 
-When asking, prefer 2-3 options with a recommendation, tradeoff, and downside. Do not ask "Can you clarify?" by itself.
-
-The options must be credible. Do not include choices that conflict with known constraints, repeat rejected ideas, ignore prior answers, or exist only to make the question look balanced.
+When asking, apply the option rules from Ask Only When It Changes The Design: 2-3 credible options with a recommendation and downside, and no manufactured, incompatible, or already rejected choices. Do not ask "Can you clarify?" by itself.
 
 **Exit only when:**
 
@@ -134,7 +131,7 @@ For local workflow, Skill, prompt, template, or spec wording changes, inspect th
 
 When the design can reasonably go in multiple directions, present 2-3 approaches with tradeoffs and your recommendation. The user is choosing a direction here, **not** approving implementation. Ask which approach to use, then **STOP**.
 
-Before presenting a full design, notice which decisions actually shape the result. When a real fork would change the design, prefer turning it into a small set of credible options with a recommendation and tradeoff. Do not manufacture alternatives just to satisfy process; if only one direction is credible, say why and continue. Keep minor, reversible details as assumptions or implementation notes instead of making the user approve noise.
+Before presenting a full design, notice which decisions actually shape the result. Present a real fork that would change the design as options under the same Core Principles option rules; keep minor, reversible details as assumptions or implementation notes instead of making the user approve noise.
 
 **Exit only when:**
 
@@ -187,11 +184,11 @@ Request approval for the complete design as its own step. Do not combine final a
 Before asking, label the design:
 
 - **User-decided:** decisions the user explicitly made.
-- **Codex-recommended:** recommendations Codex is proposing for approval.
+- **Agent-recommended:** recommendations the agent is proposing for approval.
 - **Assumptions:** facts or defaults being assumed.
 - **Deferred:** decisions intentionally left for implementation, with why they are safe to defer.
 - **Out of scope:** behavior that will not be built in this cycle.
-- **Acceptance check:** how the user and Codex will verify success.
+- **Acceptance check:** how the user and the agent will verify success.
 
 Ask a final approval question that is only about the complete design:
 

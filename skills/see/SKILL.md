@@ -108,11 +108,9 @@ User-provided material enters the evidence pool by default. In the `summary / wr
 
 ### Cross-checking and counterevidence
 
-- `standard`: collect the mainstream answer and the key support without expanding forever into minor details.
-- `strict`: cross-check the key claims, trace them toward primary sources, and inspect important qualifiers.
-- `adversarial`: actively seek contradictory evidence, boundary cases, stronger sources, mirrored sourcing, circular citations, marketing language disguised as facts, and second-hand contamination dressed up as independent evidence.
+Apply the effort and stop signals of the selected precision level as defined in routing step 2; do not re-derive them here.
 
-Verification is not only "find more support." Try to break the working conclusion and see whether it still stands.
+Verification is not only "find more support." Try to break the working conclusion and see whether it still stands. At `adversarial`, that includes mirrored sourcing, circular citations, and marketing language disguised as facts.
 
 For high-cost research that may be reused later, keep a compact evidence packet while working: source, role/tier, date accessed when relevant, the claim it supports, and open refresh targets. Do this only when the user's decision, cost, or future planning justifies it; ordinary `standard` research should not turn into a dossier.
 

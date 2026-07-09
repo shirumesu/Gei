@@ -16,14 +16,14 @@ Durable changed work is recorded in `spec/CHANGELOG.md` `## Unreleased`, not in 
 - Do not guess through unclear instructions, missing interfaces, or missing dependencies. Stop and surface the blocker.
 - Before any destructive action — force push, production mutation, irreversible migration, deploy, publish, or delete-heavy command — get explicit human confirmation.
 - Do not claim `done`, `fixed`, or `verified` without command evidence in the current conversation.
-- If the task requires reading or updating durable `spec/` documents, invoke `memo` before continuing Work.
+- If the task requires creating or updating durable `spec/` documents, invoke `memo` before continuing Work. Reading spec context does not require `memo`.
 - Before staging or committing, confirm that `spec/` files are not staged unless the user explicitly approved tracking them.
 
 ## Step 0: Recover Context
 
 ### Check for spec
 
-If `spec/` exists in the current workspace, read the relevant spec documents before doing anything else. Use `memo` to determine read order. Do not propose a plan that contradicts existing architecture or active tasks.
+If `spec/` exists in the current workspace, read the relevant spec documents before doing anything else, following the document map in `spec/OVERVIEW.md` or its injected copy. Do not propose a plan that contradicts existing architecture or active tasks.
 
 When context sources disagree, trust repository code/config/tests/Git history first, `spec/CHANGELOG.md` `## Unreleased` second for recent task state, and durable spec files third because they may lag until Memo promotion.
 
@@ -45,13 +45,13 @@ Confirm what the task is changing, what it might break, and what a successful re
 
 Identify the blast radius: which files, modules, and behaviors are affected.
 
-For module-level failures, broad regressions, or "this feature is broken" requests, use a focused-fix pass before editing:
+For module-level failures, broad regressions, or "this feature is broken" requests, diagnose before editing:
 
 1. Scope the affected feature boundary and the user-visible failure.
 2. Trace the real call/data path through the smallest supporting files.
 3. Diagnose the first broken invariant or missing contract.
-4. Fix only that cause and nearby fallout.
-5. Verify the exact failing path plus the narrow affected surface.
+
+Then continue through the normal steps below, fixing only that cause and nearby fallout, with verification targeted at the exact failing path plus the narrow affected surface.
 
 Do not use this pass for tiny typo/null-check fixes where the broken line and verification are already obvious.
 
@@ -137,11 +137,9 @@ When every section or fast-path task is done and verification is green:
 
 - If the work is changelog-worthy (durable behavior, release, rollback, architecture, public-doc, workflow, or future-agent value), append one typed entry under `spec/CHANGELOG.md` `## Unreleased` following `memo/references/contracts/changelog.md`. Trivial, non-durable, or read-only work records nothing.
 - If durable routing, architecture, overview, or shipped-outcome information was exposed, invoke `memo` for the triggered event (architecture change, overview, or ship) to update the durable spec surface.
-- Run the Memo memory close check from `skills/memo/references/events/memory.md` in the same final-response flow. This is part of completing the task lifecycle, not optional cleanup. If this task exposed a user correction, repeated failure, hidden constraint, operational convention, non-obvious gotcha, or explicit remember/forget request, invoke Memo's memory write gate. Omit no-op memory status from the user-facing final response.
+- Run the Memo memory close check from `skills/memo/references/events/memory.md` in the same final-response flow. This is part of completing the task lifecycle, not optional cleanup. If the turn produced a durable memory candidate under that event's save criteria, invoke Memo's memory write gate. Omit no-op memory status from the user-facing final response.
 
-If the task includes versioning, packaging, deployment, or publication, read `references/ship.md` and run the release gate before calling the task complete.
-
-If the user expresses deploy, publish, release, "ship it", or production mutation intent before the release gate has run, pause execution and route through `references/ship.md`. Do not perform the release action first and audit afterward.
+Whenever the task or the user's intent turns to versioning, packaging, deployment, publication, or production mutation — whether planned from the start or expressed mid-task as "ship it" — read `references/ship.md` and run the release gate before performing any release action or calling the task complete. Do not release first and audit afterward.
 
 ## Stop Conditions
 

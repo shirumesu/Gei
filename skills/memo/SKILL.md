@@ -66,7 +66,7 @@ When recording architecture or task context, include where to start reading, whi
 | Primary event | Use when | Read |
 | --- | --- | --- |
 | Init | `spec/` is missing, incomplete, or the project has no working spec system | `references/events/init.md` |
-| Task start | A new bounded task is accepted and needs a current spec-task file | `references/events/task-start.md` |
+| Task start | A new bounded task is accepted and needs a combined spec-task file | `references/events/task-start.md` |
 | Active work | Current task scope, constraints, affected files, interface, or verification plan changed | `references/events/active-work.md` |
 | Architecture change | Structure, routing, commands, module boundaries, data flow, or diagrams changed | `references/events/architecture-change.md` |
 | Ship | A task reached handoff, merge, release, shipped state, or another durable checkpoint | `references/events/ship.md` |

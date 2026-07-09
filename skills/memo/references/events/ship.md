@@ -51,7 +51,8 @@ Each checkpoint should answer:
 
 - what changed
 - which files or areas changed
-- which commits belong to the checkpoint, when available
+
+Mention exact paths or commit ids inline only when they materially help future agents recover the work; do not add standalone changed-file or commit-list sections.
 
 Prefer user-visible or architecture-visible language over commit-diff narration.
 
@@ -73,7 +74,7 @@ Before finishing:
 
 - `CHANGELOG.md` has a fresh `Unreleased` section.
 - The shipped work is represented by a version or checkpoint section.
-- Changed files and related commits are listed or marked unavailable.
+- The version/checkpoint entries say what changed and which areas changed; inline path or commit mentions follow the changelog contract.
 - The active task spec records final outcome only when the task was spec-backed.
 - Architecture diagrams were checked when relevant.
 - `CHANGELOG.md` `## Unreleased` is empty or reset after the shipped work moved into the version/checkpoint section.

@@ -11,7 +11,7 @@ Use it from the main thread, or from one ship agent when the user explicitly app
 ## Boundaries
 
 - Do not create a new branch just because the task is being released.
-- Merge, tag, push, and pull request actions belong to Ship, not Light or Work. Perform them only when the user asked for that release action or explicitly confirms the target during the ship gate.
+- Merge, tag, push, and pull request actions belong to the ship gate, not to ordinary implementation steps. Perform them only when the user asked for that release action or explicitly confirms the target during the ship gate.
 - Do not skip verification because the change looks small.
 - Ask the user before continuing when the release target is ambiguous, a destructive action is next, a force push is next, a major version bump is next, or a serious unresolved coverage gap remains.
 - If the environment is missing declared tooling, bootstrap it automatically from the repo's documented setup path, then continue.

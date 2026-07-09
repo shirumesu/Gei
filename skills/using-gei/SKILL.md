@@ -1,6 +1,6 @@
 ---
 name: using-gei
-description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It assists in determining how to locate and load Skills."
+description: "Use when starting any conversation - this Skill should be invoked before any other Skill. It is Gei's entry router: it routes each request by the user's final objective to exactly one downstream Gei skill and starts the task lifecycle."
 ---
 
 Gei's entry router and lifecycle starter. Route every request through it before any other Gei skill.
