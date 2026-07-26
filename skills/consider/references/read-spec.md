@@ -1,45 +1,13 @@
-# Read Spec
+# Reading Project Context
 
-Use this guide only when `consider` is recovering project context from an existing Gei `spec/` system. The goal is to identify the minimum additional context needed to design without conflicting with the existing project.
+Use this reference when a design decision depends on an existing Gei `spec/` system.
 
-## Core Rule
+1. Start from `spec/OVERVIEW.md` or its injected copy.
+2. Read `spec/ARCHITECTURE.md` only when structure, boundaries, routing, or data flow matters.
+3. Read the relevant task reference or recent changelog section only when it may constrain the decision.
+4. Read linked memory entries only when their summaries identify a non-obvious applicable constraint.
+5. Verify important claims against code, tests, configuration, and Git history.
 
-Start from `spec/OVERVIEW.md`, or from the injected OVERVIEW context if it is already present. Do not reread it just to satisfy this guide.
+Do not bulk-read `spec/docs/` or `spec/memory/`. Existing code, tests, schemas, mockups, and artifacts may be better design references than a Markdown summary.
 
-- Use OVERVIEW as the document map and cold-start context.
-- If the injected `spec/MEMORY.md` index has not already been checked, scan its linked summaries and apply relevant entries through Memo memory recall before design decisions.
-- Do not start from `spec/docs/` or bulk-read the `spec/` tree.
-- Read the next spec surface only when it answers a design-relevant question.
-- Read source code only after the spec surface has narrowed the likely files, modules, or interfaces.
-- When sources disagree, trust repository code/config/tests/Git history first, `spec/CHANGELOG.md` `## Unreleased` second for recent task state, and durable spec files third.
-
-## Context Decisions
-
-Read `spec/ARCHITECTURE.md` when the design needs durable structure, routing, data flow, module boundaries, extension points, or cross-file impact context. If it points to a relevant `spec/architecture/*.md` fragment, read only that fragment.
-
-Read `spec/CHANGELOG.md` only when recent closed behavior might affect the design, compatibility, migration path, or normal integration route.
-
-Open a `spec/docs/#NNN-{work-description}.md` file only when OVERVIEW, architecture, changelog, or the requested feature points to that exact work area. Use it for prior scope, constraints, affected files, and verification approach; do not scan every work record.
-
-Read code after the spec pass identifies the likely owner, neighboring systems, interfaces, or files. If the spec surface does not narrow the target, identify the missing answer and read the single file most likely to provide it instead of scanning broadly.
-
-## Enough Context
-
-Stop the spec-reading pass once you can explain:
-
-- what the project does
-- the major stack choices that affect the design
-- where the requested change probably belongs
-- which project boundaries or conventions must be preserved
-- whether active or recent closed work affects the request
-- which files or modules should be inspected next
-
-## Escalation Rules
-
-Stop this guide and invoke `memo` when any of these are true:
-
-- `ARCHITECTURE.md` is missing or too stale to explain the relevant structure
-- `CHANGELOG.md` `## Unreleased` clearly conflicts with the current repo state
-- `CHANGELOG.md` clearly disagrees with the current architecture
-- the relevant area has no usable task history even though the spec surface implies it should
-- a new feature request exposes that the current spec surface no longer explains how the project should be extended
+Consider reads project context; it does not update `spec/`. Use Memo only when durable documentation is part of the requested outcome or an explicit handoff requires it.

@@ -2,28 +2,21 @@
 
 Use this workflow when validating a new or changed Skill.
 
-Testing should prove agent behavior, not only file validity. A syntactically valid Skill can still fail to trigger, over-trigger, or produce no improvement over ordinary prompting.
+Test the claim the Skill makes. Do not turn validation into a fixed ceremony.
 
-## 1. Choose The Validation Level
+## 1. State The Claim
 
-Use the lightest level that can honestly support the claim.
+Examples:
 
-| Level | Use when | Check |
-| --- | --- | --- |
-| Format | any Skill file was created or edited | run `scripts/quick_validate.py` |
-| Behavior | simple personal Skill or small edit | run 1-3 realistic prompts with the Skill |
-| Baseline comparison | the Skill is meant to improve quality or consistency | compare with-skill output to without-skill or old-skill output |
-| Pressure test | the Skill enforces discipline or could be rationalized away | test realistic scenarios with time, authority, sunk-cost, or shortcut pressure |
+- the package is structurally valid
+- the description selects the right tasks
+- conditional material loads only when relevant
+- the workflow changes an observed behavior
+- a safety or discipline boundary survives pressure
 
-Do not use strict evaluation rituals for every small Skill. Do not skip behavior checks when claiming the Skill works.
+Choose the cheapest evidence that could falsify that claim.
 
 ## 2. Run Format Validation
-
-From the `skills/create-skill/` directory:
-
-```bash
-python scripts/quick_validate.py <path-to-skill>
-```
 
 From the repository root:
 
@@ -31,106 +24,44 @@ From the repository root:
 python skills/create-skill/scripts/quick_validate.py <path-to-skill>
 ```
 
-This catches mechanical issues only:
+This checks frontmatter, required fields, naming, description limits, local Markdown links, and obvious placeholders. It does not prove the Skill is useful.
 
-- missing `SKILL.md`
-- invalid frontmatter
-- missing `name` or `description`
-- invalid `name`
-- overlong or unsafe `description`
-- broken local markdown links in `SKILL.md` and reference Markdown files
-- obvious placeholders
-
-It does not prove the Skill is useful.
-
-If the Skill has Python scripts, also smoke-test the entrypoints:
+If the Skill has Python scripts, smoke-test its entrypoints:
 
 ```bash
 python skills/create-skill/scripts/smoke_skill_scripts.py <path-to-skill>
 ```
 
-This is intentionally narrow: it verifies shipped script entrypoints can show help without broken imports or startup errors. It does not replace behavior tests.
+This verifies that normal entrypoints can show help without broken imports or startup errors. Add focused script tests when behavior is deterministic.
 
-## 3. Test With Fresh Agents
+## 3. Match Evidence To Behavior
 
-Prefer fresh-agent or subagent checks for behavior. The point is to see whether another agent can use the Skill without inheriting the current conversation's hidden context.
+| Claim | Suitable check |
+| --- | --- |
+| Correct trigger boundary | A few realistic should-trigger and adjacent should-not-trigger prompts |
+| Clear self-contained workflow | A fresh agent using only the Skill and minimal task context |
+| Improvement over an existing Skill | Revised versus old behavior on the known failure |
+| Improvement over ordinary judgment | With-Skill versus without-Skill comparison |
+| Resistance to shortcut pressure | A realistic pressure case |
+| Deterministic artifact or operation | Script, schema, fixture, or unit test |
 
-Use an interactive subagent probe when the Skill is meant to guide multi-step judgment, not just produce one artifact. This works well for Work-style, planning, review, testing, and discipline Skills where the agent should ask for missing context before deciding.
+Behavior checks are not automatically required for wording, links, or internal reorganization when no behavioral claim is made. Conversely, format validation alone cannot support a claim about triggering or task quality.
 
-With-skill prompt shape:
+## 4. Keep Behavior Checks Clean
 
-```text
-Use the Skill at <skill-path> to complete this task:
-<realistic user prompt>
+When using agents, prevent hidden conversation context from doing the Skill's work:
 
-Save or report the output that a normal user would care about.
-```
+- use a fresh agent when independence matters
+- provide the Skill and only the task context a normal invocation would have
+- keep comparison prompts equivalent
+- judge the user-visible decision or artifact, not whether the agent quoted the Skill
 
-Baseline prompt shape:
+Use pressure tests only for boundaries that agents may plausibly rationalize away. Use baseline comparisons only when the claim is that the Skill improves on ordinary judgment.
 
-```text
-Complete this task without using the Skill:
-<same realistic user prompt>
+## 5. Record And Stop
 
-Save or report the output that a normal user would care about.
-```
+Capture the prompt or fixture, expected behavior, actual behavior, and any specific miss. Keep this lightweight unless the results need to be reproduced later.
 
-For an existing Skill improvement, compare the revised Skill against the old version or a saved snapshot when that is practical.
-
-Interactive subagent probe shape:
-
-1. Start one fresh subagent per realistic instance. Do not reuse the same agent across cases.
-2. Give only the Skill summary, a realistic user request, and minimal project context such as an overview. Ask what success means, what could be affected, and what information it needs next.
-3. Wait for the subagent's reply. Do not include the later exploration facts in the first message; many agents will answer only the final instruction when overloaded.
-4. Provide invented but coherent follow-up facts such as relevant architecture notes, observed behavior chains, existing tests, constraints, and a minimal reproduction.
-5. Ask for the final decision or output the Skill should guide: for example which tests to write, what not to test, red/green verification, routing choice, or handoff plan.
-6. Judge whether the agent followed the Skill's intended behavior. Record specific misses; do not silently fix the Skill during the test run.
-
-Use two or three cases for meaningful workflow changes: one straightforward case that should pass cleanly, and one edge or pressure case that could expose overreach, under-coverage, or premature action.
-
-## 4. Test Trigger Behavior
-
-Prepare realistic examples:
-
-- should-trigger prompts that represent the Skill's real work
-- should-not-trigger prompts that are adjacent but should use a different workflow
-
-Ask a fresh agent which Skill it would use and why, or run the prompts in an environment where Skill selection can be observed.
-
-Do not rely on a local script to simulate agent trigger judgment unless the environment provides a real Skill-selection API.
-
-## 5. Pressure-Test Discipline Skills
-
-Use pressure tests only when the Skill is meant to enforce a rule that agents may rationalize away.
-
-Good pressure scenarios combine several forces:
-
-- deadline or emergency
-- prior sunk cost
-- authority instruction to skip process
-- user pressure for speed
-- apparent confidence that the shortcut will work
-
-Record the exact rationalization when the agent violates the Skill. Use that wording to improve the Skill, then test again.
-
-## 6. Record Results
-
-For each test, capture:
-
-- prompt
-- expected behavior
-- actual behavior
-- whether the Skill was used correctly
-- failure or improvement needed
-
-Passing means the output demonstrates the intended behavior, not merely that the agent mentioned the Skill or repeated its rules.
-
-## 7. Stop Rule
-
-Stop testing when the evidence matches the Skill's risk level:
-
-- simple Skill: format validation plus realistic behavior check
-- important workflow Skill: with-skill behavior beats baseline on the intended failure mode
-- discipline Skill: pressure tests no longer produce new rationalizations
+Stop when the evidence supports the stated claim at the task's risk level. Do not keep testing to satisfy a target count.
 
 If validation is skipped or incomplete, say that plainly.

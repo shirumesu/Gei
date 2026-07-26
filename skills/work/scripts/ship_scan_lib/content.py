@@ -19,7 +19,7 @@ _WIN_PATTERN = r"(?P<windows>(?<![A-Za-z0-9])[A-Za-z]:[\\/][^\r\n\"'<>|?*`]+)"
 _UNIX_ROOT_PATTERN = "|".join(sorted(COMMON_UNIX_ROOTS))
 _UNIX_PATTERN = (
     r"(?P<unix>"
-    r"(?<![A-Za-z0-9_.`~/-])"
+    r"(?<![A-Za-z0-9_.`~@/-])"
     rf"/(?:{_UNIX_ROOT_PATTERN})(?:/[^\s\"'\\`<>{{}}\[\](),;:]+)*"
     r")"
 )
@@ -40,6 +40,15 @@ _PLACEHOLDER_SUFFIXES = (
     re.compile(r"\$\{[^}\n]+\}\s*$"),
     re.compile(r"%[A-Za-z_][A-Za-z0-9_]*%\s*$"),
 )
+_NAVIGATION_CALL_PREFIX_RE = re.compile(
+    r"(?:\b(?:navigate|redirect)"
+    r"|\b(?:router|history|location)\.(?:push|replace))\s*\(\s*[\"']$",
+    re.IGNORECASE,
+)
+_ROUTE_ATTRIBUTE_PREFIX_RE = re.compile(
+    r"\b(?:path|to|href|action)\s*=\s*[\"']$",
+    re.IGNORECASE,
+)
 
 
 def normalize_candidate(candidate: str) -> str:
@@ -59,14 +68,31 @@ def has_markup_prefix(line: str, start: int) -> bool:
     return start > 0 and line[start - 1] == "<"
 
 
+def is_single_segment_frontend_route(
+    candidate: str,
+    line: str,
+    start: int,
+) -> bool:
+    if len(split_unix_segments(candidate)) != 1:
+        return False
+
+    prefix = line[:start]
+    if _NAVIGATION_CALL_PREFIX_RE.search(prefix):
+        return True
+    return (
+        _ROUTE_ATTRIBUTE_PREFIX_RE.search(prefix) is not None
+        and prefix.rfind("<") > prefix.rfind(">")
+    )
+
+
 def is_shebang_line(line: str, start: int) -> bool:
     return line.startswith("#!") and start <= 2
 
 
 def is_scanner_internal_file(rel_path: str) -> bool:
-    normalized = rel_path.replace("\\", "/")
-    return normalized == "skills/work/scripts/ship_scan.py" or (
-        "skills/work/scripts/ship_scan_lib/" in normalized
+    normalized = "/" + rel_path.replace("\\", "/").lstrip("/")
+    return normalized.endswith("/work/scripts/ship_scan.py") or (
+        "/work/scripts/ship_scan_lib/" in normalized
     )
 
 
@@ -74,7 +100,22 @@ def is_regex_definition_line(line: str) -> bool:
     return "_PATTERN" in line or "re.compile(" in line
 
 
-def looks_like_regex_artifact(candidate: str, line: str, rel_path: str) -> bool:
+def has_javascript_regex_prefix(line: str, start: int) -> bool:
+    if start == 0 or line[start - 1] != "/":
+        return False
+
+    prefix = line[: start - 1].rstrip()
+    return not prefix or prefix[-1] in "(=,:![{;&|?"
+
+
+def looks_like_regex_artifact(
+    candidate: str,
+    line: str,
+    start: int,
+    rel_path: str,
+) -> bool:
+    if has_javascript_regex_prefix(line, start):
+        return True
     if not is_scanner_internal_file(rel_path) or not is_regex_definition_line(line):
         return False
     return any(token in candidate for token in ("[", "]", "(?:", "(?P<", "{", "}"))
@@ -93,12 +134,14 @@ def is_false_positive(
         return True
     if has_placeholder_prefix(line, start):
         return True
-    if looks_like_regex_artifact(candidate, line, rel_path):
+    if looks_like_regex_artifact(candidate, line, start, rel_path):
         return True
     if kind == "unix" and has_markup_prefix(line, start):
         return True
     if kind in {"unc", "windows"}:
         return False
+    if is_single_segment_frontend_route(candidate, line, start):
+        return True
 
     body = candidate[1:]
     segments = split_unix_segments(candidate)
@@ -109,8 +152,6 @@ def is_false_positive(
     if _HASH_RE.search(body):
         return True
     if segments[0] not in COMMON_UNIX_ROOTS:
-        return True
-    if len(segments) == 1 and len(segments[0]) < 4:
         return True
     return False
 

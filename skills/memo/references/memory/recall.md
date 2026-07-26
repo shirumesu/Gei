@@ -1,41 +1,12 @@
 # Memory Recall
 
-Use this route when existing project memory may affect the current task.
+Use this route when an existing project memory entry may answer an explicit question or supply a non-obvious constraint for the current work.
 
-## Trigger
+1. Scan the summaries in `spec/MEMORY.md`.
+2. Read only linked entries whose summary plausibly matters.
+3. Convert relevant guidance into a concrete constraint, check, or non-goal.
+4. Verify it against repository code, tests, configuration, and current user instructions.
 
-Run recall when any of these are true:
+The index is a retrieval aid, not a to-do list or complete rule. Do not bulk-read `spec/memory/`, repeat recall after arbitrary scope changes, or apply stale entries blindly.
 
-- A new Gei task starts in a project with injected `spec/MEMORY.md`.
-- The task scope changes enough that new files, modules, errors, commands, or workflows are involved.
-- The user points at a remembered convention, previous correction, local environment quirk, or repeated failure.
-- A final answer, plan, or implementation decision would be worse if an existing memory entry were ignored.
-
-## Process
-
-1. Start from the injected `spec/MEMORY.md` index. If no index exists, continue silently unless memory would otherwise matter to the answer.
-2. Compare each linked summary line against the current task intent, files, commands, errors, and environment. The summary is a hint, not the full rule.
-3. Read only linked entries whose summary plausibly matters. Do not bulk-read `spec/memory/`.
-4. Convert each read entry into a concrete current-task constraint, verification step, or non-goal.
-5. If an entry conflicts with repository code, tests, config, or a direct user instruction, verify the higher-authority source and state the conflict.
-6. Repeat recall after meaningful scope changes.
-
-## User Visibility
-
-Memory recall is usually internal. Mention it to the user only when a recalled entry changed the answer, created a constraint worth surfacing, conflicts with higher-authority context, or the user asked about memory state.
-
-Do not output no-op statuses for "no index", "no relevant entries", or "not applicable" in ordinary responses.
-
-Examples worth mentioning:
-
-```text
-I applied the config-save-effects memory, so I verified the Main-side consumer instead of only the save path.
-I ignored the ship-release-process memory because this task is not a release or versioning task.
-```
-
-## Do Not
-
-- Treat the index as a to-do list or complete instruction set. It is a router to fuller memory entries.
-- Read entries after implementation just to satisfy process.
-- Apply a memory blindly when code or user instructions contradict it.
-- Save new memory during recall. Use `write.md` for that decision.
+Memory recall is normally invisible. Mention it when an entry materially changes the result, conflicts with authoritative evidence, or the user asks about memory state.

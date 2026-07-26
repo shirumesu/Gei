@@ -1,49 +1,10 @@
-# Active Work Event
+# Update A Durable Task Reference
 
-Use this event when the current bounded spec-backed task changed after its spec-task file was created.
+Use this event when an existing task reference must preserve a changed accepted decision, constraint, recovery path, or verification requirement.
 
-## Trigger
+1. Verify the change against the user's decision and repository evidence.
+2. Update the smallest affected section.
+3. Link new high-fidelity references instead of copying their contents.
+4. Remove stale statements that would mislead a future handoff.
 
-Trigger this event when any of these changed:
-
-- current task goal or scope
-- constraint
-- assumption that became a confirmed fact
-- affected file list
-- interface
-- verification command or test strategy
-- repository test file path
-
-For ordinary file-changing tasks that are not spec-backed, record a typed entry under `spec/CHANGELOG.md` `## Unreleased` following `../contracts/changelog.md` at close instead of creating a task spec.
-
-## Required Reading
-
-Read:
-
-1. `references/contracts/task-spec.md`
-2. The active `spec/docs/#NNN-{work-description}.md`
-3. `references/contracts/architecture.md` only if structure, routing, entry points, boundaries, or major data flow changed
-
-Do not read unrelated spec docs unless the active file cannot identify the current scope.
-
-## Actions
-
-Update the active combined spec-task file when:
-
-- scope changes
-- assumptions become facts
-- important files or interfaces change
-- repository test files or verification strategy change
-
-Do not touch `ARCHITECTURE.md` unless system structure, routing, entry points, boundaries, or major flow actually changed.
-
-Do not write routine progress updates, elapsed time, temporary debugging notes, or full decision history.
-
-## Completion Check
-
-Before finishing:
-
-- The active spec-task file reflects the new scope or confirmed facts.
-- The verification plan names exact commands or observable manual checks.
-- Any secondary `ARCHITECTURE.md` update is justified by its own contract.
-- No broad doc refresh happened.
+Do not record routine progress, command logs, changed-file inventories, or every implementation deviation. If the reference no longer has recovery value, archive or remove it according to project policy.

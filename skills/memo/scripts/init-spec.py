@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -14,55 +12,28 @@ TEMPLATE_MAP = {
     "CHANGELOG.template.md": "spec/CHANGELOG.md",
 }
 
-DIRECTORIES = [
-    "spec/docs",
-    "spec/memory",
-]
-
-CONFLICT_MARKERS = [
-    "spec",
-    "specs",
-    "plan",
-    "plans",
-    "workplan",
-    "workplans",
-    "docs/spec",
-    "docs/specs",
-    "docs/plan",
-    "docs/plans",
-    "docs/superpowers",
-    "docs/superpowers/specs",
-    "docs/superpowers/plans",
-    "docs/workplan",
-    "docs/workplans",
-    "plandocs",
-    "OVERVIEW.md",
-    "ARCHITECTURE.md",
-    "MEMORY.md",
-    "CHANGELOG.md",
-]
+DIRECTORIES = ("spec/docs", "spec/memory")
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Initialize a project's spec/ directory from the memo skill templates."
+        description=(
+            "Create missing files for Gei's optional spec/ layout. Existing files "
+            "are preserved."
+        )
     )
     parser.add_argument("project_path", help="Path to the target project")
     parser.add_argument(
-        "--force",
+        "--dry-run",
         action="store_true",
-        help="Bypass conflict detection and overwrite generated spec files",
+        help="Show planned creates and skips without writing",
+    )
+    parser.add_argument(
+        "--add-gitignore",
+        action="store_true",
+        help="Add spec/ to .gitignore without initializing Git",
     )
     return parser.parse_args()
-
-
-def find_conflicts(project_root: Path) -> list[Path]:
-    conflicts: list[Path] = []
-    for marker in CONFLICT_MARKERS:
-        candidate = project_root / marker
-        if candidate.exists():
-            conflicts.append(candidate)
-    return sorted(set(conflicts))
 
 
 def load_templates(script_path: Path) -> dict[Path, str]:
@@ -71,75 +42,60 @@ def load_templates(script_path: Path) -> dict[Path, str]:
     for template_name, output_name in TEMPLATE_MAP.items():
         template_path = templates_dir / template_name
         if not template_path.exists():
-            raise FileNotFoundError(f"Template not found: {template_path}")
+            raise FileNotFoundError(f"template not found: {template_path}")
         contents[Path(output_name)] = template_path.read_text(encoding="utf-8")
     return contents
 
 
-def write_spec_files(project_root: Path, contents: dict[Path, str], force: bool) -> None:
+def plan_changes(
+    project_root: Path, contents: dict[Path, str]
+) -> tuple[list[Path], list[tuple[Path, str]], list[Path]]:
+    directory_creates = [
+        project_root / directory
+        for directory in DIRECTORIES
+        if not (project_root / directory).exists()
+    ]
+    creates: list[tuple[Path, str]] = []
+    skips: list[Path] = []
     for relative_path, content in contents.items():
         target = project_root / relative_path
+        if target.exists():
+            skips.append(target)
+        else:
+            creates.append((target, content))
+    return directory_creates, creates, skips
+
+
+def write_changes(
+    project_root: Path,
+    directory_creates: list[Path],
+    creates: list[tuple[Path, str]],
+    add_gitignore: bool,
+) -> list[Path]:
+    written: list[Path] = []
+    for directory in directory_creates:
+        directory.mkdir(parents=True, exist_ok=True)
+        written.append(directory)
+
+    for target, content in creates:
         target.parent.mkdir(parents=True, exist_ok=True)
-        if target.exists() and not force:
-            raise FileExistsError(
-                f"refusing to overwrite existing file without --force: {target}"
-            )
         target.write_text(content, encoding="utf-8")
+        written.append(target)
 
-
-def ensure_directories(project_root: Path) -> None:
-    for relative_path in DIRECTORIES:
-        dir_path = project_root / relative_path
-        dir_path.mkdir(parents=True, exist_ok=True)
-        # Create .gitkeep for empty directories
-        if relative_path == "spec/memory":
-            gitkeep = dir_path / ".gitkeep"
-            if not gitkeep.exists():
-                gitkeep.touch()
-
-
-def run_git_init(project_root: Path, git_path: str) -> bool:
-    try:
-        subprocess.run(
-            [git_path, "init"],
-            cwd=project_root,
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
+    if add_gitignore:
+        gitignore_path = project_root / ".gitignore"
+        existing = (
+            gitignore_path.read_text(encoding="utf-8")
+            if gitignore_path.exists()
+            else ""
         )
-        return True
-    except subprocess.CalledProcessError as exc:
-        print(
-            "warning: git init failed; skipped .gitignore update.\n"
-            f"{exc.stderr.strip()}",
-            file=sys.stderr,
-        )
-        return False
+        lines = {line.strip() for line in existing.splitlines()}
+        if "spec/" not in lines:
+            separator = "" if not existing or existing.endswith("\n") else "\n"
+            gitignore_path.write_text(f"{existing}{separator}spec/\n", encoding="utf-8")
+            written.append(gitignore_path)
 
-
-def update_gitignore(project_root: Path) -> str:
-    git_path = shutil.which("git")
-    if not git_path:
-        return "git not found; skipped git init and .gitignore update."
-
-    gitignore_path = project_root / ".gitignore"
-    if not gitignore_path.exists() and not (project_root / ".git").exists():
-        if not run_git_init(project_root, git_path):
-            return "git init failed; skipped .gitignore update."
-
-    existing = gitignore_path.read_text(encoding="utf-8") if gitignore_path.exists() else ""
-    if "spec/" in existing:
-        return ".gitignore already contains spec/."
-
-    block = "# Gei spec system - internal agent state, not product source\nspec/\n"
-    if existing:
-        separator = "\n" if existing.endswith("\n") else "\n\n"
-        updated = f"{existing}{separator}{block}"
-    else:
-        updated = block
-    gitignore_path.write_text(updated, encoding="utf-8")
-    return "updated .gitignore with spec/."
+    return written
 
 
 def main() -> int:
@@ -149,54 +105,42 @@ def main() -> int:
     if not project_root.exists():
         print(f"error: target project does not exist: {project_root}", file=sys.stderr)
         return 1
-
     if not project_root.is_dir():
         print(f"error: target path is not a directory: {project_root}", file=sys.stderr)
         return 1
 
-    conflicts = find_conflicts(project_root)
-    if conflicts and not args.force:
-        conflict_lines = "\n".join(f" - {path}" for path in conflicts)
-        print(
-            "error: found existing spec or other plan-management markers.\n"
-            "Refusing to initialize to avoid mixing conventions.\n"
-            f"{conflict_lines}\n"
-            "If override is determined, rerun with --force",
-            file=sys.stderr,
-        )
-        return 1
-
     try:
         contents = load_templates(Path(__file__).resolve())
-        write_spec_files(project_root, contents, args.force)
-        ensure_directories(project_root)
-    except FileNotFoundError as exc:
+        directory_creates, creates, skips = plan_changes(project_root, contents)
+        written = (
+            []
+            if args.dry_run
+            else write_changes(
+                project_root,
+                directory_creates,
+                creates,
+                args.add_gitignore,
+            )
+        )
+    except (FileNotFoundError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
-    except FileExistsError as exc:
-        print(f"error: {exc}", file=sys.stderr)
-        return 1
-    except OSError as exc:
-        print(f"error: failed to write spec files: {exc}", file=sys.stderr)
-        return 1
 
-    git_message = update_gitignore(project_root)
-
-    print("Initialized spec/ system:")
-    print("\nCore documents:")
-    for output_name in ["spec/OVERVIEW.md", "spec/ARCHITECTURE.md", "spec/MEMORY.md", "spec/CHANGELOG.md"]:
-        print(f" - {project_root / output_name}")
-    print("\nDirectories:")
-    for directory_name in DIRECTORIES:
-        print(f" - {project_root / directory_name}/")
-    print("\nTask specs:")
-    print(" - Create spec/docs/#NNN-{work-description}.md only for an accepted spec-backed task")
-    print(f"\n{git_message}")
-    print("\nNext steps:")
-    print(" - Edit spec/OVERVIEW.md with project-specific context")
-    print(" - Edit spec/ARCHITECTURE.md with module structure")
-    print(" - Use the memo memory event to create memory entries in spec/memory/ as patterns emerge")
-    print(" - Record changelog-worthy work under spec/CHANGELOG.md ## Unreleased at completion")
+    mode = "Dry run" if args.dry_run else "Initialized"
+    print(f"{mode} Gei spec layout at {project_root}")
+    for target in directory_creates:
+        status = "would create directory" if args.dry_run else "created directory"
+        print(f" - {status}: {target}")
+    for target, _content in creates:
+        status = "would create" if args.dry_run else "created"
+        print(f" - {status}: {target}")
+    for target in skips:
+        print(f" - preserved: {target}")
+    if args.add_gitignore:
+        status = "would add spec/ to .gitignore" if args.dry_run else "checked .gitignore"
+        print(f" - {status}")
+    if not args.dry_run and not written:
+        print(" - no changes")
     return 0
 
 

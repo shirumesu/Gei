@@ -1,56 +1,23 @@
-# Init Event
+# Initialize Spec Context
 
-Use this event when the project has no complete working spec system. Initialization creates a usable navigation layer, not a full project encyclopedia.
+Use this event when the user wants a Gei `spec/` layout created or repaired.
 
-## Trigger
+Read `../spec-system.md` and only the contracts for documents that will be created.
 
-Trigger this event when any of these are true:
+## Interface
 
-- `spec/` does not exist.
-- One of `OVERVIEW.md`, `ARCHITECTURE.md`, `MEMORY.md`, `CHANGELOG.md`, `memory/`, or `docs/` is missing.
-- The current repo clearly has no working spec system yet.
+```text
+python skills/memo/scripts/init-spec.py <project-path> [--dry-run] [--add-gitignore]
+```
 
-## Required Reading
+The script creates missing core documents and directories while preserving existing files. It never initializes Git or overwrites documents. `--add-gitignore` is explicit because version-control policy belongs to the project.
 
-Read:
+## Workflow
 
-1. `references/spec-system.md`
-2. Contracts for every spec file you will create.
-3. `references/writing-guide.md` only if you are writing the first full pass of several documents.
+1. Use `--dry-run` to inspect the planned creates and preserved files when the target is not empty.
+2. Run initialization with only the options the user or project policy authorizes.
+3. Seed `OVERVIEW.md` and `ARCHITECTURE.md` from the smallest useful repository context.
+4. Keep `MEMORY.md` as an index; do not invent entries.
+5. Create a task reference only when a separate explicit handoff or recovery need justifies it.
 
-Use templates from `references/templates/` when creating files from scratch.
-
-## Actions
-
-1. Prefer `scripts/init-spec.py <project-path>` to create the `spec/` tree from bundled templates.
-2. If the script reports existing spec-management markers, stop and surface the exact conflicting paths unless the user explicitly approves `--force`.
-3. Scan the repo, docs, and recent history only enough to seed the first spec pass.
-4. Write the first pass of `OVERVIEW.md`.
-5. Write the first pass of `ARCHITECTURE.md`.
-6. Ensure `MEMORY.md`, `CHANGELOG.md`, `spec/memory/`, and `spec/docs/` exist.
-7. Do not create a default task spec. Create or update `spec/docs/#NNN-{work-description}.md` only through the task-start or active-work event when there is an accepted spec-backed task.
-8. Keep `MEMORY.md` as a short index of memory summaries. Do not seed detailed memory entries unless a durable project-specific rule already passes the Memo memory write gate.
-9. Record the document map in `OVERVIEW.md` and routing rules in `ARCHITECTURE.md` so future agents know which document to read first.
-
-## Script Rules
-
-Use `scripts/init-spec.py` for fresh bootstrap when possible.
-
-Rules:
-
-- Refuse to initialize when the target project already contains `spec/` or other likely plan-management markers; surface the exact conflicting paths.
-- Continue with `--force` only when the user explicitly wants it.
-- If `git` is unavailable, skip all git-related work.
-- If `.gitignore` exists, append the `spec/` ignore block without overwriting the file.
-
-## Completion Check
-
-Before finishing:
-
-- The required `spec/` layout exists.
-- No default spec-task file was created; if an accepted spec-backed task required one, it uses the next correct id.
-- `OVERVIEW.md` explains the project and points to the next spec files.
-- `ARCHITECTURE.md` has enough routing context for a future agent.
-- `MEMORY.md` exists as a concise memory summary index, and `spec/memory/` exists for future entries.
-- `CHANGELOG.md` has an `Unreleased` section.
-- All newly created files follow their contracts.
+Initialization provides navigation, not a project encyclopedia. Verify created files, links, and any `.gitignore` change before reporting the result.

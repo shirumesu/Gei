@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+## v0.7.0 - 2026-07-26
+
+### 重大调整
+- 由于模型能力的提高，部分skill的流程和判断已经属于被内化的模型能力。因此依据 [Fable-5 context engineering 实践](https://x.com/trq212/status/2080710971228918066) 重构全部根 Skill：删除模型已内化的通用规则、固定状态机和重复生命周期，将 7 个入口 Skill 从约 1005 行压缩至约 293 行。
+- 将 `/work` 改为证据驱动执行循环；TDD、持久计划、任务 Spec、commit checkpoint 和完整测试套件改为按风险与恢复价值选择。
+- 保留轻量 Spec 生命周期：每个验证完成且值得归档的 `feat`、`fix`、`perf`、重要 `refactor/docs/workflow` 由 Work 追加到内部 `Unreleased`；重大结构变化当次更新 Spec，发布时再统一复核。
+- 将 `/memo` 收缩为 Spec 合同和非平凡维护的所有者；Memory 与持久任务引用保持条件触发。
+
+### 优化
+- 将 `/create-skill` 改为删除优先的 context 设计流程，要求每条指令证明其上下文价值，并让行为验证与实际主张匹配。
+- 精简 `/consider`、`/see` 与 `/code-review`，移除强制完整设计审批、固定研究等级、数字置信度和通用检查百科。
+- 删除未再使用的通用写作指南和 Jina 专用说明；工具操作回归工具接口。
+- 删除仓库中的个人 `AGENTS.md` 示例及 README 引用，避免把个人偏好作为 Gei 的公开工作流分发。
+- 重构 `memo/scripts/init-spec.py`：默认保留现有文件，新增 `--dry-run`，仅在显式传入 `--add-gitignore` 时修改忽略规则，并停止自动 `git init` 或全局覆盖。
+
+### 修复
+- 降低 Ship Scanner 对单段前端路由、`@/` 模块别名和 JavaScript 正则字面量的误报，同时保留对 `/etc`、`/usr`、`/var` 等单段系统路径的检测，并新增针对性回归测试。
+- 将 Ship Scanner 明确为可选的窄范围诊断，不再作为完整发布、安全或 secret gate。
+- 修复 Codex 插件发布包遗漏 `hooks/` 与 `assets/icon.png` 的问题，确保清单声明的 SessionStart Hook 和图标随插件一同发布。
+- 修复 `init-spec.py` 未在 dry-run 和结果摘要中报告 `spec/docs`、`spec/memory` 目录创建的问题。
+
 ## v0.6.5 - 2026-07-09
 
 ### 调整

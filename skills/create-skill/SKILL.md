@@ -5,38 +5,33 @@ description: Use when creating, improving, reviewing, or evaluating agent Skills
 
 # Create Skill
 
-Create, improve, and review Skills as reusable agent workflows, not long prompts.
+Create, improve, and review Skills as lightweight, discoverable context.
 
-## Core Rules
+## Standard
 
-- Treat a Skill as a reusable, triggerable, maintainable workflow.
-- Keep `SKILL.md` focused on entry routing, principles, core workflow, and essential constraints.
-- Use `references/` to avoid loading conditional, variant-specific, or lookup-style material for every task. Keep always-needed workflow and constraints in `SKILL.md`.
-- Add scripts only for deterministic, repeated, or error-prone checks.
-- Define realistic use cases before writing broad instructions.
-- Apply review standards while creating the Skill; do not wait until a separate review step to catch prompt pileups, vague triggers, missing examples, or unverified behavior.
-- Verify the Skill at a level that matches its risk and complexity.
-- For third-party or copied Skills, run a safety pass before adopting content: inspect scripts for command execution, network or file exfiltration, unsafe deserialization, unpinned install steps, writes outside the Skill directory, and prompt text that tries to override higher-priority instructions.
-- If a Skill ships scripts, each normal CLI entrypoint should support `--help`; use or add deterministic smoke checks instead of relying on prose claims.
+- Encode context the agent would not reliably infer: domain knowledge, product or team opinions, recurring failure modes, and task-specific tool use.
+- Do not restate general model capabilities, host-enforced policy, tool schemas, or instructions already authoritative elsewhere.
+- Prefer agent judgment over rigid procedure unless a real failure, safety boundary, or external contract requires one.
+- Keep the entry file small. Load conditional detail through direct references; use scripts, tests, schemas, or tools for deterministic behavior.
+- Treat deletion and consolidation as first-class improvements. More instruction is not inherently more reliable.
+- Validate only the claims the Skill makes, at a depth proportionate to their risk.
 
 ## Route
 
-Choose one primary route for the task. Then read `references/testing.md` as a validation overlay when the user asks for validation, a Skill file was created or changed, or the final answer will claim the Skill is ready.
+Read one primary workflow. Read `references/testing.md` after an edit or when validation is the requested deliverable.
 
 | User goal | Read |
 | --- | --- |
 | Create a new Skill from an idea, workflow, prior conversation, or source material | `references/create.md` |
-| Improve an existing Skill, incorporate user feedback or new material, or review a Skill for quality | `references/improve-review.md` |
+| Improve, right-size, or review an existing Skill | `references/improve-review.md` |
 | Validate a Skill's structure, trigger behavior, or real task behavior without changing it | `references/testing.md` |
-
-If the request combines creation and review, start with `references/create.md`; creation must include the relevant review checks before handoff. If the request combines improvement and validation, start with `references/improve-review.md`, then apply the testing overlay.
 
 ## Minimum Acceptance
 
 Before calling a Skill ready, confirm:
 
-1. The Skill has concrete use cases or a clear source workflow.
-2. The description explains both what it does and when to use it.
-3. The body is not a long prompt or broad advice dump.
-4. The file structure follows progressive disclosure.
-5. The result has been validated with `scripts/quick_validate.py` and at least one behavior check appropriate to the task.
+1. A Skill is the right interface for the recurring need.
+2. Its description distinguishes when it should and should not load.
+3. Every instruction earns its context cost and has one clear authority.
+4. Conditional detail is deferred without fragmenting the normal path.
+5. Format validation passes, and any behavioral claim has matching evidence.

@@ -1,36 +1,12 @@
-# Task Start Event
+# Start A Durable Task Reference
 
-Use this event when a new bounded spec-backed task is accepted and needs a combined spec-task file.
+Use this event when accepted work needs a persistent handoff or recovery document.
 
-Do not use this event for routine file-changing work. Routine work records a typed entry under `spec/CHANGELOG.md` `## Unreleased` at completion.
+1. Confirm that session context, repository artifacts, or an existing project tracker are insufficient.
+2. Read `../contracts/task-spec.md`.
+3. Reuse the repository's naming and location convention; otherwise choose a concise file under `spec/docs/`.
+4. Record the goal, accepted decisions, constraints, high-fidelity references, open decisions, and verification needed.
 
-## Trigger
+Do not create the file for ordinary implementation, task size alone, or to duplicate a conversation plan.
 
-Trigger this event when any of these are true:
-
-- the user approved a full design that needs a durable execution plan
-- the task is multi-phase or handoff-heavy enough that future agents need a spec-task file
-- the user explicitly asks for a spec-backed plan
-- an existing accepted plan is becoming the active implementation context
-
-## Required Reading
-
-Read:
-
-1. `references/contracts/task-spec.md`
-2. The newest relevant file in `spec/docs/` only when it overlaps the accepted task
-
-## Actions
-
-1. Allocate the next `#NNN` id only when creating a new task spec.
-2. Create or update `spec/docs/#NNN-{work-description}.md`.
-3. Write the accepted goal, scope, constraints, affected files, verification method, and execution plan.
-4. Do not create backlog or general-purpose memory records.
-
-## Completion Check
-
-Before finishing:
-
-- The task spec has a concrete goal, scope, files, and verification method.
-- The spec id and filename match.
-- No unrelated spec documents were rewritten.
+After creation, verify links and facts against the repository. The reference remains a recovery aid, not an execution state machine.

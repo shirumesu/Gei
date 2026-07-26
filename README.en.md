@@ -33,26 +33,24 @@ So I wrote this skill suite.
 
 /using-gei ──→ /consider | /memo | /work | /code-review | /see | /create-skill
 
-**`/using-gei`** — Top-level router that manages the lifecycle of the entire task
+**`/using-gei`** — Lightweight router that selects a Skill by the final deliverable
 
-**`/consider`** — Asks follow-up questions and searches for mainstream approaches to help you converge and expand ideas, clarify boundaries and impact, and discuss pros and cons
+**`/consider`** — Designs only when direction, boundaries, or consequential tradeoffs remain unresolved
 
-**`/memo`** — Complete spec maintenance layer, responsible for maintaining the entire `spec/` system, including project memory
+**`/memo`** — Explicit maintenance for `spec/`, architecture, project memory, and durable handoff documents
 
 | Module | Responsibility |
 | --- | --- |
 | `OVERVIEW` | Quickly restores context, describes the project, explains how to run tasks and read `spec/`, and is injected by Hook at session start |
 | `ARCHITECTURE & architecture/` | Provides the complete detailed architecture of the whole system when needed, including system operation, modules, change impact scope, related files, and more |
-| `Docs / Spec-Plan` | Written through a rigorous process and responsible for complex Plan execution |
-| `CHANGELOG` | The project task tracker and release maintenance: completed changes go straight into `## Unreleased`, then compress into a version section on release |
-| `MEMORY & memory/` | Complete memory layer for repeatable patterns, repeated pitfalls, and project conventions; the index is injected by Hook at session start, and the close check is handled by Memo memory rules before the final response |
+| `Docs / Task Reference` | Preserves goals, decisions, constraints, and high-fidelity references when cross-session recovery or handoff has real value |
+| `CHANGELOG` | Receives each verified changelog-worthy outcome under `## Unreleased`, then compacts them into a version at release |
+| `MEMORY & memory/` | Stores project conventions, repeated pitfalls, and hidden constraints not obvious from code or ordinary docs; the index can be injected by Hook |
 
-**`/work`** — Complete code workflow
+**`/work`** — Evidence-driven code execution
 
-- Chooses tests, builds, lint, script checks, or release gates by behavior risk; adds new tests only for behavior with durable regression value, preferably starting from an expected-to-fail test
-- Code modification maintenance rules · test verification · release process
-
-**`/memo`** ↩ — Maintains new Spec changes based on Work output
+- Chooses the most discriminating verification by risk and coupling; test-first, persistent plans, commit checkpoints, and full suites are conditional tools
+- Releases follow repository-native policy and verify the actual artifact or remote state
 
 ---
 
@@ -60,9 +58,9 @@ So I wrote this skill suite.
 
 **`/code-review`** — Standalone read-only code review workflow covering correctness, tests, maintainability, UX/DX, and security risks for PRs, diffs, commits, working trees, and implementations
 
-**`/create-skill`** — Detailed Skill-writing guidance covering tone, standard conventions, and many other aspects; also provides Skill optimization, quick format review, and testing workflows
+**`/create-skill`** — Creates, right-sizes, reviews, and validates Skills with deletion-first context design and progressive disclosure
 
-**`/see`** — Tiered web search from quick to rigorous, with multi-layer research criteria to ensure sources are official, objective, accurate, cross-verifiable, and independently verified; can use Jina to help read known crawler-unfriendly URLs
+**`/see`** — Scales research depth to decision risk and separates facts, inference, disagreement, and unknowns
 
 ---
 
@@ -70,13 +68,13 @@ So I wrote this skill suite.
 
 | Skill | When to Use | Purpose |
 | --- | --- | --- |
-| `/using-gei` | Before any session starts | Top-level router and task lifecycle maintenance layer |
-| `/consider` | When discussing any new idea | Helps converge requirements; provides detailed design proposals when requirements are vague |
-| `/memo` | Project-wide spec and memory maintenance | Maintains the project Spec layer: architecture, changelog, plan design, and project memory |
-| `/work` | Any code execution task | Complete coding, testing, version maintenance, and release workflow |
+| `/using-gei` | When Gei is active and a request may match a task Skill | Selects one entry by the final deliverable |
+| `/consider` | When a high-impact design or direction has material uncertainty | Recovers context, compares real alternatives, and recommends a testable direction |
+| `/memo` | When the user or workflow explicitly needs durable project documentation | Maintains architecture, changelog, task references, and project memory |
+| `/work` | Any code execution task | Implements a coherent change and gathers risk-proportionate evidence |
 | `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review of code correctness, test quality, maintainability, UX/DX, security, and release risk |
-| `/see` | When external research, fact-checking, or source synthesis is the final deliverable | Complete search workflow ensuring information is accurate, reliable, and timely; can use [Jina](https://jina.ai/) to help read known URLs |
-| `/create-skill` | When working with Skills | Creates and reviews Skills, and verifies optimization opportunities |
+| `/see` | When external research, fact-checking, or source synthesis is the final deliverable | Uses strong sources, tests counterevidence, and reports scope and uncertainty |
+| `/create-skill` | When working with Skills | Creates, right-sizes, reviews, and validates Skills against their actual claims |
 
 ## Hooks
 
@@ -87,16 +85,10 @@ The three hooks stay split to avoid oversized output from a single hook.
 
 | Scenario | Path | Notes |
 | --- | --- | --- |
-| Complete work session | `using-gei` → memory recall → `consider` / `work` → `memo` memory close check | Almost no need to call any command manually; no-op lifecycle status stays out of the final response by default |
+| Clearly scoped code work | `using-gei` → `work` | Implements and verifies directly, records a changelog-worthy outcome, and updates other Spec or memory surfaces only when the change requires it |
 | Code review | `using-gei` → `code-review` | Read-only review that does not enter the `work` implementation lifecycle |
 | Idea discussion | `using-gei` → `consider` → `work` | You can explicitly use `consider` for clearer thinking |
 | External search | `using-gei` → `consider` (optional) → `see` | `see` requires ambiguity clarification and authoritative data, making results more rigorous |
-
-## AGENTS.md
-
-My personal workflow is synced from my own root-level `~/.codex/AGENTS.md` and provided as a reference and example.
-
-Because it is only a reference example, it is not included in release packages. Please [view it separately](https://github.com/shirumesu/Gei/blob/main/AGENTS.md?plain=1); if needed, you can copy, replace, or enhance your own `AGENTS.md` or `CLAUDE.md`.
 
 ## Installation
 

@@ -13,7 +13,7 @@ Trigger this event when any of these are true:
 - the user asks to capture state before deciding how to record it
 - there is not enough evidence to safely update `ARCHITECTURE.md`, `CHANGELOG.md`, or a task spec
 
-Do not use catch-up to avoid required ship, architecture, or changelog updates when the target files and evidence are already clear.
+Do not use catch-up when the user already requested a clear canonical document update and the evidence is sufficient.
 
 ## Required Reading
 
@@ -36,7 +36,7 @@ Append a short entry to `spec/INBOX.md`:
 - Known files:
 - Known intent:
 - Unknowns:
-- Suggested next event: changelog | architecture change | ship | task start
+- Possible destination:
 ```
 
 `INBOX.md` is a temporary capture surface. It is not a replacement for `ARCHITECTURE.md`, `CHANGELOG.md`, or active task specs.
@@ -44,5 +44,5 @@ Append a short entry to `spec/INBOX.md`:
 ## Completion Check
 
 - The capture states what is known and unknown.
-- The suggested next event is explicit.
+- A possible destination is noted when one is already apparent.
 - No canonical spec document was updated from uncertain evidence.

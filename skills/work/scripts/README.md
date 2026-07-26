@@ -12,9 +12,10 @@ shipping:
 - common junk artifacts, such as temporary files, editor backups, and cache
   directories
 
-The scanner is designed as a practical ship gate. It favors clear findings and
-bounded runtime over exhaustive secret-scanning semantics. It is not a full
-security scanner, and it does not prove that a package is safe to publish.
+The scanner is an optional, narrow diagnostic. It favors clear findings and
+bounded runtime over exhaustive scanning. Findings require human interpretation;
+the command's exit status is not a release gate. It is not a secret or security
+scanner, and it does not prove that a package is safe to publish.
 
 ## Scan Modes
 
@@ -50,8 +51,8 @@ implement full Git ignore semantics such as nested `.gitignore`,
 `.git/info/exclude`, or global excludes. Hidden directories are scanned unless
 they are named in the built-in skip rules.
 
-For the strictest release check, run the scanner against the actual staging or
-package directory that will be distributed.
+When this diagnostic is useful for a release, scan the actual staging or package
+directory so its limited findings reflect the distribution surface.
 
 ## Output
 

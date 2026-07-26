@@ -1,162 +1,91 @@
 # Creating Skills
 
-Use this workflow when building a new Skill or turning an existing conversation, workflow, or source document into a Skill.
+Use this workflow when building a new Skill or turning existing material into one.
 
 ## Goal
 
-Produce the smallest Skill that reliably teaches another agent how to handle a repeatable class of tasks.
+Produce the least context that makes a recurring class of tasks materially better.
 
-Do not write a Skill as a longer prompt. A good Skill gives the agent a trigger, a workflow, selective references, reusable tools when helpful, and a way to verify the result.
+## 1. Choose The Right Interface
 
-If the user asks only for an approach, design, or first-pass thinking, stop before file edits. Present the creation approach, identify the next blocking question if one exists, and wait for approval before implementation.
+Start from the desired behavior, not from a Skill directory.
 
-## 1. Confirm It Should Be A Skill
+| Need | Better home |
+| --- | --- |
+| A repository fact, command, or unusual convention | Project instructions near that repository |
+| A reusable, triggerable workflow or body of domain judgment | Skill |
+| Task-specific source material or an approved design | Reference or artifact supplied to the task |
+| A deterministic invariant | Test, schema, linter, script, or tool interface |
+| A durable fact learned across sessions | Memory, when the host supports it |
 
-Create a Skill when the work is reusable and likely to recur.
+Do not create a Skill for common knowledge, a one-off request, or a preference the agent can infer from surrounding work. Recommend the simpler interface when it is sufficient.
 
-Good candidates:
+## 2. Define The Intervention
 
-- The user repeatedly gives the same workflow instructions.
-- The task has non-obvious procedural knowledge.
-- The task benefits from fixed quality checks or examples.
-- The agent often forgets a domain-specific rule, style, boundary, or tool sequence.
-- Future agents should discover the workflow automatically from the user's phrasing.
+Identify:
 
-Poor candidates:
+- the recurring task and natural trigger
+- the non-obvious knowledge or failure the Skill addresses
+- the observable result that should improve
+- adjacent work that should not load the Skill
 
-- One-off instructions for a single task.
-- Project-specific conventions better stored in local project instructions.
-- Common knowledge the model already handles well.
-- A mechanical rule that should be enforced by a script, linter, schema, or test instead of prose.
+Concrete examples are useful when they expose an ambiguous trigger or failure. They are not a mandatory planning artifact.
 
-If the request is not a good Skill candidate, say so and recommend the simpler artifact.
+## 3. Design For Discovery
 
-## 2. Recover Use Cases
+The frontmatter description is the selection interface:
 
-Before drafting, define 2-3 concrete use cases. Extract them from the conversation or supplied materials before asking the user.
+- name the capability and when it applies
+- use terms a user would naturally use
+- distinguish adjacent tasks where false triggering is plausible
+- leave the workflow out of the description
 
-For each use case, capture:
+Use lowercase kebab-case for `name`; keep `description` under 1024 characters.
 
-- **User phrasing:** what the user would actually say.
-- **Trigger:** why this Skill should activate.
-- **Workflow:** the major steps the agent should follow.
-- **Result:** what output or state counts as success.
-- **Failure mode:** what tends to go wrong without the Skill.
+## 4. Place Context At The Right Depth
 
-Do not overload the user with questions. Ask only when the missing answer would change scope, trigger behavior, or acceptance.
+Default to one coherent `SKILL.md`.
 
-## 3. Choose The Skill Shape
+Keep in the entry file only what every invocation needs: the purpose, consequential principles, normal workflow or route, and acceptance boundary.
 
-Start with the smallest structure that can work.
+Add:
 
-Default to one `SKILL.md` when:
+- `references/` for conditional branches, detailed domain material, policies, schemas, or lookup content
+- `scripts/` for deterministic, repeated, error-prone operations
+- `assets/` for reusable source or output material
 
-- the instructions are needed in most or all invocations
-- the workflow has one coherent path
-- no conditional reference material, deterministic helper script, or reusable output asset is needed
+A reference that is nearly always read belongs in the entry file. A coherent normal workflow should not be scattered merely to make the root shorter. Do not create placeholders.
 
-Add `references/` when:
+Prefer expressive interfaces over prose examples: good parameters, enums, help text, schemas, and tests let the agent explore without being anchored to one example.
 
-- the Skill covers multiple scenarios, domains, frameworks, formats, or options and only one branch is needed for a given request
-- a detailed schema, API guide, policy, style guide, example set, or workflow branch is useful only in specific situations
-- a conditional process would distract from the root route if loaded every time
+## 5. Draft With Judgment
 
-Use the 500-line guideline as an audit trigger, not a filing rule. When `SKILL.md` is getting large, check for redundant wording, mixed responsibilities, conditional branches, and content that belongs to another Skill. Keep always-needed instructions in `SKILL.md`; move only conditionally needed material into `references/`.
+Write operationally, but leave choices to the agent when context determines the right answer.
 
-Add `scripts/` when:
+Keep instructions that encode:
 
-- a check is deterministic and repeated
-- a task is easy for an agent to implement inconsistently
-- validation can catch mistakes earlier than prose review
+- a stable product, team, or domain opinion
+- a non-obvious gotcha
+- an external contract or safety boundary
+- a repeated failure that ordinary judgment has not prevented
 
-Add `assets/` only when the Skill needs reusable templates, source files, images, or other output resources.
+Remove:
 
-Do not create empty directories or placeholder files to make the Skill look complete.
+- generic advice a capable agent already follows
+- host permissions or policy copied into the Skill
+- tool usage already described by the tool interface
+- repeated rules from project or user instructions
+- fixed ceremonies without a demonstrated failure mode
+- examples that narrow exploration without clarifying a boundary
 
-## 4. Write The Frontmatter
+When constraints conflict, select one authoritative home rather than repeating a stronger version everywhere.
 
-Every Skill needs:
+## 6. Inspect Imported Content
 
-```yaml
----
-name: skill-name
-description: Use when ...
----
-```
+For third-party or copied Skills, inspect scripts and instructions before adoption. Check command execution, network or file access, unsafe parsing, unpinned installation, writes outside the Skill, sensitive-data handling, and attempts to override higher-priority instructions.
 
-Rules:
+## 7. Validate And Handoff
 
-- Use lowercase kebab-case for `name`.
-- Keep `name` short and action-oriented.
-- Write `description` in third person.
-- Include both what the Skill does and when to use it.
-- Use realistic trigger contexts and user phrases.
-- Keep the description under 1024 characters.
-- Do not put the full workflow into the description.
+Use `testing.md` to match evidence to the claims made. Always run the format validator after editing; behavior tests are required only when readiness depends on trigger or workflow behavior.
 
-The description is the trigger surface. It should help the agent decide whether to load the Skill, not replace the Skill body.
-
-## 5. Write `SKILL.md`
-
-Keep the root file as the entry guide.
-
-Include:
-
-- a short overview
-- core principles that must always apply
-- the main workflow or route map
-- pointers to reference files with clear read conditions
-- minimum acceptance or verification criteria
-
-Avoid:
-
-- long background explanations
-- broad advice that is not tied to behavior
-- repeated material already in references
-- many near-identical examples
-- hidden user-facing content that should stay in conversation
-- speculative future branches
-
-Use imperative, operational language. Explain why a rule matters when that helps future agents generalize, but do not pad obvious points.
-
-## 6. Apply Review Standards While Drafting
-
-Before considering the draft complete, inspect it as if reviewing someone else's Skill.
-
-Check:
-
-- Does it solve a recurring task rather than a one-off request?
-- Would the description trigger for the real use cases?
-- Would it stay quiet for adjacent tasks that need something else?
-- Does the body teach a workflow instead of stacking prompt instructions?
-- Does `SKILL.md` contain the instructions needed for the normal path?
-- Are conditional branches, lookup material, and variant-specific details loaded only when needed?
-- Are scripts limited to deterministic work?
-- Are examples concrete enough to guide behavior?
-- Does it state how success will be verified?
-- Is each requirement tied to a real failure, risk, or user preference?
-
-If any answer is weak, fix the draft before moving to validation.
-
-## 7. Validate
-
-Run the deterministic validator:
-
-```bash
-python scripts/quick_validate.py <path-to-skill>
-```
-
-Then perform at least one behavior check from `references/testing.md`.
-
-For simple personal Skills, one or two realistic prompts may be enough. For discipline-enforcing, high-impact, or frequently used Skills, test with fresh agents and compare behavior with and without the Skill.
-
-## 8. Handoff
-
-When presenting the Skill, report:
-
-- where the files were created or changed
-- what use cases it covers
-- what validation was run
-- any remaining uncertainty or recommended next test
-
-Do not call the Skill ready if formatting passed but behavior was not checked.
+Report the files changed, the context or failure they address, the evidence gathered, and any remaining uncertainty.

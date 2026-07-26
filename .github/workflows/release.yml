@@ -60,7 +60,7 @@ jobs:
           zip -r ../Gei-skills.zip .
           cd ..
           mkdir -p plugin-package/gei
-          cp -R .codex-plugin skills docs README.md CHANGELOG.md plugin-package/gei/
+          cp -R .codex-plugin assets skills docs hooks README.md CHANGELOG.md plugin-package/gei/
           cd plugin-package
           zip -r ../Gei-codex-plugin.zip gei
 

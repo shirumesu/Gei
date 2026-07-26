@@ -1,153 +1,45 @@
-# Ship Reference
+# Release Work
 
-## Overview
+Use this reference for versioning, packaging, deployment, publishing, tags, release branches, or other actions that create an external release state.
 
-Ship is the final release gate after implementation is complete.
+## 1. Recover The Release Contract
 
-It is not a design phase. It is not a brainstorming phase. It validates the current task, then handles release actions such as merge, tag, push, pull request, or release handoff when the user's release request calls for them.
+Read the repository's release docs, scripts, CI, version files, and recent release history. Determine:
 
-Use it from the main thread, or from one ship agent when the user explicitly approved delegation for the release.
+- the requested target and action
+- the artifact or remote state that will change
+- the project's versioning and validation policy
+- rollback or recovery cost
 
-## Boundaries
+Do not infer a release target from branch count or invent a generic SemVer policy when the repository has its own contract.
 
-- Do not create a new branch just because the task is being released.
-- Merge, tag, push, and pull request actions belong to the ship gate, not to ordinary implementation steps. Perform them only when the user asked for that release action or explicitly confirms the target during the ship gate.
-- Do not skip verification because the change looks small.
-- Ask the user before continuing when the release target is ambiguous, a destructive action is next, a force push is next, a major version bump is next, or a serious unresolved coverage gap remains.
-- If the environment is missing declared tooling, bootstrap it automatically from the repo's documented setup path, then continue.
+## 2. Check Readiness
 
-## Gate Order
+Inspect the relevant worktree, diff, dependencies, and credentials or permissions. Choose verification according to the changed surface and release risk; a full suite is required only when project policy or blast radius justifies it.
 
-Run the gate in this order.
+Build or inspect the distributable artifact when packaging can differ from the source tree. Check secrets, local paths, ignored files, generated outputs, and metadata on the actual distribution surface as relevant.
 
-### 1. Check branch and repo state
+`scripts/ship_scan.py` is an optional diagnostic for absolute paths and junk candidates. Its scope and exit behavior do not make it a complete release, secret, or security gate; use it only when that narrow scan adds value.
 
-Confirm:
+Resolve blockers before creating external state. Ask the user only when the target, authority, or irreversible consequence remains materially ambiguous.
 
-- current branch
-- local branch count
-- upstream or remote target when one exists
-- clean or expected worktree status
-- no unrelated changes that would pollute release evidence
+## 3. Execute The Authorized Action
 
-If the state is unexpectedly dirty, stop and report it.
+When the user has requested a clear release action, complete it using the repository's normal tools. Keep version files, tags, package metadata, and release notes aligned when the project exposes them.
 
-If there is only one local branch, treat the current branch as the release branch and continue from that branch. Do not create another branch.
+Do not silently add adjacent actions such as merging, tagging, pushing, publishing, or deploying when they were not part of the authorized goal.
 
-If there are multiple branches, identify the likely release target from the user's request, branch naming, upstream tracking, or repo docs. If the target is still ambiguous, ask before merge, tag, or push.
+## 4. Verify The Result
 
-### 2. Run the full verification set
+Inspect the actual outcome: artifact contents, package registry, deployment status, Git remote, tag, release page, or other authoritative external state.
 
-Run the full unit test suite and any other required quality commands from the active spec-backed task, repo docs, package scripts, or established project commands.
+Report:
 
-If the environment is missing tooling:
+- action and target
+- verification performed and result
+- resulting version, artifact, URL, or remote state when applicable
+- any remaining limitation, rollback concern, or follow-up decision
 
-1. find the documented bootstrap or install command in the active spec context when present, or in `README.md` and repo-native docs otherwise
-2. run it automatically
-3. rerun verification
+Do not call a release complete based only on a successful local command when the requested outcome is external.
 
-Record the exact commands and observed outputs.
-
-### 3. Scan for distribution blockers
-
-Check for anything that would make the shipped result unsafe or non-portable.
-
-At minimum:
-
-- run `python skills/work/scripts/ship_scan.py {project_root_path}` to scan absolute paths and any junk files that may not have been excluded by `.gitignore`.
-- search for likely secret leaks or unsafe local-only configuration
-- check for machine-specific assumptions that other users cannot reproduce
-
-If the repo has known secret files or fixture exceptions, apply the documented exclusions rather than skipping the scan.
-
-### 4. Check spec parity when present
-
-If the task is spec-backed, compare the shipped state against the active spec-task context recovered through Memo.
-
-Make sure:
-
-- completed items are actually complete
-- unchecked items are either finished or explicitly changed/deferred with a reason
-- any intentionally unfinished scope is stated in the release notes or final handoff
-
-Do not ship with silent drift between code and spec.
-
-If there is no active spec-backed task, mark spec parity as `not applicable` and continue. Do not create spec documents from Ship.
-
-### 5. Check version alignment
-
-Use SemVer tags when the project has a version scheme or the user asks for a version:
-
-- `vMAJOR.MINOR.PATCH`
-
-Default bump policy:
-
-- `MAJOR`: breaking change or intentional compatibility break
-- `MINOR`: new project-level capability that deserves a visible feature-line release
-- `PATCH`: backward-compatible fix, meaningful behavior correction, user-visible `perf`, or small `feat`
-- no release by default: `docs`, `chore`, `test`, `ci`, `build`, and `style`
-
-Confirm the chosen version is consistent across:
-
-- git tag
-- version files
-- package metadata
-- docs or changelog entries that expose the version
-
-If the repo has no fixed version scheme, do not invent one. Recommend a changelog checkpoint such as `Checkpoint YYYY-MM-DD` instead of a version tag unless the user explicitly asks for a tag.
-
-### 6. Return the release decision to the user
-
-At the end of ship:
-
-- say the task is complete if and only if the gate is green
-- show the evidence
-- complete the requested release action when it was explicitly requested and the target is unambiguous
-- otherwise hand the next release decision back to the user
-
-Examples of next choices:
-
-- merge into the release branch
-- tag the release
-- push the release branch or tag
-- merge into the main branch
-- open or update a pull request
-- keep the branch for more work
-
-## Return Contract
-
-Use this shape:
-
-```text
-Branch Status:
-- branch: ...
-- local branches: one | multiple
-- release target: ...
-- worktree: clean | dirty
-
-Verification:
-- command: ...
-  output: ...
-
-Safety Scan:
-- absolute path scan: pass | fail
-- secret/config scan: pass | fail
-- notes: ...
-
-Spec Parity:
-- pass | fail | not applicable
-- notes: ...
-
-Version:
-- current: ...
-- recommended: ...
-- files/tag updated: ...
-
-Release Status:
-- green | blocked
-
-Next User Choice:
-- merge | tag | push | PR | more fixes
-```
-
-If any gate is blocked, stop and report the exact blocker instead of softening it.
+Before closing a Gei spec-backed release, use Memo's ship event to compact the internal changelog and audit `OVERVIEW.md`, `ARCHITECTURE.md`, and project memory against the released state.

@@ -19,14 +19,14 @@ Read:
 
 1. `references/contracts/architecture.md`
 2. `spec/ARCHITECTURE.md`
-3. `references/contracts/changelog.md` only if this architecture change is also being closed as file-changing work
+3. `references/contracts/changelog.md` only when an explicit release record or checkpoint is also requested
 4. The active spec-task file only when it explains the architecture change
 
 ## Actions
 
 1. Update only the architecture sections that changed.
 2. Keep the routing and command guidance exact.
-3. If the task is closing now, ensure `CHANGELOG.md` records the closed file-changing work through `../contracts/changelog.md`.
+3. Update `CHANGELOG.md` only when the requested outcome includes that release record or checkpoint.
 4. Do not rewrite unrelated diagrams or broad project descriptions.
 
 ## Completion Check
@@ -36,4 +36,4 @@ Before finishing:
 - The changed structure or flow is represented in `ARCHITECTURE.md`.
 - Commands and paths are exact.
 - The update is narrow and does not duplicate source files.
-- Any changelog update is handled through the changelog contract.
+- Any explicitly requested changelog update is handled through the changelog contract.

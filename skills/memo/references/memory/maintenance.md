@@ -41,4 +41,4 @@ Remove or rewrite memory that contains:
 
 If `spec/MEMORY.md` gets noisy, shorten the index first. If the number of entries grows enough that scanning summaries becomes unreliable, consolidate related entries by task condition rather than by chronology.
 
-Do not move Gei project memory into an MCP or vector store by default. External memory providers are useful for cross-project semantic search, but they do not solve the lifecycle problem of making agents recall and write memory at the right time.
+Do not move Gei project memory into an MCP or vector store by default. External providers can help cross-project search, but they do not replace a small, reviewable project index with explicit ownership and safety rules.
