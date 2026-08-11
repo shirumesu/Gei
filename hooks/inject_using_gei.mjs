@@ -23,8 +23,8 @@ function writeSessionStartContext(additionalContext) {
   );
 }
 
-// The using-gei router applies to every Gei session regardless of project, so
-// this hook injects the router body itself rather than gating on spec/ presence.
+// The using-gei router applies to every Gei session regardless of Project, so
+// this hook injects the router body without depending on GeiSpec state.
 function stripFrontmatter(text) {
   if (!text.startsWith("---")) return text.trimStart();
   const close = text.indexOf("\n---", 3);

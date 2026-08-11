@@ -17,3 +17,5 @@ Choose a Skill by the user's final objective. Supporting actions such as reading
 Honor an explicitly named Skill. If no Skill fits, continue normally.
 
 Load the selected Skill and let it own the workflow. Do not preload other Skills merely because they might become useful later.
+
+Before the final response, briefly assess whether the conversation or outcome revealed a durable, non-obvious lesson that could change future work. When a candidate exists, use Memo's memory write gate and update memory autonomously; keep a no-write decision silent. Write to the narrowest complete scope: Project by default, Group when multiple members share the lesson, and Shared Context only when it clearly applies across unrelated projects.

@@ -2,7 +2,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume|clear|compact",
+        "matcher": "startup|resume|clear|compact|fork",
         "hooks": [
           {
             "type": "command",
@@ -12,14 +12,32 @@
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_overview.mjs\"",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_memory.mjs\" context",
+            "statusMessage": "Loading Gei shared memory",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_overview.mjs\" group",
+            "statusMessage": "Loading Gei group overview",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_memory.mjs\" group",
+            "statusMessage": "Loading Gei group memory",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_overview.mjs\" project",
             "statusMessage": "Loading Gei project overview",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_memory.mjs\"",
-            "statusMessage": "Loading Gei memory index",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_memory.mjs\" project",
+            "statusMessage": "Loading Gei project memory",
             "timeout": 5
           }
         ]

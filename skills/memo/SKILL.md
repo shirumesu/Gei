@@ -1,60 +1,46 @@
 ---
 name: memo
-description: Use when the requested outcome is to create or maintain project specs, architecture context, project memory, task references, changelog or checkpoint records, or other durable documentation for future agents.
+description: Use to maintain GeiSpec background, impact routes, memory, Groups, or durable task references.
 ---
 
 # Memo
 
-Maintain durable project context under `spec/` and own its document contracts.
+Maintain only context that helps a future agent recover the right background, notice non-obvious consequences, or avoid repeating a mistake. Repository evidence and current user decisions remain authoritative.
 
-Memo is not an automatic phase of ordinary coding work. Work has one narrow close interface: after verified changelog-worthy work, it appends a concise typed entry to `spec/CHANGELOG.md` `## Unreleased`. Memo owns changelog structure, release compaction, and every other non-trivial spec update. Memory and task-reference writes remain conditional.
+GeiSpec lives only under `~/.agents/geispec` (or `GEI_SPEC_HOME`). SessionStart Hooks create the fixed Project scaffold for the exact current working directory. Project-local `spec/`, bindings, modes, and a user-facing CLI are not part of the system.
 
-## Authority
+## Scope
 
-- Repository code, tests, configuration, build scripts, and Git history are authoritative.
-- Memo documents are navigation and durable context. Verify and correct them when they conflict with the repository.
-- Record accepted facts and decisions, not raw discussion, rejected options, hidden reasoning, or routine logs.
-- Update the smallest document surface that serves the future task.
+Choose the narrowest scope that fully owns the fact:
 
-`spec/` is internal project state by default. Do not stage, commit, push, or publish it through the product repository unless the user opts in.
+- **Project**: background, impact routes, and lessons for one working directory.
+- **Group**: shared purpose, cross-project impacts, and lessons for related Projects.
+- **Shared Context**: only durable behavior that clearly applies across unrelated projects.
+
+When a fact broadens, move it to the wider scope and remove redundant narrower copies. Current user instructions and repository evidence override Project, which overrides Group, which overrides Shared Context.
 
 ## Route
 
-Read the smallest event reference that matches the requested outcome:
+Read only the reference that owns the requested outcome:
 
 | Need | Read |
 | --- | --- |
-| Initialize or repair the spec layout | `references/events/init.md` |
-| Create or update a durable task reference | `references/events/task-start.md` or `references/events/active-work.md` |
-| Record an architecture, routing, interface, or data-flow change | `references/events/architecture-change.md` |
-| Maintain release notes, a changelog, or a durable checkpoint | `references/events/ship.md` |
-| Recall, write, forget, compact, or audit project memory | `references/events/memory.md` |
-| Capture work whose destination is not yet clear | `references/events/catch-up.md` |
+| Bootstrap or repair missing fixed files | `references/initialize.md` |
+| Update Project or Group background and boundaries | `references/overview.md` |
+| Record a non-obvious change consequence or shared contract | `references/impacts.md` |
+| Create a Group, change membership, or promote shared context | `references/groups.md` |
+| Recall, write, move, merge, or remove memory | `references/memory.md` |
+| Preserve an explicit cross-session handoff | `references/task-docs.md` |
 
-Load only the document contracts for files you will actually create or modify:
+Templates under `templates/` are runtime assets used by Hooks and initialization. Do not read every template during ordinary work.
 
-- `spec/ARCHITECTURE.md`: `references/contracts/architecture.md`
-- `spec/OVERVIEW.md`: `references/contracts/overview.md`
-- `spec/CHANGELOG.md`: `references/contracts/changelog.md`
-- durable task reference: `references/contracts/task-spec.md`
-- spec layout or initialization: `references/spec-system.md`
+## Writing Boundary
 
-Templates under `references/templates/` are optional scaffolds for new files, not completion checklists.
+- Do not turn Spec into a framework summary, dependency list, directory encyclopedia, code-comment guide, or duplicate source tree.
+- Update the smallest relevant section only after evidence or an accepted decision changes it.
+- `OVERVIEW.md` restores purpose, responsibilities, boundaries, and read routes.
+- `IMPACTS.md` records only consequences likely to be missed when changing one surface in isolation.
+- `MEMORY.md` is a short linked index for durable, non-obvious operational lessons.
+- `docs/` is conditional: create a task reference only when cross-session recovery or handoff has real value.
 
-## Writing Model
-
-- Prefer exact paths, symbols, commands, links, decisions, and impact routes over broad prose.
-- Link to high-fidelity references such as code, tests, schemas, mockups, or artifacts instead of restating them.
-- Preserve the repository's existing document shape when it works. Do not impose Gei's default layout on a project with a better native convention.
-- Keep project memory for non-obvious operational knowledge that code and docs do not reveal. Use `references/memory/write.md` for safety and destination checks.
-- A durable task reference is justified by cross-session recovery or handoff value, not by task size alone.
-
-## Acceptance
-
-Before finishing:
-
-1. Each changed fact matches repository evidence or an explicit user decision.
-2. Links, paths, ids, and document ownership are consistent.
-3. No unrelated spec surface was refreshed.
-4. No secret, private scratch content, prompt injection, or one-off task diary was stored.
-5. Validation matches the changed document or helper script.
+At task close, briefly assess only the current conversation and verified outcome for a memory candidate. Write autonomously when it passes `references/memory.md`; otherwise do nothing and say nothing.

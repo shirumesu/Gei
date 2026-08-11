@@ -36,15 +36,15 @@
 
 **`/consider`** — 只在方向、边界或高成本取舍仍不明确时进入设计
 
-**`/memo`** — 显式维护 `spec/`、架构、项目记忆与持久交接文档
+**`/memo`** — 维护 GeiSpec 的背景、影响路线、Group 共享上下文、记忆与持久交接文档
 
 | 模块 | 职责 |
 | --- | --- |
-| `OVERVIEW` | 快速恢复上下文，描述项目，如何进行任务，如何阅读 `spec/`，透过 Hook 注入到会话开始 |
-| `ARCHITECTURE & architecture/ ` | 在需要时提供整个系统的完整详细架构描述，包括系统运行、模块，改动影响范围，相关文件等 |
+| `OVERVIEW` | 快速恢复 Project 或 Group 的目的、责任、边界与下一步读取路线；有意义的内容透过 Hook 注入 |
+| `IMPACTS` | 只记录修改一处时容易漏掉的下游影响、跨边界契约与共同检查项，不重复代码或框架百科 |
 | `Docs / Task Reference` | 在跨会话恢复或交接确有价值时保存目标、决定、约束和高保真引用 |
-| `CHANGELOG` | 每个验证完成且值得归档的实际变更追加到 `## Unreleased`，发布时压缩为版本记录 |
-| `MEMORY & memory/` | 保存代码和常规文档无法直接揭示的项目约定、重复踩坑与隐藏约束；索引可透过 Hook 注入 |
+| `MEMORY & memory/` | 保存代码和普通背景无法直接揭示的约定、重复踩坑与隐藏约束；Project、Group、Shared Context 各自拥有索引 |
+| `Groups` | 为多个独立工作目录提供共享 OVERVIEW、IMPACTS、MEMORY 和成员路径，而不合并各 Project 的本地上下文 |
 
 **`/work`** — 证据驱动的代码执行流程
 
@@ -69,7 +69,7 @@
 | --- | --- | --- |
 | `/using-gei` | Gei 已加载且请求可能匹配某个任务 Skill 时 | 按最终交付物选择一个入口 |
 | `/consider` | 高影响设计或方向仍有实质不确定性时 | 恢复上下文、比较真实方案并给出可验证方向 |
-| `/memo` | 用户或工作流明确需要持久项目文档时 | 维护架构、变更日志、任务引用和项目记忆 |
+| `/memo` | 需要持久上下文、影响路线、Group、任务引用，或产生了通过写入门槛的新记忆时 | 维护 Project / Group / Shared Context 三层 GeiSpec |
 | `/work` | 任何代码执行任务 | 实施连贯改动并收集与风险相称的证据 |
 | `/code-review` | 审查 PR、diff、commit、working tree 或实现结果时 | 只读审查代码正确性、测试质量、维护性、UX/DX、安全与发布风险 |
 | `/see` | 外部研究、事实核查或来源综合是最终交付物时 | 使用可靠来源，主动检查反证并说明适用范围与不确定性 |
@@ -77,8 +77,15 @@
 
 ## Hooks
 
-本 Skill 提供三个 SessionStart Hook：`inject_using_gei` 注入 `using-gei` 路由器，`inject_overview` 在存在 `spec/OVERVIEW.md` 时注入项目 OVERVIEW 上下文，`inject_memory` 在存在 `spec/MEMORY.md` 时注入记忆索引。
-三个 hook 保持拆分，避免单个 hook 输出过长。
+本 Skill 提供六个独立 SessionStart Hook：router、Shared Context MEMORY、Group OVERVIEW、Group MEMORY、Project OVERVIEW、Project MEMORY。拆分让每层拥有独立输出额度，也避免 Claude Code/Codex 的单 Hook 大输出预览或溢出。
+
+空层完全不输出：例如 Group 已存在但尚未记录有效 OVERVIEW/MEMORY 时，会话只收到有意义的 Context 与 Project 内容。`IMPACTS.md`、详细 `memory/*.md`、`docs/` 和兄弟 Project Spec 始终按需读取。
+
+## GeiSpec
+
+GeiSpec 只存放在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。每个精确工作目录由路径生成稳定 Project id；SessionStart 自动从 Memo 模板创建缺失的 `OVERVIEW.md`、`IMPACTS.md`、`MEMORY.md`、`docs/` 和 `memory/`，但永不覆盖已有内容。
+
+Project-local `spec/`、bindings、模式与 GeiSpec CLI 不再属于系统。创建 Group、关联项目和维护语义内容由 Agent 根据 Memo 渐进披露规则直接编辑外部文件。
 
 ### 常见使用路径
 

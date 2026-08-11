@@ -17,25 +17,35 @@ def latest_changelog_version(path: Path) -> str:
     raise ValueError(f"No version heading found in {path}")
 
 
-def sync_plugin_version(changelog_path: Path, plugin_json_path: Path) -> bool:
+def sync_version(changelog_path: Path, manifest_path: Path) -> bool:
     version = latest_changelog_version(changelog_path)
-    data = json.loads(plugin_json_path.read_text(encoding="utf-8"))
+    data = json.loads(manifest_path.read_text(encoding="utf-8"))
     if data.get("version") == version:
         return False
 
     data["version"] = version
-    plugin_json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     return True
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Sync plugin.json version from the latest changelog release.")
+    parser = argparse.ArgumentParser(
+        description="Sync JSON manifest versions from the latest changelog release."
+    )
     parser.add_argument("changelog", help="Path to CHANGELOG.md")
-    parser.add_argument("plugin_json", help="Path to .codex-plugin/plugin.json")
+    parser.add_argument(
+        "manifests", nargs="+", help="JSON manifests containing a version field"
+    )
     args = parser.parse_args()
 
-    changed = sync_plugin_version(Path(args.changelog), Path(args.plugin_json))
-    print("updated" if changed else "already-synced")
+    changes = [
+        manifest
+        for manifest in args.manifests
+        if sync_version(Path(args.changelog), Path(manifest))
+    ]
+    print("updated: " + ", ".join(changes) if changes else "already-synced")
 
 
 if __name__ == "__main__":

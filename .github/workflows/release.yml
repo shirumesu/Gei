@@ -39,7 +39,7 @@ jobs:
           python .github/scripts/extract_latest_release_notes.py CHANGELOG.md release-notes.md --tag "${RELEASE_TAG}" --plugin-json .codex-plugin/plugin.json
 
       - name: Commit release metadata
-        if: steps.release.outputs.changelog_changed == 'true' || steps.release.outputs.plugin_changed == 'true'
+        if: steps.release.outputs.changelog_changed == 'true' || steps.release.outputs.plugin_changed == 'true' || steps.release.outputs.claude_plugin_changed == 'true'
         run: |
           RELEASE_TAG="${GITHUB_REF_NAME}"
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
@@ -47,7 +47,7 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md .codex-plugin/plugin.json
+          git add CHANGELOG.md .codex-plugin/plugin.json .claude-plugin/plugin.json
           git diff --cached --quiet || git commit -m "chore: sync release metadata ${RELEASE_TAG} [skip ci]"
           git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
@@ -60,7 +60,7 @@ jobs:
           zip -r ../Gei-skills.zip .
           cd ..
           mkdir -p plugin-package/gei
-          cp -R .codex-plugin assets skills docs hooks README.md CHANGELOG.md plugin-package/gei/
+          cp -R .codex-plugin assets skills docs hooks LICENSE README.md README.en.md CHANGELOG.md plugin-package/gei/
           cd plugin-package
           zip -r ../Gei-codex-plugin.zip gei
 

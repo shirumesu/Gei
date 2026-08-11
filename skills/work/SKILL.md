@@ -43,7 +43,7 @@ Use an in-conversation plan for coordination when helpful. Create or update a du
 
 Treat existing specs, tests, code, mockups, schemas, and artifacts as references; do not restate them into a new Markdown plan by default.
 
-`memo` owns the Gei spec contracts and non-trivial spec maintenance. After completing and verifying changelog-worthy work, Work appends one concise typed entry under `spec/CHANGELOG.md` `## Unreleased`; this narrow close action does not require invoking Memo. If the task changes durable architecture, routing, module boundaries, or cold-start project context, hand the corresponding `ARCHITECTURE.md` or `OVERVIEW.md` update to Memo in the same task. Memory and durable task-reference updates remain conditional.
+`memo` owns GeiSpec maintenance. When verified work changes durable background or a non-obvious downstream consequence, update the owning Project or Group `OVERVIEW.md` or `IMPACTS.md` through Memo in the same task. Do not maintain an internal changelog when Git, release notes, or a repository-native tracker already owns history. At close, follow Using Gei's autonomous memory candidate check and keep no-write decisions silent.
 
 Create commits or other checkpoints when requested or when they provide real recovery value and are authorized. Never include unrelated user changes.
 

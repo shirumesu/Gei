@@ -1,108 +1,69 @@
 #!/usr/bin/env node
 
-import fs from "node:fs";
 import path from "node:path";
-import process from "node:process";
-import { fileURLToPath } from "node:url";
+import {
+  ensureContext,
+  ensureProject,
+  findProjectGroups,
+  getHookStartDir,
+  readHookInput,
+  readMeaningfulDocument,
+  writeSessionStartContext,
+} from "./geispec.mjs";
 
-const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-const pluginRoot = process.env.PLUGIN_ROOT || path.resolve(scriptDir, "..");
-const MEMORY_LINE_WARNING = 100;
+function memoryBlock(label, scopeRoot, memoryPath, memory) {
+  return [
+    `GeiSpec ${label} memory index`,
+    "",
+    `Scope root: ${scopeRoot}`,
+    "This is a retrieval index. Read only linked entries whose summaries can change the current task.",
+    "At task close, write a durable non-obvious lesson only when it passes Memo's memory gate. Keep no-write decisions silent.",
+    "",
+    `--- ${label} MEMORY: ${memoryPath} ---`,
+    memory,
+    "----------------------------------------",
+  ].join("\n");
+}
 
-function readHookInput() {
-  if (process.stdin.isTTY) return {};
+function contextMemory() {
+  const context = ensureContext();
+  const memory = readMeaningfulDocument(context.memoryPath);
+  return memory
+    ? memoryBlock("shared Context", context.contextRoot, context.memoryPath, memory)
+    : "";
+}
 
-  try {
-    const raw = fs.readFileSync(0, "utf8");
-    if (!raw.trim()) return {};
-    const input = JSON.parse(raw);
-    return input && typeof input === "object" ? input : {};
-  } catch {
-    return {};
+function projectMemory(project) {
+  const memoryPath = path.join(project.specRoot, "MEMORY.md");
+  const memory = readMeaningfulDocument(memoryPath);
+  return memory
+    ? memoryBlock("project", project.specRoot, memoryPath, memory)
+    : "";
+}
+
+function groupMemories(project) {
+  const blocks = [];
+  for (const group of findProjectGroups(project)) {
+    const memoryPath = path.join(group.specRoot, "MEMORY.md");
+    const memory = readMeaningfulDocument(memoryPath);
+    if (!memory) continue;
+    blocks.push(memoryBlock("group", group.specRoot, memoryPath, memory));
   }
-}
-
-function writeSessionStartContext(additionalContext) {
-  process.stdout.write(
-    `${JSON.stringify(
-      {
-        hookSpecificOutput: {
-          hookEventName: "SessionStart",
-          additionalContext,
-        },
-      },
-      null,
-      2,
-    )}\n`,
-  );
-}
-
-function findSpecProjectDir(startDir) {
-  try {
-    if (!startDir) return "";
-
-    let current = path.resolve(startDir);
-    while (true) {
-      if (fs.existsSync(path.join(current, "spec", "OVERVIEW.md"))) {
-        return current;
-      }
-
-      const parent = path.dirname(current);
-      if (parent === current) return "";
-      current = parent;
-    }
-  } catch {
-    return "";
-  }
-}
-
-function getHookStartDir(hookInput) {
-  return typeof hookInput.cwd === "string" && hookInput.cwd
-    ? hookInput.cwd
-    : process.env.CLAUDE_PROJECT_DIR || process.cwd();
-}
-
-function buildMemoryIndexBlock(projectDir) {
-  try {
-    if (!projectDir) {
-      return "";
-    }
-
-    const specRoot = path.join(projectDir, "spec");
-    const memoryPath = path.join(specRoot, "MEMORY.md");
-    if (!fs.existsSync(memoryPath)) {
-      return "";
-    }
-
-    const memory = fs.readFileSync(memoryPath, "utf8").trimEnd();
-    const lineCount = memory ? memory.split(/\r?\n/).length : 0;
-    const warning =
-      lineCount > MEMORY_LINE_WARNING
-        ? [
-            "",
-            `Warning: spec/MEMORY.md is ${lineCount} lines, above the ${MEMORY_LINE_WARNING}-line warning threshold.`,
-            "Consider whether some entries should be consolidated or removed.",
-          ]
-        : [];
-
-    return [
-      "Gei memory index context",
-      "",
-      "This project keeps a Gei Memo memory index at spec/MEMORY.md, injected below. It is a retrieval router, not the memory itself.",
-      "Before you plan, review, or edit, scan its linked summaries against the current task. If a line might matter, read the linked spec/memory/*.md entry before relying on the summary.",
-      "Do not bulk-read spec/memory/. Re-scan after scope moves into new files, commands, errors, or workflows. Tell the user about a memory entry only when it changed the answer or conflicts with repository or user instructions.",
-      ...warning,
-      "",
-      "--- spec/MEMORY.md ---",
-      memory,
-      "----------------------",
-    ].join("\n");
-  } catch {
-    return "";
-  }
+  return blocks.join("\n\n");
 }
 
 const hookInput = readHookInput();
-const projectDir = findSpecProjectDir(getHookStartDir(hookInput));
+const scope = process.argv[2] || "project";
 
-writeSessionStartContext(buildMemoryIndexBlock(projectDir));
+try {
+  if (scope === "context") {
+    writeSessionStartContext(contextMemory());
+  } else {
+    const project = ensureProject(getHookStartDir(hookInput));
+    writeSessionStartContext(
+      scope === "group" ? groupMemories(project) : projectMemory(project),
+    );
+  }
+} catch {
+  // Session context is optional. Initialization failures must not block Codex.
+}

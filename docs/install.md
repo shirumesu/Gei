@@ -57,6 +57,8 @@ gei
   skills/see/SKILL.md
   skills/create-skill/SKILL.md
   hooks/codex-hooks.json
+  hooks/geispec.mjs
+  skills/memo/templates/project/OVERVIEW.md
 ```
 
 Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
@@ -75,6 +77,8 @@ Use this for Claude Code when plugin marketplace installation is available.
 Gei
   .claude-plugin/plugin.json
   hooks/hooks.json
+  hooks/geispec.mjs
+  skills/memo/templates/project/OVERVIEW.md
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md

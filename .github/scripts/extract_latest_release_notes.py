@@ -189,6 +189,11 @@ def main() -> None:
         default=".codex-plugin/plugin.json",
         help="Path to the Codex plugin manifest.",
     )
+    parser.add_argument(
+        "--claude-plugin-json",
+        default=".claude-plugin/plugin.json",
+        help="Path to the Claude plugin manifest.",
+    )
     args = parser.parse_args()
 
     version = args.tag
@@ -206,11 +211,17 @@ def main() -> None:
             changelog_changed = True
 
     plugin_changed = update_plugin_version(Path(args.plugin_json), version)
+    claude_plugin_changed = update_plugin_version(
+        Path(args.claude_plugin_json), version
+    )
     Path(args.output).write_text(notes or "", encoding="utf-8")
 
     write_github_output("version", version)
     write_github_output("changelog_changed", "true" if changelog_changed else "false")
     write_github_output("plugin_changed", "true" if plugin_changed else "false")
+    write_github_output(
+        "claude_plugin_changed", "true" if claude_plugin_changed else "false"
+    )
 
 
 if __name__ == "__main__":

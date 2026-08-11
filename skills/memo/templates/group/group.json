@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 2,
+  "id": {{GROUP_ID_JSON}},
+  "name": {{GROUP_NAME_JSON}},
+  "members": []
+}

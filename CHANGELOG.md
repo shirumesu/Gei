@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+## v0.8.0 - 2026-08-11
+
+### 重大调整
+- GeiSpec 改为 `~/.agents/geispec` 下的外部唯一存储；SessionStart 按精确工作目录自动创建固定 Project 模板，不再依赖项目内 Spec、目录绑定、模式或命令行生命周期。
+- 新增 Group 共享层，让相关但独立目录的 Project 共享背景、影响关系与记忆，同时保留各自的 Project 上下文。
+- 以聚焦跨组件后果的 `IMPACTS.md` 取代技术百科式 Architecture，并停止维护重复 Git / release notes 的内部 Changelog。
+
+### 优化
+- 将 SessionStart 拆为路由、共享记忆、Group Overview、Group Memory、Project Overview、Project Memory 六个独立 Hook；每个 Hook 独立初始化且空内容静默，兼容并行执行和宿主输出上限。
+- 重构 Memo 为小型渐进披露路由，并把 Project、Group、Shared Context、Memory 和任务引用模板集中为 Hook 可复用的运行时资源。
+
+### 移除
+- 删除已放弃的 GeiSpec CLI、npm 包装、格式验证、迁移、旧目录回退和初始化脚本，以及相应发布配置与文档。
+
 ## v0.7.0 - 2026-07-26
 
 ### 重大调整

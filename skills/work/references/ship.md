@@ -42,4 +42,4 @@ Report:
 
 Do not call a release complete based only on a successful local command when the requested outcome is external.
 
-Before closing a Gei spec-backed release, use Memo's ship event to compact the internal changelog and audit `OVERVIEW.md`, `ARCHITECTURE.md`, and project memory against the released state.
+Before closing a GeiSpec-backed release, use Memo only when the release changed durable background, a cross-surface impact route, or a non-obvious operational lesson. Update the owning `OVERVIEW.md`, `IMPACTS.md`, or memory entry; keep release history in the repository's native changelog or release notes.
