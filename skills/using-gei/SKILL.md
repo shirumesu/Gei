@@ -10,7 +10,7 @@ Choose a Skill by the user's final objective. Supporting actions such as reading
 - `consider`: an idea needs design or a consequential decision before implementation
 - `work`: code, tests, builds, fixes, refactors, Git diagnosis, or release execution
 - `create-skill`: create, improve, review, or validate Skills
-- `memo`: maintain project specs, memory, architecture, or changelog documents
+- `memo`: maintain GeiSpec background, architecture, impacts, changelog, memory, Groups, or task references
 - `code-review`: a read-only audit is the final deliverable
 - `see`: external research or source-backed synthesis is the final deliverable
 

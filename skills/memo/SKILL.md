@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Use to maintain GeiSpec background, impact routes, memory, Groups, or durable task references.
+description: Use to maintain GeiSpec background, architecture, impact routes, changelog, memory, Groups, or durable task references.
 ---
 
 # Memo
@@ -27,20 +27,24 @@ Read only the reference that owns the requested outcome:
 | --- | --- |
 | Bootstrap or repair missing fixed files | `references/initialize.md` |
 | Update Project or Group background and boundaries | `references/overview.md` |
+| Map stable project structure, flows, interfaces, or decisions | `references/architecture.md` |
 | Record a non-obvious change consequence or shared contract | `references/impacts.md` |
+| Record verified outcomes or prepare a release/checkpoint | `references/changelog.md` |
 | Create a Group, change membership, or promote shared context | `references/groups.md` |
 | Recall, write, move, merge, or remove memory | `references/memory.md` |
-| Preserve an explicit cross-session handoff | `references/task-docs.md` |
+| Preserve an accepted change spec or cross-session handoff | `references/task-docs.md` |
 
-Templates under `templates/` are runtime assets used by Hooks and initialization. Do not read every template during ordinary work.
+Project, Group, and Context templates under `templates/` are runtime assets used by Hooks and initialization. Change, architecture-view, decision-record, memory-entry, and task-reference templates are optional scaffolds; read only the one being created.
 
 ## Writing Boundary
 
 - Do not turn Spec into a framework summary, dependency list, directory encyclopedia, code-comment guide, or duplicate source tree.
 - Update the smallest relevant section only after evidence or an accepted decision changes it.
 - `OVERVIEW.md` restores purpose, responsibilities, boundaries, and read routes.
+- `ARCHITECTURE.md` maps stable system shape, critical flows, interfaces, decisions, and maintenance entry points. Put earned domain views and ADRs under `architecture/`.
 - `IMPACTS.md` records only consequences likely to be missed when changing one surface in isolation.
+- `CHANGELOG.md` records concise verified outcomes under `Unreleased` and release/checkpoint history; it is not a task plan or commit log.
 - `MEMORY.md` is a short linked index for durable, non-obvious operational lessons.
-- `docs/` is conditional: create a task reference only when cross-session recovery or handoff has real value.
+- `docs/` is conditional: create a task reference only when cross-session recovery or handoff has real value. For a consequential feature with distinct proposal, requirements, design, and execution concerns, use a temporary structured change package as described in `references/task-docs.md`.
 
 At task close, briefly assess only the current conversation and verified outcome for a memory candidate. Write autonomously when it passes `references/memory.md`; otherwise do nothing and say nothing.

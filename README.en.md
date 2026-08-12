@@ -37,13 +37,15 @@ So I wrote this skill suite.
 
 **`/consider`** — Designs only when direction, boundaries, or consequential tradeoffs remain unresolved
 
-**`/memo`** — Maintains GeiSpec background, impact routes, Group context, memory, and durable handoff documents
+**`/memo`** — Maintains GeiSpec background, architecture, impact routes, changelog, Group context, memory, and durable handoff documents
 
 | Module | Responsibility |
 | --- | --- |
 | `OVERVIEW` | Restores Project or Group purpose, responsibilities, boundaries, and next-read routes; meaningful content is injected by Hooks |
+| `ARCHITECTURE & architecture/` | Preserves stable boundaries, components, critical flows, interfaces, maintenance entry points, and important ADRs; larger projects split by domain only when needed |
 | `IMPACTS` | Records only non-obvious downstream effects, cross-boundary contracts, and coupled checks instead of duplicating code or framework facts |
-| `Docs / Task Reference` | Preserves goals, decisions, constraints, and high-fidelity references when cross-session recovery or handoff has real value |
+| `CHANGELOG` | Keeps verified outcomes, Unreleased work, and release/checkpoint history in a Keep a Changelog shape without becoming a task plan or commit dump |
+| `Change Spec / Task Reference` | Uses one file for ordinary handoff; consequential features may separate proposal, requirements, design, and tasks, then merge current facts back into Architecture/Impacts and archive only when useful |
 | `MEMORY & memory/` | Stores conventions, repeated pitfalls, and hidden constraints not obvious from code or background; Project, Group, and Shared Context own separate indexes |
 | `Groups` | Give independent working directories shared OVERVIEW, IMPACTS, MEMORY, and member routes without merging their Project-local context |
 
@@ -70,7 +72,7 @@ So I wrote this skill suite.
 | --- | --- | --- |
 | `/using-gei` | When Gei is active and a request may match a task Skill | Selects one entry by the final deliverable |
 | `/consider` | When a high-impact design or direction has material uncertainty | Recovers context, compares real alternatives, and recommends a testable direction |
-| `/memo` | When durable context, impact routes, Groups, task references, or a passing memory candidate are needed | Maintains the Project / Group / Shared Context GeiSpec layers |
+| `/memo` | When durable background, architecture, impact routes, changelog, Groups, task references, or a passing memory candidate are needed | Maintains the Project / Group / Shared Context GeiSpec layers |
 | `/work` | Any code execution task | Implements a coherent change and gathers risk-proportionate evidence |
 | `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review of code correctness, test quality, maintainability, UX/DX, security, and release risk |
 | `/see` | When external research, fact-checking, or source synthesis is the final deliverable | Uses strong sources, tests counterevidence, and reports scope and uncertainty |
@@ -80,11 +82,11 @@ So I wrote this skill suite.
 
 This Skill provides six independent SessionStart Hooks: router, Shared Context MEMORY, Group OVERVIEW, Group MEMORY, Project OVERVIEW, and Project MEMORY. Splitting gives each layer its own output budget and avoids single-Hook previews or spills in Claude Code and Codex.
 
-Empty layers produce no output. For example, a Group with no meaningful OVERVIEW or MEMORY contributes nothing while Context and Project content can still load. `IMPACTS.md`, detailed `memory/*.md`, `docs/`, and sibling Project Specs remain on-demand reads.
+Empty layers produce no output. For example, a Group with no meaningful OVERVIEW or MEMORY contributes nothing while Context and Project content can still load. `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, detailed `memory/*.md`, `docs/`, and sibling Project Specs remain on-demand reads.
 
 ## GeiSpec
 
-GeiSpec lives only under `~/.agents/geispec`; set `GEI_SPEC_HOME` to override it. Each exact working directory receives a path-derived Project id. SessionStart copies missing `OVERVIEW.md`, `IMPACTS.md`, `MEMORY.md`, `docs/`, and `memory/` assets from Memo templates without overwriting existing content.
+GeiSpec lives only under `~/.agents/geispec`; set `GEI_SPEC_HOME` to override it. Each exact working directory receives a path-derived Project id. SessionStart fills in missing `OVERVIEW.md`, `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, `MEMORY.md`, `architecture/`, `docs/`, and `memory/` assets from Memo templates without overwriting existing content. Domain views and ADRs are written only when the project earns them, rather than pre-generating an empty architecture encyclopedia.
 
 Project-local `spec/`, bindings, modes, and a GeiSpec CLI are no longer part of the system. The Agent creates Groups, associates Projects, and maintains semantic content by editing the external store under Memo's progressive-disclosure rules.
 

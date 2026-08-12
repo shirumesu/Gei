@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+### 调整
+- 恢复 GeiSpec 的轻量 `ARCHITECTURE.md`、`architecture/` 与 `CHANGELOG.md` 核心面：SessionStart 仅补缺且不覆盖已有内容；Architecture 支持按需领域视图与 ADR，Changelog 采用 Unreleased 与常规变更分类，并保持与 `IMPACTS.md`、Memory、任务引用的职责边界。
+
 ## v0.8.0 - 2026-08-11
 
 ### 重大调整

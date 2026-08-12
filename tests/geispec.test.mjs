@@ -79,13 +79,31 @@ test("Session initialization creates a fixed external Project scaffold", () => {
   assert.equal(project.manifest.root, fs.realpathSync.native(projectRoot));
   assert.deepEqual(
     fs.readdirSync(project.specRoot).sort(),
-    ["IMPACTS.md", "MEMORY.md", "OVERVIEW.md", "docs", "memory", "project.json"],
+    [
+      "ARCHITECTURE.md",
+      "CHANGELOG.md",
+      "IMPACTS.md",
+      "MEMORY.md",
+      "OVERVIEW.md",
+      "architecture",
+      "docs",
+      "memory",
+      "project.json",
+    ],
   );
   assert.match(
     fs.readFileSync(path.join(project.specRoot, "OVERVIEW.md"), "utf8"),
     /gei:uninitialized/,
   );
   assert.equal(fs.existsSync(path.join(project.specRoot, "spec")), false);
+  assert.equal(
+    fs.existsSync(path.join(project.specRoot, "architecture", "decisions")),
+    true,
+  );
+  assert.match(
+    fs.readFileSync(path.join(project.specRoot, "CHANGELOG.md"), "utf8"),
+    /## Unreleased/,
+  );
   assert.equal(fs.existsSync(path.join(geiSpecHome, "bindings.json")), false);
 });
 
@@ -97,13 +115,32 @@ test("initialization preserves existing content and restores only missing files"
   const project = ensureProject(projectRoot, { env });
   const overviewPath = path.join(project.specRoot, "OVERVIEW.md");
   const impactsPath = path.join(project.specRoot, "IMPACTS.md");
+  const architecturePath = path.join(project.specRoot, "ARCHITECTURE.md");
+  const changelogPath = path.join(project.specRoot, "CHANGELOG.md");
   fs.writeFileSync(overviewPath, "# Custom Overview\n", "utf8");
+  fs.writeFileSync(architecturePath, "# Custom Architecture\n", "utf8");
+  fs.writeFileSync(changelogPath, "# Custom Changelog\n", "utf8");
   fs.rmSync(impactsPath);
 
   ensureProject(projectRoot, { env });
 
   assert.equal(fs.readFileSync(overviewPath, "utf8"), "# Custom Overview\n");
+  assert.equal(
+    fs.readFileSync(architecturePath, "utf8"),
+    "# Custom Architecture\n",
+  );
+  assert.equal(
+    fs.readFileSync(changelogPath, "utf8"),
+    "# Custom Changelog\n",
+  );
   assert.match(fs.readFileSync(impactsPath, "utf8"), /# Project Impact Map/);
+
+  fs.rmSync(architecturePath);
+  fs.rmSync(changelogPath);
+  ensureProject(projectRoot, { env });
+
+  assert.match(fs.readFileSync(architecturePath, "utf8"), /# Project Architecture/);
+  assert.match(fs.readFileSync(changelogPath, "utf8"), /## Unreleased/);
 });
 
 test("exact working directories receive distinct Projects", () => {
@@ -173,7 +210,9 @@ test("Project Overview bootstrap is injected on the first session", async () => 
 
   assert.match(context, /GeiSpec project context/);
   assert.match(context, /gei:uninitialized/);
+  assert.match(context, /read ARCHITECTURE\.md/i);
   assert.match(context, /read IMPACTS\.md/i);
+  assert.match(context, /read CHANGELOG\.md/i);
 });
 
 test("meaningful Group context is shared while Project context stays local", async () => {
@@ -261,7 +300,13 @@ test("parallel SessionStart content hooks initialize one complete Project", asyn
   assert.doesNotThrow(() =>
     JSON.parse(fs.readFileSync(path.join(projectDir, "project.json"), "utf8")),
   );
-  for (const name of ["OVERVIEW.md", "IMPACTS.md", "MEMORY.md"]) {
+  for (const name of [
+    "OVERVIEW.md",
+    "ARCHITECTURE.md",
+    "IMPACTS.md",
+    "CHANGELOG.md",
+    "MEMORY.md",
+  ]) {
     assert.equal(fs.existsSync(path.join(projectDir, name)), true, name);
   }
 });
