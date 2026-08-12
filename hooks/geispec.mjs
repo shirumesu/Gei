@@ -285,6 +285,33 @@ export function readMeaningfulDocument(filePath, { bootstrap = false } = {}) {
   }
 }
 
+export function extractUnreleasedSection(content) {
+  if (typeof content !== "string") return "";
+  const normalized = content.replace(/\r\n?/gu, "\n");
+  const heading = /^##\s+(?:Unreleased|\[Unreleased\])\s*$/imu.exec(normalized);
+  if (!heading) return "";
+
+  const bodyStart = heading.index + heading[0].length;
+  const remainder = normalized.slice(bodyStart);
+  const nextSection = /^##\s+/mu.exec(remainder);
+  const body = (nextSection ? remainder.slice(0, nextSection.index) : remainder)
+    .trim();
+  const meaningful = body
+    .replace(/<!--[\s\S]*?-->/gu, "")
+    .split("\n")
+    .some((line) => line.trim() && !/^#{3,6}\s+/u.test(line.trim()));
+
+  return meaningful ? `## Unreleased\n\n${body}` : "";
+}
+
+export function readUnreleasedChangelog(filePath) {
+  try {
+    return extractUnreleasedSection(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return "";
+  }
+}
+
 export function formatGroupMembers(group) {
   return group.members
     .map((member) => {

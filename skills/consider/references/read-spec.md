@@ -6,7 +6,7 @@ Use this reference when a design decision depends on existing GeiSpec context.
 2. Read Project `ARCHITECTURE.md` when the decision depends on system structure, critical flows, interfaces, accepted decisions, or maintenance boundaries.
 3. Read Project `IMPACTS.md` only when the decision may affect another component, interface, process, or artifact.
 4. Read Group `IMPACTS.md` only when the decision may affect another member Project.
-5. Read Project `CHANGELOG.md` only when recent verified outcomes may change the decision.
+5. Use the injected Project Changelog when recent verified outcomes may change the decision; read the full `CHANGELOG.md` only when older release or checkpoint history matters.
 6. Read linked memory entries only when their summaries identify a non-obvious applicable constraint.
 7. Read a task reference only when it directly owns accepted decisions or recovery context for the request.
 8. Verify important claims against code, tests, configuration, and Git history.

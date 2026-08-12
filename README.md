@@ -79,13 +79,13 @@
 
 ## Hooks
 
-本 Skill 提供六个独立 SessionStart Hook：router、Shared Context MEMORY、Group OVERVIEW、Group MEMORY、Project OVERVIEW、Project MEMORY。拆分让每层拥有独立输出额度，也避免 Claude Code/Codex 的单 Hook 大输出预览或溢出。
+本 Skill 提供七个独立 SessionStart Hook：router、Shared Context MEMORY、Group OVERVIEW、Group MEMORY、Project OVERVIEW、Project CHANGELOG、Project MEMORY。拆分让每层拥有独立输出额度，也避免 Claude Code/Codex 的单 Hook 大输出预览或溢出。
 
-空层完全不输出：例如 Group 已存在但尚未记录有效 OVERVIEW/MEMORY 时，会话只收到有意义的 Context 与 Project 内容。`ARCHITECTURE.md`、`IMPACTS.md`、`CHANGELOG.md`、详细 `memory/*.md`、`docs/` 和兄弟 Project Spec 始终按需读取。
+空层完全不输出：例如 Group 尚无有效 OVERVIEW/MEMORY，或 Project CHANGELOG 的 `Unreleased` 没有实际条目时，对应 Hook 保持静默。Project OVERVIEW 是启动时的结构入口；`ARCHITECTURE.md`、`IMPACTS.md`、CHANGELOG 已发布历史、详细 `memory/*.md`、`docs/` 和兄弟 Project Spec 始终按需读取。
 
 ## GeiSpec
 
-GeiSpec 只存放在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。每个精确工作目录由路径生成稳定 Project id；SessionStart 自动从 Memo 模板补齐缺失的 `OVERVIEW.md`、`ARCHITECTURE.md`、`IMPACTS.md`、`CHANGELOG.md`、`MEMORY.md`、`architecture/`、`docs/` 和 `memory/`，但永不覆盖已有内容。架构领域视图与 ADR 仅在项目实际需要时写入，不预生成一套空百科。
+GeiSpec 只存放在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。每个精确工作目录由路径生成稳定 Project id；所有 Project SessionStart Hook 共用同一个幂等初始化器，自动从 Memo 模板补齐缺失的 `OVERVIEW.md`、`ARCHITECTURE.md`、`IMPACTS.md`、`CHANGELOG.md`、`MEMORY.md`、`architecture/`、`docs/` 和 `memory/`，并在并行运行时保持只补缺、不覆盖。架构领域视图与 ADR 仅在项目实际需要时写入，不预生成一套空百科。
 
 Project-local `spec/`、bindings、模式与 GeiSpec CLI 不再属于系统。创建 Group、关联项目和维护语义内容由 Agent 根据 Memo 渐进披露规则直接编辑外部文件。
 

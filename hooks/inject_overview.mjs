@@ -23,7 +23,7 @@ function projectOverview(project) {
     `Project root: ${project.projectRoot}`,
     `Project Spec root: ${project.specRoot}`,
     "Scope precedence: current user instruction and repository evidence > project > group > shared Context.",
-    "Use this Overview for background and routing. Read ARCHITECTURE.md when structure, flows, interfaces, decisions, or maintenance entry points matter; read IMPACTS.md only for cross-boundary consequences; read CHANGELOG.md when recent verified outcomes may affect the task.",
+    "Use this Overview for background and routing. Read ARCHITECTURE.md when structure, flows, interfaces, decisions, or maintenance entry points matter; read IMPACTS.md only for cross-boundary consequences. Meaningful Unreleased outcomes are injected separately; read the full CHANGELOG.md only when released history matters.",
     "",
     `--- project OVERVIEW: ${overviewPath} ---`,
     overview,

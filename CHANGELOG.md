@@ -2,8 +2,18 @@
 
 ## Unreleased
 
-### 调整
-- 恢复 GeiSpec 的轻量 `ARCHITECTURE.md`、`architecture/` 与 `CHANGELOG.md` 核心面：SessionStart 仅补缺且不覆盖已有内容；Architecture 支持按需领域视图与 ADR，Changelog 采用 Unreleased 与常规变更分类，并保持与 `IMPACTS.md`、Memory、任务引用的职责边界。
+## v0.8.2 - 2026-08-12
+
+### 新增
+- 恢复 GeiSpec 的稳定架构地图、ADR、近期变更、版本/检查点整理与按需结构化 Change Spec 能力，同时保留 `IMPACTS.md`、Memory 和任务引用的独立职责。
+- 新增独立 Project CHANGELOG SessionStart Hook，仅注入有实际内容的 `Unreleased`，空模板与已发布历史保持静默。
+
+### 优化
+- 所有 Project SessionStart Hook 统一通过幂等初始化器补齐最新 Project 骨架；并行创建只补缺、不覆盖已有 Overview、Architecture、Changelog、Memory 或扩展内容。
+- 保持 Project OVERVIEW 为启动时的结构入口；Architecture、领域视图与 ADR 继续按需读取，避免扩大固定上下文。
+
+### 移除
+- 删除仓库内已跟踪的测试目录与测试脚本；Hook 和发布面改用直接运行探针、语法与配置解析检查验证。
 
 ## v0.8.0 - 2026-08-11
 

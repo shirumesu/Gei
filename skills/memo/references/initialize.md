@@ -2,7 +2,7 @@
 
 Use this reference only when a Project scaffold is new, incomplete, or still carries `<!-- gei:uninitialized -->`.
 
-SessionStart Hooks own deterministic initialization. They derive a Project id from the normalized exact working-directory path and copy missing files from `templates/project/` into the external GeiSpec store. They never overwrite existing content. The fixed Project scaffold contains `OVERVIEW.md`, `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, `MEMORY.md`, `architecture/`, `docs/`, and `memory/`. Shared Context uses `templates/context/`; a Group is created intentionally from `templates/group/` when the user asks to relate Projects.
+SessionStart Hooks own deterministic initialization. Every Project context Hook calls the same idempotent initializer, which derives a Project id from the normalized exact working-directory path and copies missing files from `templates/project/` into the external GeiSpec store. Parallel Hooks may race safely because files are created only when absent and existing content is never overwritten. The fixed Project scaffold contains `OVERVIEW.md`, `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, `MEMORY.md`, `architecture/`, `docs/`, and `memory/`. Shared Context uses `templates/context/`; a Group is created intentionally from `templates/group/` when the user asks to relate Projects.
 
 For an uninitialized Project Overview:
 
@@ -12,6 +12,6 @@ For an uninitialized Project Overview:
 4. Do not invent content merely to complete the template.
 5. Preserve the fixed headings; add a small project-specific section only when it materially improves recovery.
 
-Leave a new Architecture and Changelog as honest scaffolds until repository evidence supports them. Initialization creates the files and optional architecture subdirectories; it does not synthesize architecture, decisions, or history.
+Leave a new Architecture and Changelog as honest scaffolds until repository evidence supports them. Initialization creates the files and optional architecture subdirectories; it does not synthesize architecture, decisions, or history. The Overview is the injected structural entry point. Architecture remains on demand. The Changelog Hook injects only a meaningful `Unreleased` section and stays silent for the empty scaffold.
 
 Missing files may be restored from templates. Existing unusual Markdown is still readable context: do not validate, normalize, or replace it just because it differs from the template.

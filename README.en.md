@@ -80,13 +80,13 @@ So I wrote this skill suite.
 
 ## Hooks
 
-This Skill provides six independent SessionStart Hooks: router, Shared Context MEMORY, Group OVERVIEW, Group MEMORY, Project OVERVIEW, and Project MEMORY. Splitting gives each layer its own output budget and avoids single-Hook previews or spills in Claude Code and Codex.
+This Skill provides seven independent SessionStart Hooks: router, Shared Context MEMORY, Group OVERVIEW, Group MEMORY, Project OVERVIEW, Project CHANGELOG, and Project MEMORY. Splitting gives each layer its own output budget and avoids single-Hook previews or spills in Claude Code and Codex.
 
-Empty layers produce no output. For example, a Group with no meaningful OVERVIEW or MEMORY contributes nothing while Context and Project content can still load. `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, detailed `memory/*.md`, `docs/`, and sibling Project Specs remain on-demand reads.
+Empty layers produce no output. For example, a Group with no meaningful OVERVIEW or MEMORY, or a Project CHANGELOG with no real `Unreleased` entry, stays silent. Project OVERVIEW is the injected structural entry point; `ARCHITECTURE.md`, `IMPACTS.md`, released Changelog history, detailed `memory/*.md`, `docs/`, and sibling Project Specs remain on-demand reads.
 
 ## GeiSpec
 
-GeiSpec lives only under `~/.agents/geispec`; set `GEI_SPEC_HOME` to override it. Each exact working directory receives a path-derived Project id. SessionStart fills in missing `OVERVIEW.md`, `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, `MEMORY.md`, `architecture/`, `docs/`, and `memory/` assets from Memo templates without overwriting existing content. Domain views and ADRs are written only when the project earns them, rather than pre-generating an empty architecture encyclopedia.
+GeiSpec lives only under `~/.agents/geispec`; set `GEI_SPEC_HOME` to override it. Each exact working directory receives a path-derived Project id. Every Project SessionStart Hook shares one idempotent initializer that fills in missing `OVERVIEW.md`, `ARCHITECTURE.md`, `IMPACTS.md`, `CHANGELOG.md`, `MEMORY.md`, `architecture/`, `docs/`, and `memory/` assets from Memo templates without overwriting existing content, including during parallel startup. Domain views and ADRs are written only when the project earns them, rather than pre-generating an empty architecture encyclopedia.
 
 Project-local `spec/`, bindings, modes, and a GeiSpec CLI are no longer part of the system. The Agent creates Groups, associates Projects, and maintains semantic content by editing the external store under Memo's progressive-disclosure rules.
 

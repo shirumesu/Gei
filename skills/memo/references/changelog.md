@@ -10,6 +10,8 @@ An entry should say what durable behavior changed and why it matters. Skip faile
 
 Work may perform this one narrow append without loading the rest of Memo. Memo owns structure, correction, compaction, and release/checkpoint transitions.
 
+The Project Changelog SessionStart Hook injects only a meaningful `Unreleased` section. It omits the empty scaffold and all released history; read the full file on demand when an older release or checkpoint can change the task.
+
 ## Releases And Checkpoints
 
 For an explicit release or checkpoint:

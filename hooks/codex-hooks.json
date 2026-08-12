@@ -36,6 +36,12 @@
           },
           {
             "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_changelog.mjs\"",
+            "statusMessage": "Loading Gei recent project outcomes",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "node \"${PLUGIN_ROOT}/hooks/inject_memory.mjs\" project",
             "statusMessage": "Loading Gei project memory",
             "timeout": 5
