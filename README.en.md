@@ -37,7 +37,7 @@ So I wrote this skill suite.
 
 **`/consider`** — Designs only when direction, boundaries, or consequential tradeoffs remain unresolved
 
-**`/memo`** — Maintains GeiSpec background, architecture, impact routes, changelog, Group context, memory, and durable handoff documents
+**`/memo`** — Maintains and reconciles GeiSpec background, architecture, impact routes, changelog, Group context, memory, and durable handoff documents
 
 | Module | Responsibility |
 | --- | --- |
@@ -49,9 +49,12 @@ So I wrote this skill suite.
 | `MEMORY & memory/` | Stores conventions, repeated pitfalls, and hidden constraints not obvious from code or background; Project, Group, and Shared Context own separate indexes |
 | `Groups` | Give independent working directories shared OVERVIEW, IMPACTS, MEMORY, and member routes without merging their Project-local context |
 
+After a verified change, Memo reconciles current facts by impact: it rewrites stale content instead of merely appending history, and repairs, merges, or deletes drift from evidence. Observable behavior remains owned by repository-native specs, tests, schemas, or product documentation so GeiSpec does not grow into a second implementation encyclopedia.
+
 **`/work`** — Evidence-driven code execution
 
 - Chooses the most discriminating verification by risk and coupling; test-first, persistent plans, commit checkpoints, and full suites are conditional tools
+- Finishes with a focused documentation impact scan and reconciles only GeiSpec or native documentation changed by the verified result
 - Releases follow repository-native policy and verify the actual artifact or remote state
 
 ---
@@ -72,7 +75,7 @@ So I wrote this skill suite.
 | --- | --- | --- |
 | `/using-gei` | When Gei is active and a request may match a task Skill | Selects one entry by the final deliverable |
 | `/consider` | When a high-impact design or direction has material uncertainty | Recovers context, compares real alternatives, and recommends a testable direction |
-| `/memo` | When durable background, architecture, impact routes, changelog, Groups, task references, or a passing memory candidate are needed | Maintains the Project / Group / Shared Context GeiSpec layers |
+| `/memo` | When durable background, architecture, impact routes, changelog, Groups, task references, drift repair/compaction, or a passing memory candidate are needed | Maintains and reconciles the Project / Group / Shared Context GeiSpec layers |
 | `/work` | Any code execution task | Implements a coherent change and gathers risk-proportionate evidence |
 | `/code-review` | When reviewing a PR, diff, commit, working tree, or implementation result | Read-only review of code correctness, test quality, maintainability, UX/DX, security, and release risk |
 | `/see` | When external research, fact-checking, or source synthesis is the final deliverable | Uses strong sources, tests counterevidence, and reports scope and uncertainty |

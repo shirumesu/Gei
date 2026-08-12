@@ -22,8 +22,9 @@ Implement the requested outcome and gather evidence that it works.
 3. **Choose the next coherent change.** If a consequential design choice remains unresolved, use `consider` or ask the user; otherwise decide reversible implementation details from project context.
 4. **Implement.** Make the change, including cleanup made necessary by the chosen design, without widening into unrelated work.
 5. **Verify.** Run the cheapest high-signal check first, then broader affected checks when coupling or release risk justifies them.
-6. **Review the result.** Inspect the diff and behavior for scope drift, incomplete paths, accidental user-change overlap, and unsupported claims.
-7. **Report.** State what changed, the verification and result, and any limitation or residual risk.
+6. **Review the result.** Inspect the diff and behavior for scope drift, incomplete paths, accidental user-change overlap, unsupported claims, and durable documentation now made false or incomplete.
+7. **Reconcile durable context.** Update only the owning documentation surfaces affected by the verified result; remove stale current-state claims instead of merely adding history.
+8. **Report.** State what changed, the verification and result, and any limitation or residual risk.
 
 Repeat the loop when evidence exposes another in-scope issue. Stop and surface the blocker when progress requires missing authority, unavailable external state, or a user-owned decision that would materially change the result.
 
@@ -43,7 +44,11 @@ Use an in-conversation plan for coordination when helpful. Create or update a du
 
 Treat existing specs, tests, code, mockups, schemas, and artifacts as references; do not restate them into a new Markdown plan by default.
 
-`memo` owns GeiSpec maintenance. After verified changelog-worthy work, append one concise outcome under the Project `CHANGELOG.md` `## Unreleased`; this narrow close action does not require loading the rest of Memo. Use the project's categories or the conventional Added/Changed/Deprecated/Removed/Fixed/Security headings, and do not copy commit logs or public release prose. When verified work changes durable background, architecture, an accepted structural decision, or a non-obvious downstream consequence, update the owning `OVERVIEW.md`, `ARCHITECTURE.md`, decision record, or Project/Group `IMPACTS.md` through Memo in the same task. At close, follow Using Gei's autonomous memory candidate check and keep no-write decisions silent.
+`memo` owns GeiSpec maintenance. After verified changelog-worthy work, append one concise outcome under the Project `CHANGELOG.md` `## Unreleased`; this narrow close action does not require loading the rest of Memo. Use the project's categories or the conventional Added/Changed/Deprecated/Removed/Fixed/Security headings, and do not copy commit logs or public release prose.
+
+At close, perform a small documentation impact scan from the verified change: did it alter durable purpose or boundaries, stable architecture or ownership, an accepted structural decision, a non-obvious downstream consequence, or a previously recorded claim? If so, update the owning `OVERVIEW.md`, `ARCHITECTURE.md`, decision record, Project/Group `IMPACTS.md`, or native specification through Memo in the same task. If several surfaces may be stale, a migration or rename was broad, or compaction is needed, read Memo's `references/maintenance.md`. Do not open every Spec file or write a no-change entry merely to prove the scan happened.
+
+At close, follow Using Gei's autonomous memory candidate check and keep no-write decisions silent.
 
 Create commits or other checkpoints when requested or when they provide real recovery value and are authorized. Never include unrelated user changes.
 

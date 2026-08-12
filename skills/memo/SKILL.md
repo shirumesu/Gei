@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Use to maintain GeiSpec background, architecture, impact routes, changelog, memory, Groups, or durable task references.
+description: Use to maintain or reconcile GeiSpec background, architecture, impact routes, changelog, memory, Groups, or durable task references, including drift cleanup and compaction.
 ---
 
 # Memo
@@ -33,13 +33,14 @@ Read only the reference that owns the requested outcome:
 | Create a Group, change membership, or promote shared context | `references/groups.md` |
 | Recall, write, move, merge, or remove memory | `references/memory.md` |
 | Preserve an accepted change spec or cross-session handoff | `references/task-docs.md` |
+| Reconcile a completed change, repair drift, or compact overlapping content | `references/maintenance.md` |
 
 Project, Group, and Context templates under `templates/` are runtime assets used by Hooks and initialization. Change, architecture-view, decision-record, memory-entry, and task-reference templates are optional scaffolds; read only the one being created.
 
 ## Writing Boundary
 
 - Do not turn Spec into a framework summary, dependency list, directory encyclopedia, code-comment guide, or duplicate source tree.
-- Update the smallest relevant section only after evidence or an accepted decision changes it.
+- Update the smallest relevant section only after evidence or an accepted decision changes it. Rewrite or remove stale current-state claims; do not preserve them by appending a caveat.
 - `OVERVIEW.md` restores purpose, responsibilities, boundaries, and read routes.
 - `ARCHITECTURE.md` maps stable system shape, critical flows, interfaces, decisions, and maintenance entry points. Put earned domain views and ADRs under `architecture/`.
 - `IMPACTS.md` records only consequences likely to be missed when changing one surface in isolation.

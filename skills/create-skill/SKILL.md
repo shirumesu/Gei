@@ -34,4 +34,5 @@ Before calling a Skill ready, confirm:
 2. Its description distinguishes when it should and should not load.
 3. Every instruction earns its context cost and has one clear authority.
 4. Conditional detail is deferred without fragmenting the normal path.
-5. Format validation passes, and any behavioral claim has matching evidence.
+5. Every bundled resource has a discoverable route and one maintenance owner; renamed or removed behavior leaves no stale trigger, link, or duplicate authority.
+6. Format validation passes, and any behavioral claim has matching evidence.

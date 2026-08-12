@@ -17,6 +17,8 @@ Use `changes/<short-name>/` when a consequential feature or migration benefits f
 
 Start from the matching files under `templates/change/`. Omit a file when it adds no information; a structured change is not a mandatory phase gate. Existing native RFC, issue, design-doc, or spec conventions take precedence.
 
-After implementation is verified, merge durable current facts into the owning Overview, Architecture/domain view, decision record, or Impacts route; add the concise outcome to Changelog; then delete the change package or move it to `changes/archive/YYYY-MM-DD-<short-name>/` only when its rationale or audit history remains valuable.
+While implementation is active, update the nearest artifact when discovery changes accepted behavior, approach, constraints, or execution. Reconcile the dependent artifacts before continuing when they now disagree; do not leave a code discovery trapped only in `tasks.md`.
+
+After implementation is verified, merge durable current facts into the owning repository-native behavior specification, test, schema, product documentation, Overview, Architecture/domain view, decision record, or Impacts route; add the concise outcome to Changelog. GeiSpec does not create a parallel current-behavior catalog when the repository already has an authority. Then delete the change package, or move it to `changes/archive/YYYY-MM-DD-<short-name>/` only when its rationale or audit history remains valuable.
 
 Do not create either shape for routine work, use `tasks.md` as a second tracker, copy source detail into requirements, or let completed change artifacts become the only description of the current system.

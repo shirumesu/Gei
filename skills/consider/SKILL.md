@@ -28,3 +28,5 @@ Match depth to consequence. A local decision may need a paragraph; an architectu
 ## Handoff
 
 End with a clear recommendation, material assumptions, unresolved decisions, and acceptance evidence. Ask for approval only when implementation authority or a consequential user-owned decision is still missing; otherwise the design can hand off directly to execution.
+
+When the user accepts a consequential decision or the design must survive a session boundary, preserve it through Memo in the lightest owning artifact. Record an unimplemented target as a task reference, structured change, or decision record, never as current Architecture. Implementation later reconciles the verified result into current-state documents.

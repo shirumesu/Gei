@@ -22,7 +22,7 @@ Use Mermaid or small text diagrams when relationships are materially clearer tha
 
 Keep one root `ARCHITECTURE.md` while it remains scannable. When it grows beyond a useful project map, keep the root as an index and add cohesive domain views under `architecture/<domain>.md`. Split by maintenance boundary, not mechanically by directory.
 
-Record consequential accepted decisions as `architecture/decisions/NNNN-short-title.md`, starting from `templates/decision-record.md`. A decision record should state status, context, decision, consequences, and evidence. Start a cohesive domain view from `templates/architecture-view.md`. Do not create either artifact for routine reversible implementation choices.
+Record consequential accepted decisions as `architecture/decisions/NNNN-short-title.md`, starting from `templates/decision-record.md`. A decision record should state status, context, decision, consequences, and evidence. When a later decision replaces it, keep the old record as `Superseded` and link both directions instead of rewriting history. Start a cohesive domain view from `templates/architecture-view.md`. Do not create either artifact for routine reversible implementation choices.
 
 ## Maintenance
 

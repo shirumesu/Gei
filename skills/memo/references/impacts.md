@@ -11,4 +11,6 @@ Add an entry only when a future agent inspecting the changed area alone could pl
 
 Prefer exact paths, interfaces, schemas, artifacts, ordering constraints, and checks. Do not record normal imports, general architecture prose, framework summaries, full module maps, or blanket advice such as “run all tests.”
 
+Remove or rewrite a route when the consequence disappears, the named surfaces change, the relationship becomes locally obvious, or a deterministic guard makes the prose redundant. Impact Maps describe current coupling, not historical risk.
+
 Use Project IMPACTS for consequences inside one working directory. Move the route to Group IMPACTS when more than one member Project is affected; leave a link in the Project only when it helps discovery.

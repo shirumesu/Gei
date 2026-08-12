@@ -74,3 +74,17 @@ For review-only requests, lead with:
 - **Suggested validation:** evidence that would resolve remaining uncertainty
 
 For edit requests, change the affected authority and any directly coupled router or reference. Then use `testing.md` and report what changed, why, what was verified, and what remains uncertain.
+
+## Maintenance Impact
+
+Treat a Skill edit as an interface change, not an isolated Markdown patch:
+
+| Change | Also reconcile |
+| --- | --- |
+| Name, description, trigger, or ownership boundary | Folder/frontmatter, higher-level router, adjacent Skill boundaries, UI metadata, and public capability lists |
+| Normal workflow or acceptance boundary | Root `SKILL.md`, directly coupled references, and behavior checks that claim the old result |
+| Conditional branch or domain detail | Its direct route from `SKILL.md`; merge or remove references that are always read together or no longer reachable |
+| Script, schema, tool, or asset interface | Calling instructions, `--help` or schema surface, focused tests, and examples that encode the old interface |
+| Removed or renamed resource | Every local link, route, validator expectation, package manifest, and distribution surface |
+
+Keep history in repository release notes or version control, not inside the Skill. Rewrite current guidance, delete obsolete rules and fixtures, and verify no duplicate authority remains. If future maintainers could easily miss a repository-specific consequence, record that route in the repository's own impact map rather than teaching every consumer Skill about the repository layout.

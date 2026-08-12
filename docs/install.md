@@ -52,6 +52,7 @@ gei
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
+  skills/memo/references/maintenance.md
   skills/work/SKILL.md
   skills/code-review/SKILL.md
   skills/see/SKILL.md
@@ -82,6 +83,7 @@ Gei
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
+  skills/memo/references/maintenance.md
   skills/work/SKILL.md
   skills/code-review/SKILL.md
   skills/see/SKILL.md
@@ -124,6 +126,7 @@ unzip Gei-skills.zip -d <skills-dir>
     using-gei/SKILL.md
     consider/SKILL.md
     memo/SKILL.md
+    memo/references/maintenance.md
     work/SKILL.md
     code-review/SKILL.md
     see/SKILL.md
@@ -154,6 +157,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
     skills/using-gei/SKILL.md
     skills/consider/SKILL.md
     skills/memo/SKILL.md
+    skills/memo/references/maintenance.md
     skills/work/SKILL.md
     skills/code-review/SKILL.md
     skills/see/SKILL.md

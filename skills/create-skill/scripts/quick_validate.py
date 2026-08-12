@@ -19,6 +19,7 @@ NAME_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 LOCAL_LINK_RE = re.compile(r"\[[^\]]+\]\((?!https?://|mailto:|#)([^)]+)\)")
 PLACEHOLDER_RE = re.compile(r"\b(TODO|TBD|FIXME)\b|<placeholder>|\[placeholder\]", re.IGNORECASE)
 FENCED_CODE_RE = re.compile(r"^```.*?^```", re.DOTALL | re.MULTILINE)
+HTML_COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 
 
 def _parse_frontmatter(skill_md: Path) -> tuple[dict, str]:
@@ -58,15 +59,16 @@ def _validate_frontmatter(data: dict) -> list[str]:
     return errors
 
 
-def _without_fenced_code(text: str) -> str:
-    """Preserve line numbers while hiding fenced examples from link validation."""
+def _without_nonsemantic_regions(text: str) -> str:
+    """Preserve line numbers while hiding examples and maintainer comments."""
 
-    return FENCED_CODE_RE.sub(lambda match: "\n" * match.group(0).count("\n"), text)
+    text = FENCED_CODE_RE.sub(lambda match: "\n" * match.group(0).count("\n"), text)
+    return HTML_COMMENT_RE.sub(lambda match: "\n" * match.group(0).count("\n"), text)
 
 
 def _validate_markdown_links(skill_root: Path, markdown_path: Path, text: str) -> list[str]:
     errors: list[str] = []
-    link_text = _without_fenced_code(text)
+    link_text = _without_nonsemantic_regions(text)
     base_dir = markdown_path.parent
     rel_path = markdown_path.relative_to(skill_root)
 
@@ -97,7 +99,8 @@ def _validate_markdown_files(skill_root: Path) -> list[str]:
     for path in skill_root.rglob("*.md"):
         rel_path = path.relative_to(skill_root)
         text = path.read_text(encoding="utf-8")
-        if PLACEHOLDER_RE.search(text):
+        semantic_text = _without_nonsemantic_regions(text)
+        if PLACEHOLDER_RE.search(semantic_text):
             errors.append(f"{rel_path} contains TODO/TBD/FIXME or marker-style placeholder text")
         errors.extend(_validate_markdown_links(skill_root, path, text))
     return errors
