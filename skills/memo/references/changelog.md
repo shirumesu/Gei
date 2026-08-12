@@ -14,12 +14,12 @@ The Project Changelog SessionStart Hook injects only a meaningful `Unreleased` s
 
 ## Releases And Checkpoints
 
-For an explicit release or checkpoint:
+For an explicit release or checkpoint, use `references/maintenance.md` to reconcile the complete release delta. Then finish the Changelog transition:
 
 1. verify the included outcomes against repository or release evidence
 2. move the relevant Unreleased entries under `## <version-or-checkpoint> - YYYY-MM-DD`
 3. keep the conventional categories that contain entries
 4. leave a fresh `## Unreleased` section
-5. reconcile `OVERVIEW.md` and `ARCHITECTURE.md` only where the release made them stale
+5. confirm the release reconciliation completed for the affected Overview, Architecture, Impacts, decisions, Memory, and task material
 
 Do not invent versions or dates. Preserve the repository's versioning and release policy when one exists.

@@ -1,58 +1,48 @@
 # GeiSpec Maintenance
 
-Use this reference to reconcile a verified change with durable context, repair known drift, or compact a Spec that has become repetitive or hard to route. Maintenance is event-driven: update when evidence changes a claim, not because a calendar interval elapsed.
+Maintain GeiSpec at two cadences: a lightweight pass after state-changing work, and a broader reconciliation when a version or checkpoint closes. GeiSpec is a recovery and routing layer; code, configuration, tests, schemas, observed behavior, repository-native specifications, and current user decisions remain authoritative.
 
-GeiSpec is a recovery and routing layer, not a second implementation or behavior source of truth. Code, configuration, tests, schemas, observed behavior, repository-native specifications, and current user decisions remain authoritative.
+## Routine Change Pass
 
-## Reconciliation Gate
+Use the changed surface, the injected Project Overview and Unreleased outcomes, and only an owning document directly implicated by the result. This is maintenance of the change, not an audit of the Spec.
 
-After a verified change, compare its durable effects with the current claims that future work will load or follow. Inspect only documents whose ownership could have changed.
+1. For a verified durable result, append or fold one concise maintainer-meaningful outcome into Project `CHANGELOG.md` `Unreleased`.
+2. Read an owning current-state document only when the change can alter one of its claims.
+3. Rewrite or remove the smallest affected claim; do not preserve stale text by appending a caveat.
+4. Stop without inspecting unrelated domains. Pure formatting, generated churn, failed attempts, or transient state may require no durable write.
 
 | Durable effect | Owning surface |
 | --- | --- |
-| Purpose, responsibility, project relation, shared language, or read route changed | Project or Group `OVERVIEW.md` |
-| Stable boundary, component ownership, critical flow, interface, state model, risk, or task entry point changed | `ARCHITECTURE.md` or one domain view |
-| A consequential choice was accepted or replaced and its rationale will matter later | Decision record; mark the old record `Superseded` and link the replacement |
-| Editing one surface now requires a non-obvious downstream update or check | Project or Group `IMPACTS.md` |
-| A verified maintainer-meaningful outcome completed | Project `CHANGELOG.md` `Unreleased` |
-| A hidden operational lesson passed the Memory write gate | The narrowest `MEMORY.md` index and entry |
-| Accepted work, constraints, or unresolved questions must survive handoff | An active task reference or structured change package |
+| Purpose, responsibility, project relation, shared language, or read route | Project or Group `OVERVIEW.md` |
+| Stable boundary, ownership, critical flow, interface, state model, risk, or task entry point | `ARCHITECTURE.md` or one domain view |
+| Consequential accepted or replaced choice | Decision record; supersede and cross-link the old record |
+| Non-obvious downstream update or check | Project or Group `IMPACTS.md` |
+| Hidden operational lesson | The narrowest Memory index and entry, when its write gate passes |
+| Accepted work that must survive handoff | Active task reference or structured change package |
 
-One outcome may update several owners because they answer different future questions. Do not duplicate the same prose across them. A Changelog entry never makes a stale current-state Overview or Architecture acceptable.
+Describe implemented and verified facts as current. Keep accepted but unimplemented targets in a task/change document or decision record. If evidence and intended truth disagree, surface the ambiguity rather than guessing.
 
-Distinguish three states:
+Observable behavior stays in repository-native requirements, tests, schemas, or product documentation. Temporary change requirements must land in that authority after implementation; do not create a parallel GeiSpec behavior catalog by default.
 
-- **Implemented and verified**: update current-state documents and Changelog.
-- **Accepted but not implemented**: keep it in a task reference, structured change, or Proposed/Accepted decision record; do not describe it as current architecture.
-- **Observed mismatch with uncertain intent**: preserve the evidence, surface the ambiguity, and do not guess which side should become authoritative.
+## Release Or Checkpoint Reconciliation
 
-When evidence is conclusive, correct drift autonomously in the same task. Ask only when resolving it requires a consequential user-owned decision.
+Run this broader pass when `Unreleased` is promoted into a formal version/checkpoint, when the canonical version is being released, or after a broad migration or explicit drift-review request.
 
-## Behavior Specifications
+1. Establish the release delta from the native Changelog, changes since the prior version/checkpoint, and active task/change documents.
+2. Review Project Overview, root Architecture, Impacts, Memory index, and active task documents; open only domain views, decisions, entries, or Group surfaces touched by the delta.
+3. Merge verified current facts into their owners, resolve contradictions, supersede replaced decisions, and remove or archive completed task material.
+4. Compact duplicate or obsolete routes and lessons, then move the verified Unreleased outcomes into the real version/checkpoint and leave a fresh Unreleased section.
+5. Re-read the resulting routes as a future agent and confirm that named paths and links still resolve.
 
-Prefer repository-native requirements, API schemas, tests, product documentation, or an established Spec system for observable behavior. If a project uses OpenSpec, Spec Kit, an RFC process, or another native lifecycle, maintain that system as the behavior authority and route to it from GeiSpec when useful.
+This is a complete Spec reconciliation for the release delta, not a reread of the entire repository or unrelated domains.
 
-Do not create a parallel GeiSpec behavior catalog by default. Temporary change requirements may guide implementation, but after completion their durable contract must land in the owning native specification, test, schema, or product documentation. GeiSpec retains only the stable architecture, routing, impact, decision, outcome, or lesson needed for recovery.
+## Compaction Rules
 
-## Drift Audit
+- Rewrite current-state sections instead of accumulating chronological amendments; history belongs in Changelog, version control, or a decision chain.
+- Keep Overview injectable and root Architecture scannable. Split, merge, or delete domain views by maintenance boundary and retrieval value.
+- Remove an Impact route when its consequence disappears, becomes obvious locally, or gains a stronger deterministic guard.
+- Keep Memory as a concise retrieval index; merge, move, or delete obsolete and overlapping lessons.
+- Keep only active work in the active task area. Archive completed changes only when their rationale or audit history remains useful.
+- Prefer links to authoritative evidence. When a test, schema, linter, script, or Hook can enforce a rule, make it authoritative and let GeiSpec route to it.
 
-Run a focused audit when the user asks, when a loaded claim conflicts with repository evidence, after a broad migration or rename, or when routing has become difficult. Do not turn every task into a full-document review.
-
-1. Start from the injected Overview and affected change surface; identify only claims the change could invalidate.
-2. Check exact paths, symbols, interfaces, generated artifacts, and linked documents against current evidence.
-3. Search for renamed or removed concepts across the Project Spec and any affected Group layer.
-4. Find duplicated rules, contradictory scope records, completed active task documents, superseded decisions presented as current, and Memory entries whose trigger or rule no longer applies.
-5. Replace, move, merge, archive, or delete the stale content. Preserve history only in Changelog, version control, an accepted decision chain, or a genuinely valuable archived change.
-6. Re-read the resulting routes as a future agent: each summary should say why and when to load the next document, and each link should resolve.
-
-## Compaction
-
-- Keep current-state documents current: rewrite sections instead of accumulating chronological amendments.
-- Keep Overview injectable and Architecture scannable. Split Architecture only by a cohesive maintenance boundary; merge or delete a domain view when it no longer earns a separate read.
-- Keep Impact routes sparse. Remove a route when the consequence disappears, becomes locally obvious, or gains a stronger deterministic guard.
-- Keep Memory as a concise retrieval index. Merge overlapping lessons, delete obsolete ones, and move broadened lessons instead of copying them across scopes.
-- Keep only active work in the active task area. Delete completed task references after durable facts land elsewhere; archive a structured change only when its rationale or audit history still has retrieval value.
-- Keep Changelog as the history surface. Move completed Unreleased entries into the real release or checkpoint rather than repeating them in current-state documents.
-- Prefer links to authoritative evidence over copied source detail. If a rule can be enforced reliably by a test, schema, linter, script, or Hook, make that mechanism authoritative and let GeiSpec route to it.
-
-Stop when the remaining documents are accurate, non-overlapping, and cheaper to load than to rediscover.
+Stop when the affected current facts are accurate and the release-level routes are non-overlapping and cheap to recover.

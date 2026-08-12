@@ -49,12 +49,12 @@ So I wrote this skill suite.
 | `MEMORY & memory/` | Stores conventions, repeated pitfalls, and hidden constraints not obvious from code or background; Project, Group, and Shared Context own separate indexes |
 | `Groups` | Give independent working directories shared OVERVIEW, IMPACTS, MEMORY, and member routes without merging their Project-local context |
 
-After a verified change, Memo reconciles current facts by impact: it rewrites stale content instead of merely appending history, and repairs, merges, or deletes drift from evidence. Observable behavior remains owned by repository-native specs, tests, schemas, or product documentation so GeiSpec does not grow into a second implementation encyclopedia.
+Memo uses two maintenance cadences: routine changes read the injected context and directly affected documents, keeping alignment through one concise outcome and the smallest current-fact update; a formal version or checkpoint performs full delta-based reconciliation, deduplication, and compaction. Observable behavior remains owned by repository-native specs, tests, schemas, or product documentation so GeiSpec does not grow into a second implementation encyclopedia.
 
 **`/work`** — Evidence-driven code execution
 
 - Chooses the most discriminating verification by risk and coupling; test-first, persistent plans, commit checkpoints, and full suites are conditional tools
-- Finishes with a focused documentation impact scan and reconciles only GeiSpec or native documentation changed by the verified result
+- Finishes with a lightweight outcome record and updates only directly affected GeiSpec or native documentation; full review waits for a version or checkpoint
 - Releases follow repository-native policy and verify the actual artifact or remote state
 
 ---

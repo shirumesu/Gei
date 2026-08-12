@@ -18,4 +18,6 @@ Honor an explicitly named Skill. If no Skill fits, continue normally.
 
 Load the selected Skill and let it own the workflow. Do not preload other Skills merely because they might become useful later.
 
+After a state-changing task, make one lightweight GeiSpec pass using the changed surface plus the injected Project Overview and Unreleased outcomes. Record or fold in one concise durable outcome, and read or update only a current-state document directly affected by the change. Do not audit unrelated Spec surfaces; broad reconciliation belongs to a release, checkpoint, broad migration, or explicit drift review. Purely transient or generated changes may remain no-write.
+
 Before the final response, briefly assess whether the conversation or outcome revealed a durable, non-obvious lesson that could change future work. When a candidate exists, use Memo's memory write gate and update memory autonomously; keep a no-write decision silent. Write to the narrowest complete scope: Project by default, Group when multiple members share the lesson, and Shared Context only when it clearly applies across unrelated projects.

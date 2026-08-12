@@ -33,7 +33,7 @@ Read only the reference that owns the requested outcome:
 | Create a Group, change membership, or promote shared context | `references/groups.md` |
 | Recall, write, move, merge, or remove memory | `references/memory.md` |
 | Preserve an accepted change spec or cross-session handoff | `references/task-docs.md` |
-| Reconcile a completed change, repair drift, or compact overlapping content | `references/maintenance.md` |
+| Run the routine change pass, release/checkpoint reconciliation, drift repair, or compaction | `references/maintenance.md` |
 
 Project, Group, and Context templates under `templates/` are runtime assets used by Hooks and initialization. Change, architecture-view, decision-record, memory-entry, and task-reference templates are optional scaffolds; read only the one being created.
 

@@ -42,4 +42,4 @@ Report:
 
 Do not call a release complete based only on a successful local command when the requested outcome is external.
 
-Before closing a GeiSpec-backed release, use Memo only when the release changed durable background, a cross-surface impact route, or a non-obvious operational lesson. Update the owning `OVERVIEW.md`, `IMPACTS.md`, or memory entry; keep release history in the repository's native changelog or release notes.
+Before closing a GeiSpec-backed version or checkpoint, run Memo's release reconciliation. Use the release delta to check every primary Spec surface while opening only affected domain detail; align current facts, impacts, decisions, Memory, and active task material before finalizing the versioned Changelog. Keep public release history in the repository's native changelog or release notes.

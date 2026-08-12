@@ -23,7 +23,7 @@ Implement the requested outcome and gather evidence that it works.
 4. **Implement.** Make the change, including cleanup made necessary by the chosen design, without widening into unrelated work.
 5. **Verify.** Run the cheapest high-signal check first, then broader affected checks when coupling or release risk justifies them.
 6. **Review the result.** Inspect the diff and behavior for scope drift, incomplete paths, accidental user-change overlap, unsupported claims, and durable documentation now made false or incomplete.
-7. **Reconcile durable context.** Update only the owning documentation surfaces affected by the verified result; remove stale current-state claims instead of merely adding history.
+7. **Reconcile durable context.** Complete Using Gei's lightweight change pass: record the durable outcome and update only current-state claims directly affected by the verified result.
 8. **Report.** State what changed, the verification and result, and any limitation or residual risk.
 
 Repeat the loop when evidence exposes another in-scope issue. Stop and surface the blocker when progress requires missing authority, unavailable external state, or a user-owned decision that would materially change the result.
@@ -46,7 +46,7 @@ Treat existing specs, tests, code, mockups, schemas, and artifacts as references
 
 `memo` owns GeiSpec maintenance. After verified changelog-worthy work, append one concise outcome under the Project `CHANGELOG.md` `## Unreleased`; this narrow close action does not require loading the rest of Memo. Use the project's categories or the conventional Added/Changed/Deprecated/Removed/Fixed/Security headings, and do not copy commit logs or public release prose.
 
-At close, perform a small documentation impact scan from the verified change: did it alter durable purpose or boundaries, stable architecture or ownership, an accepted structural decision, a non-obvious downstream consequence, or a previously recorded claim? If so, update the owning `OVERVIEW.md`, `ARCHITECTURE.md`, decision record, Project/Group `IMPACTS.md`, or native specification through Memo in the same task. If several surfaces may be stale, a migration or rename was broad, or compaction is needed, read Memo's `references/maintenance.md`. Do not open every Spec file or write a no-change entry merely to prove the scan happened.
+At close, use the changed surface and injected Project context to append or fold in one concise durable outcome, then read and update only an owning `OVERVIEW.md`, `ARCHITECTURE.md`, decision record, Project/Group `IMPACTS.md`, or native specification whose current claim changed. Do not inspect unrelated Spec surfaces. Read Memo's `references/maintenance.md` for a release/checkpoint, broad migration, explicit drift review, or when several owners genuinely changed together.
 
 At close, follow Using Gei's autonomous memory candidate check and keep no-write decisions silent.
 
