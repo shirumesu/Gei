@@ -30,8 +30,5 @@ dist/
 # Jupyter
 .ipynb_checkpoints/
 
-#spec
-spec/
-
 # workflow comment
 docs/release.md
