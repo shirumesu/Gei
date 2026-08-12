@@ -9,6 +9,7 @@ import {
   readHookInput,
   readMeaningfulDocument,
   writeSessionStartContext,
+  writeSessionStartError,
 } from "./geispec.mjs";
 
 function projectOverview(project) {
@@ -67,6 +68,6 @@ const scope = process.argv[2] || "project";
 try {
   const project = ensureProject(getHookStartDir(hookInput));
   writeSessionStartContext(buildOverviewContext(scope, project));
-} catch {
-  // Session context is optional. Initialization failures must not block Codex.
+} catch (error) {
+  writeSessionStartError(`${scope} overview initialization`, error);
 }

@@ -266,6 +266,30 @@ test("parallel SessionStart content hooks initialize one complete Project", asyn
   }
 });
 
+test("SessionStart content hooks return useful initialization errors", async () => {
+  const root = temporaryRoot();
+  const projectRoot = path.join(root, "project");
+  const blockedStore = path.join(root, "not-a-directory");
+  const env = { GEI_SPEC_HOME: blockedStore };
+  fs.mkdirSync(projectRoot, { recursive: true });
+  fs.writeFileSync(blockedStore, "blocks GeiSpec directory creation\n");
+
+  const results = await Promise.all([
+    runHook(overviewHook, ["project"], env, projectRoot),
+    runHook(memoryHook, ["context"], env, projectRoot),
+  ]);
+
+  for (const result of results) {
+    assert.equal(result.status, 0, result.stderr);
+    const output = JSON.parse(result.stdout);
+    assert.match(
+      output.systemMessage,
+      /^Gei (project overview|context memory) initialization failed/,
+    );
+    assert.match(output.systemMessage, /not-a-directory/);
+  }
+});
+
 test("project-local legacy Spec is ignored", async () => {
   const root = temporaryRoot();
   const projectRoot = path.join(root, "project");

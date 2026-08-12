@@ -9,6 +9,7 @@ import {
   readHookInput,
   readMeaningfulDocument,
   writeSessionStartContext,
+  writeSessionStartError,
 } from "./geispec.mjs";
 
 function memoryBlock(label, scopeRoot, memoryPath, memory) {
@@ -64,6 +65,6 @@ try {
       scope === "group" ? groupMemories(project) : projectMemory(project),
     );
   }
-} catch {
-  // Session context is optional. Initialization failures must not block Codex.
+} catch (error) {
+  writeSessionStartError(`${scope} memory initialization`, error);
 }

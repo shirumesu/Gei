@@ -63,6 +63,28 @@ export function writeSessionStartContext(additionalContext) {
   );
 }
 
+export function writeSessionStartError(operation, error) {
+  const code =
+    error && typeof error === "object" && typeof error.code === "string"
+      ? ` [${error.code}]`
+      : "";
+  const detail =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string" && error
+        ? error
+        : "Unknown error";
+  process.stdout.write(
+    `${JSON.stringify(
+      {
+        systemMessage: `Gei ${operation} failed${code}: ${detail}`,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
 export function normalizeProjectRoot(value) {
   const resolved = path.resolve(value);
   try {
