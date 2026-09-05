@@ -7,10 +7,10 @@ description: Gei's compact task router and autonomous knowledge-update trigger. 
 
 Choose by the final objective; supporting reads and searches do not change the route.
 
-- consider: unresolved requirements or consequential design
-- work: implementation, fixes, verification, or release execution
+- consider: discover needs, develop competing designs, and challenge consequential choices
+- work: implement and verify the outcome through its real consumers
 - memo: external project knowledge, conditional lessons, or handoffs
-- code-review: read-only implementation audit
+- code-review: read-only review of functionality, experience, performance, and consistency
 - see: source-backed external research
 - create-skill: create, improve, or validate Skills
 

@@ -11,14 +11,16 @@ Gei provides small task Skills for Codex and Claude Code, plus project knowledge
 | Skill | Final objective |
 | --- | --- |
 | using-gei | Select the task entry and trigger earned autonomous knowledge updates |
-| consider | Clarify requirements, investigate consequential unknowns, compare conditional tradeoffs |
-| work | Implement clear tasks with proportionate verification |
+| consider | Discover needs, propose competing designs, and improve them through concrete challenges |
+| work | Connect entry points, implementation, and consumers; verify the delivered outcome |
 | memo | Maintain external background, domain routes, decisions, lessons, and handoffs |
-| code-review | Read-only review of implementation and verification evidence |
+| code-review | Read-only review of functionality, interaction, presentation, performance, and consistency |
 | see | External research, fact-checking, and source synthesis |
 | create-skill | Create, simplify, review, and validate Skills |
 
 Ordinary context reads need no Memo load. Clear tasks go straight to execution; ambiguous consequential work uses Consider. Skills and conditional references load on demand. Gei supplies task boundaries and project knowledge conventions.
+
+Consider contributes designs and challenges its own recommendation; Code Review prioritizes actual experience and grounded consistency judgments. Work stays a thin delivery convention whose added value needs real-task evidence; see the [task Skill behavior comparisons](docs/task-skill-behavior.md).
 
 ## External Project Knowledge
 

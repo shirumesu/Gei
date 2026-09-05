@@ -1,49 +1,39 @@
 ---
 name: code-review
-description: Use when the final deliverable is a read-only review of code, a pull request, diff, commit, branch, working tree, tests, or an implementation. Focuses on evidence-backed bugs, regressions, risks, and missing verification. Use Work when the requested outcome includes implementing fixes.
+description: "Read-only review of implementation quality: functionality, interaction, presentation, performance, and consistency with the product and codebase. Use for code, diffs, PRs, or implementation audits; use Work when fixes are requested."
 ---
 
 # Code Review
 
-Audit a change without editing it. Lead with material findings; summary and praise are secondary.
+Judge whether the implementation delivers a coherent product experience. Review without changing the target; prioritize the user's stated quality concerns.
 
-## Contract
+## Establish The Comparison
 
-- Review the actual code and behavior against the user's intent. PR titles, commit messages, and author summaries are context, not proof.
-- Focus on issues that affect correctness, security, maintainability, UX, DX, release confidence, or recovery.
-- Ignore style preferences unless they violate an established convention or create concrete risk.
-- State the reviewed scope and any material surface you could not inspect.
-- Do not invent findings to make the review look useful.
+Resolve the review scope and intended behavior from the request, requirements, and affected callers. For a diff, separate introduced issues from pre-existing ones; for a broad audit, inspect the requested existing surface too. Author summaries describe intent, not proof.
 
-## Workflow
+Find a representative neighboring flow, component, output, or convention. Use it to judge terminology, visual hierarchy, interaction patterns, API shape, and code organization. Existing inconsistency is evidence to assess, not a reason to copy a broken pattern.
 
-1. **Resolve the target and intent.** Infer ordinary Git scopes such as the current diff when safe; ask only if the target is genuinely ambiguous.
-2. **Map the changed behavior.** Inspect changed files and the smallest supporting code needed to trace real inputs, state, outputs, and failure paths.
-3. **Choose relevant risk lenses.** Consider task fit, correctness, state and recovery, tests, security, user experience, developer integration, and operations only where the changed surface warrants them.
-4. **Check verification.** Review tests, commands, screenshots, logs, or artifacts for whether they could actually expose the regression at issue. Run read-only checks when useful and authorized by the review request.
-5. **Report evidence-backed findings.** Sort by realistic impact and make the corrective direction clear without implementing it.
+## Follow The Experience
 
-For authentication, authorization, secrets, PII, parsing, file paths, uploads, command execution, outbound requests, dependencies, cryptography, sandboxing, tenancy, payments, or other trust boundaries, read `references/security.md`.
+Trace a representative user action from entry through state changes to visible result. Inspect the states that matter to this flow, such as first use, empty data, loading, failure, repeat actions, or return navigation. Do not turn these into an exhaustive checklist for every task.
 
-## Finding Standard
+Spend review attention on the changed experience:
 
-Each finding should state:
+| Concern | Evidence to seek |
+| --- | --- |
+| Functionality | Requirement-to-result mismatch, omitted paths, wrong state or persistence |
+| Interaction and presentation | Confusing controls or feedback, broken layout, unreadable content, keyboard barriers, inconsistent wording or hierarchy |
+| Performance | Work repeated on a reachable hot path, blocking interaction, excess requests, or measured slowdown; distinguish suspicion from measurement |
+| Coherence | A concrete mismatch with neighboring flows, design tokens, public interfaces, or ownership that makes use or change harder |
 
-- a concise severity and title
-- the concrete behavior or risk
-- evidence at the narrowest useful file/line, command, screenshot, or observed path
-- why it matters and, when not obvious, the condition needed to reproduce it
+For visual changes, inspect the running view or rendered artifact at relevant sizes/states when available. Source inspection can establish a wrong token or missing state, but cannot prove rendered appearance. For CLI/API work, inspect actual output or consumer behavior. Run proportionate non-mutating checks; do not equate compilation or helper tests with a working experience.
 
-Use qualitative severity based on reachability, blast radius, reversibility, and user impact. Mark uncertainty directly when a missing runtime fact could change the finding; do not manufacture numeric precision.
+Security is a conditional lens. Read [security](references/security.md) for an explicit security audit or a concrete path involving exposed credentials, untrusted input crossing a boundary, or changed access controls. A file path, dependency, parser, or network call alone does not trigger a security checklist. Report obvious serious vulnerabilities when found; do not pad a product review with speculative hardening.
 
-Do not report a hypothetical family of problems without tracing the relevant path. Missing tests are findings only when they leave material behavior unprotected or the claimed verification unsupported.
+## Report What Should Change
 
-## Output
+Separate demonstrated defects from worthwhile design/style improvements. Both can matter: inconsistency need not cause a crash to deserve attention. Ground an improvement in a named comparison or a concrete usability/maintenance consequence; label unestablished taste as a proposal, never a proven bug. Avoid generic clean-code wishes.
 
-Lead with findings in severity order. Then give compact coverage:
+Each item needs a concise title, narrow file/line or observed-state evidence, the effect under realistic conditions, and a corrective direction. Rank by actual user impact; a broken core flow can outrank theoretical security exposure. Mark uncertainty where it changes the conclusion. Missing tests matter only when a specific material behavior is unprotected or claimed verification is unsupported.
 
-- reviewed target and supporting surface
-- verification seen or run
-- unreviewed areas and residual risk
-
-If there are no material findings, say so plainly, then report coverage and residual risk. Do not imply fixes were made or checks passed without evidence.
+Lead with actionable findings, then a short coverage statement: target, comparisons/checks used, and material unverified surfaces. Include improvements separately only when useful; no finding quota or mandatory security section. If nothing material is found, say so without implying unobserved behavior was verified.
