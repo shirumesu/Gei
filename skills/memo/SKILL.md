@@ -1,51 +1,39 @@
 ---
 name: memo
-description: Use to maintain or reconcile GeiSpec background, architecture, impact routes, changelog, memory, Groups, or durable task references, including drift cleanup and compaction.
+description: Maintain external project background and topic routes, conditional decisions and pitfalls, stale knowledge, and necessary handoffs. Use proactively when a task earns a durable update; ordinary context reading does not require this skill.
 ---
 
 # Memo
 
-Maintain only context that helps a future agent recover the right background, notice non-obvious consequences, or avoid repeating a mistake. Repository evidence and current user decisions remain authoritative.
+Own useful project knowledge outside the repository. Create, update, merge, move, and remove it autonomously within the task; no separate user confirmation is needed. Honor host filesystem permissions and current user instructions. Do not merely offer to remember or defer a known correction.
 
-GeiSpec lives only under `~/.agents/geispec` (or `GEI_SPEC_HOME`). SessionStart Hooks create the fixed Project scaffold for the exact current working directory. Project-local `spec/`, bindings, modes, and a user-facing CLI are not part of the system.
+## Act On Evidence
 
-## Scope
+Write when a task establishes missing project background or working agreements, an accepted consequential decision, a verified reusable pitfall, a changed knowledge claim/route, or a needed handoff. Update the existing owner first. Routine edits, raw logs, transcripts, generic advice, and code facts cheap to recover earn no note.
 
-Choose the narrowest scope that fully owns the fact:
+Distinguish user-confirmed decisions, agent inferences, unimplemented targets, and observed behavior. An old implementation does not overrule an accepted requirement. Never promote one choice into a universal preference.
 
-- **Project**: background, impact routes, and lessons for one working directory.
-- **Group**: shared purpose, cross-project impacts, and lessons for related Projects.
-- **Shared Context**: only durable behavior that clearly applies across unrelated projects.
+## Shape
 
-When a fact broadens, move it to the wider scope and remove redundant narrower copies. Current user instructions and repository evidence override Project, which overrides Group, which overrides Shared Context.
+Use the Hook-provided external knowledge path. Store only an earned `INDEX.md`, `project.json`, topic pages/notes, and optional task records. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or whole-store close audit.
 
-## Route
+- `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact.
+- `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.
+- `topics/<domain>/notes/<meaningful-name>.md`: scoped decision or pitfall, its reasons/evidence, and when to reconsider.
+- `tasks/<name>.md`: accepted work that must survive handoff; do not create a second task tracker.
+- `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects.
 
-Read only the reference that owns the requested outcome:
+Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve repository-relative evidence against the current checkout, not the knowledge directory.
 
-| Need | Read |
-| --- | --- |
-| Bootstrap or repair missing fixed files | `references/initialize.md` |
-| Update Project or Group background and boundaries | `references/overview.md` |
-| Map stable project structure, flows, interfaces, or decisions | `references/architecture.md` |
-| Record a non-obvious change consequence or shared contract | `references/impacts.md` |
-| Record verified outcomes or prepare a release/checkpoint | `references/changelog.md` |
-| Create a Group, change membership, or promote shared context | `references/groups.md` |
-| Recall, write, move, merge, or remove memory | `references/memory.md` |
-| Preserve an accepted change spec or cross-session handoff | `references/task-docs.md` |
-| Run the routine change pass, release/checkpoint reconciliation, drift repair, or compaction | `references/maintenance.md` |
+## Read Only What This Write Needs
 
-Project, Group, and Context templates under `templates/` are runtime assets used by Hooks and initialization. Change, architecture-view, decision-record, memory-entry, and task-reference templates are optional scaffolds; read only the one being created.
+- Storage, first write, relocation, or missing Hook: [storage](references/storage.md).
+- Background, topic routing, scoped search, or compaction: [topics](references/topics.md).
+- Decisions, pitfalls, generalization, or handoff: [notes](references/notes.md).
+- Existing five-file/Group store: [migration](references/migrate.md).
 
-## Writing Boundary
+Use only the relevant [index](templates/index.md), [topic](templates/topic.md), [note](templates/note.md), or [task](templates/task.md) example; headings are optional. Write short statements and links for agent retrieval, not a narrative report.
 
-- Do not turn Spec into a framework summary, dependency list, directory encyclopedia, code-comment guide, or duplicate source tree.
-- Update the smallest relevant section only after evidence or an accepted decision changes it. Rewrite or remove stale current-state claims; do not preserve them by appending a caveat.
-- `OVERVIEW.md` restores purpose, responsibilities, boundaries, and read routes.
-- `ARCHITECTURE.md` maps stable system shape, critical flows, interfaces, decisions, and maintenance entry points. Put earned domain views and ADRs under `architecture/`.
-- `IMPACTS.md` records only consequences likely to be missed when changing one surface in isolation.
-- `CHANGELOG.md` records concise verified outcomes under `Unreleased` and release/checkpoint history; it is not a task plan or commit log.
-- `MEMORY.md` is a short linked index for durable, non-obvious operational lessons.
-- `docs/` is conditional: create a task reference only when cross-session recovery or handoff has real value. For a consequential feature with distinct proposal, requirements, design, and execution concerns, use a temporary structured change package as described in `references/task-docs.md`.
+## Finish
 
-At task close, briefly assess only the current conversation and verified outcome for a memory candidate. Write autonomously when it passes `references/memory.md`; otherwise do nothing and say nothing.
+Before the final reply, land the earned update and repair its nearest incoming route. Check touched links and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.

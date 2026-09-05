@@ -52,14 +52,16 @@ gei
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
-  skills/memo/references/maintenance.md
+  skills/memo/references/storage.md
   skills/work/SKILL.md
   skills/code-review/SKILL.md
   skills/see/SKILL.md
   skills/create-skill/SKILL.md
   hooks/codex-hooks.json
-  hooks/geispec.mjs
-  skills/memo/templates/project/OVERVIEW.md
+  hooks/knowledge.mjs
+  hooks/inject_using_gei.mjs
+  hooks/inject_context.mjs
+  skills/memo/templates/index.md
 ```
 
 Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
@@ -78,12 +80,14 @@ Use this for Claude Code when plugin marketplace installation is available.
 Gei
   .claude-plugin/plugin.json
   hooks/hooks.json
-  hooks/geispec.mjs
-  skills/memo/templates/project/OVERVIEW.md
+  hooks/knowledge.mjs
+  hooks/inject_using_gei.mjs
+  hooks/inject_context.mjs
+  skills/memo/templates/index.md
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
-  skills/memo/references/maintenance.md
+  skills/memo/references/storage.md
   skills/work/SKILL.md
   skills/code-review/SKILL.md
   skills/see/SKILL.md
@@ -126,7 +130,7 @@ unzip Gei-skills.zip -d <skills-dir>
     using-gei/SKILL.md
     consider/SKILL.md
     memo/SKILL.md
-    memo/references/maintenance.md
+    memo/references/storage.md
     work/SKILL.md
     code-review/SKILL.md
     see/SKILL.md
@@ -157,7 +161,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
     skills/using-gei/SKILL.md
     skills/consider/SKILL.md
     skills/memo/SKILL.md
-    skills/memo/references/maintenance.md
+    skills/memo/references/storage.md
     skills/work/SKILL.md
     skills/code-review/SKILL.md
     skills/see/SKILL.md

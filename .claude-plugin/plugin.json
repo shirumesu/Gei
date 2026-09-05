@@ -3,7 +3,7 @@
   "name": "gei",
   "displayName": "Gei",
   "version": "0.8.2",
-  "description": "A compact, progressive-disclosure skill collection for agent work, research, planning, memory, and project state.",
+  "description": "Compact task skills with external, topic-routed project knowledge and autonomous maintenance of conditional decisions and lessons.",
   "author": {
     "name": "shirumesu"
   },

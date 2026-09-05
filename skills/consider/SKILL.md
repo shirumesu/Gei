@@ -1,32 +1,34 @@
 ---
 name: consider
-description: Use when an idea, feature, architecture choice, or workflow needs design before implementation because scope, feasibility, boundaries, or consequential tradeoffs are still unresolved. Not for clearly scoped, low-risk work that can be implemented directly.
+description: Use when requirements, an idea, or an architectural choice need clarification and design before implementation. Investigates project context and consequential tradeoffs; clear reversible work goes directly to Work.
 ---
 
 # Consider
 
-Turn consequential ambiguity into a defensible direction. Do enough design to make implementation safe; do not make discussion an end in itself.
+Turn an ambiguous request into a defensible, verifiable direction.
 
-## Boundary
+## Understand
 
-- Use this Skill when an unresolved choice could materially change user behavior, data boundaries, architecture, migration cost, risk, or acceptance.
-- For clear, low-risk, reversible work, state any useful assumption and proceed through the implementation workflow.
-- Inspect researchable facts before asking the user. Ask only for decisions the user must own or facts that cannot be recovered safely.
-- Do not implement the full solution while design is the requested deliverable. Small examples, prototypes, or probes are allowed when they are the cheapest way to resolve uncertainty.
+Start from the desired user outcome. Recover matching domain terms, ownership, constraints, source/tests, and relevant prior decisions using injected topic routes. Read `references/read-spec.md` only when the project context needs more guidance.
 
-## Workflow
+Keep distinct:
+- what the user explicitly requested or accepted;
+- what current evidence establishes;
+- what the agent assumes or infers;
+- what remains unknown and could change the result.
 
-1. **Recover context.** Read the smallest relevant code, tests, docs, history, or supplied references. If the project uses Gei specs and they matter, follow `references/read-spec.md`.
-2. **Find the real decision.** State the desired end state, inherited constraints, unknowns, and what would make the decision wrong.
-3. **Resolve uncertainty.** Research facts that could change the direction. Ask a concise question only when a missing user choice would materially alter the result.
-4. **Compare real alternatives.** When more than one credible direction remains, explain the meaningful tradeoff and recommend one. Do not manufacture options.
-5. **Design the target.** Cover scope, main boundaries or interfaces, failure behavior, migration or compatibility when relevant, and how success will be verified.
-6. **Identify the cheapest proof.** Name the experiment, prototype, test, or evidence that would confirm or falsify the riskiest assumption.
+Investigate recoverable facts before asking. Use domain context to ask only consequential questions; do not run a generic questionnaire. New evidence can refine the working focus, but must not silently replace the user's goal.
 
-Match depth to consequence. A local decision may need a paragraph; an architectural change may need a structured design and staged migration.
+## Decide
 
-## Handoff
+Compare real alternatives and recommend one. When previous A/B reasoning may inform C/D, check the underlying priorities, constraints, and changed conditions first. An accepted past choice is not a blanket preference.
 
-End with a clear recommendation, material assumptions, unresolved decisions, and acceptance evidence. Ask for approval only when implementation authority or a consequential user-owned decision is still missing; otherwise the design can hand off directly to execution.
+Describe target behavior, scope, constraints, acceptance examples, and unresolved assumptions. Add architecture or migration detail only where it changes feasibility or risk. Identify the cheapest evidence that could falsify the recommendation.
 
-When the user accepts a consequential decision or the design must survive a session boundary, preserve it through Memo in the lightest owning artifact. Record an unimplemented target as a task reference, structured change, or decision record, never as current Architecture. Implementation later reconciles the verified result into current-state documents.
+Do not implement the full solution while design is the requested deliverable. Small probes are appropriate when they resolve uncertainty cheaply.
+
+## Preserve And Handoff
+
+Land accepted consequential decisions and newly reliable project background through Memo autonomously, without a separate request to remember. Keep unimplemented targets explicit; ordinary discussion need not create a document. Use one external task record when accepted work must survive a session boundary.
+
+Hand off to Work when implementation is authorized and the consequential choices are resolved. Otherwise present the recommendation and remaining user-owned decisions without turning routine choices into approval gates.

@@ -1,57 +1,30 @@
 ---
 name: work
-description: "Use for coding execution: implementation, bug fixing, tests, builds, refactors, Git diagnosis, releases, and other code-changing work. Guides an evidence-driven implementation loop without requiring TDD, persistent plans, or release ceremony by default."
+description: "Use for implementation, bug fixing, tests, builds, refactors, Git diagnosis, and releases. Executes a coherent change with proportionate verification."
 ---
 
 # Work
 
-Implement the requested outcome and gather evidence that it works.
+Complete the requested outcome and gather evidence that it works.
 
-## Working Model
+## Execute
 
-- Recover only the context that could change the implementation. Treat code, configuration, tests, and observed behavior as higher-fidelity references than summaries.
-- Let the task's risk and uncertainty determine planning, checkpoints, tests, and review depth.
-- Preserve user-owned changes and keep the modification coherent. Do not let a small diff preserve the wrong abstraction when a cleaner in-scope change is justified.
-- Use project-native commands, conventions, and release policy before generic guidance.
-- A plan, persistent spec, subagent, commit, or test-first loop is useful only when it improves coordination, recovery, or evidence.
+1. Establish the target behavior and completion evidence. Use injected project/topic routes, then the relevant source and tests. Code describes current behavior; accepted requirements define the target.
+2. Locate the owning path. For a bug, reproduce or trace the failure when practical. Consult old decisions by their conditions, not as permanent rules.
+3. Resolve consequential ambiguity through Consider; choose ordinary reversible details directly.
+4. Implement the coherent change, preserving unrelated user work and removing obsolete pieces made unnecessary by it.
+5. Verify with the cheapest discriminating check, expanding only for affected coupling or unresolved risk. Inspect the final diff.
+6. Land earned external knowledge updates through Memo: missing background, accepted tradeoffs, verified pitfalls, stale claims/routes, or necessary handoff. This is authorized without a separate content approval. Routine edits need no note or internal changelog.
+7. Report the result, verification, meaningful knowledge writes, and limitations.
 
-## Execution Loop
-
-1. **Define success.** Resolve the target, user-visible result, material constraints, and the evidence that could prove or disprove completion.
-2. **Inspect the path.** Read the smallest relevant code and supporting context. For a bug, reproduce or trace to the first broken contract before editing when practical.
-3. **Choose the next coherent change.** If a consequential design choice remains unresolved, use `consider` or ask the user; otherwise decide reversible implementation details from project context.
-4. **Implement.** Make the change, including cleanup made necessary by the chosen design, without widening into unrelated work.
-5. **Verify.** Run the cheapest high-signal check first, then broader affected checks when coupling or release risk justifies them.
-6. **Review the result.** Inspect the diff and behavior for scope drift, incomplete paths, accidental user-change overlap, unsupported claims, and durable documentation now made false or incomplete.
-7. **Reconcile durable context.** Complete Using Gei's lightweight change pass: record the durable outcome and update only current-state claims directly affected by the verified result.
-8. **Report.** State what changed, the verification and result, and any limitation or residual risk.
-
-Repeat the loop when evidence exposes another in-scope issue. Stop and surface the blocker when progress requires missing authority, unavailable external state, or a user-owned decision that would materially change the result.
+Continue when evidence exposes another in-scope issue. Ask only for missing authority, unavailable facts, or user-owned choices that materially change the result.
 
 ## Verification
 
-Choose evidence that distinguishes correct from incorrect behavior. Prefer observable contracts over implementation shape.
+Use repository-native commands and expectations. Match tests to observable behavior rather than mirroring implementation. Test-first and broad suites are conditional tools, not fixed phases. Read `references/testcraft.md` only when test design needs it. Distinguish baseline failures from regressions; do not repeat passing checks without new cause.
 
-Read `references/testcraft.md` when test design is consequential or unclear. A regression test is especially useful when it is stable, maintainable, and protects behavior that could fail silently. Test-first is optional: prefer it when the failing case is cheap and reliable to reproduce; otherwise use the strongest practical check at the earliest useful point.
+## Recovery And Release
 
-Do not add a weak test merely to demonstrate that work occurred. Builds, type checks, linters, direct runtime probes, screenshots, or focused inspection may be stronger evidence for some changes.
+Keep coordination in the conversation unless accepted work needs cross-session recovery; then maintain one external task record through Memo. Preserve user decisions separately from agent assumptions.
 
-If the relevant baseline was already failing, distinguish pre-existing failures from regressions introduced by the work.
-
-## Plans, Specs, And Git
-
-Use an in-conversation plan for coordination when helpful. Create or update a durable task reference only when the user asks, the work must survive handoff or session loss, or the repository already requires one.
-
-Treat existing specs, tests, code, mockups, schemas, and artifacts as references; do not restate them into a new Markdown plan by default.
-
-`memo` owns GeiSpec maintenance. After verified changelog-worthy work, append one concise outcome under the Project `CHANGELOG.md` `## Unreleased`; this narrow close action does not require loading the rest of Memo. Use the project's categories or the conventional Added/Changed/Deprecated/Removed/Fixed/Security headings, and do not copy commit logs or public release prose.
-
-At close, use the changed surface and injected Project context to append or fold in one concise durable outcome, then read and update only an owning `OVERVIEW.md`, `ARCHITECTURE.md`, decision record, Project/Group `IMPACTS.md`, or native specification whose current claim changed. Do not inspect unrelated Spec surfaces. Read Memo's `references/maintenance.md` for a release/checkpoint, broad migration, explicit drift review, or when several owners genuinely changed together.
-
-At close, follow Using Gei's autonomous memory candidate check and keep no-write decisions silent.
-
-Create commits or other checkpoints when requested or when they provide real recovery value and are authorized. Never include unrelated user changes.
-
-## Release Work
-
-For versioning, packaging, deployment, publication, or other release actions, read `references/ship.md`. Release is an execution goal, not a second lifecycle: follow repository policy, confirm only missing authority or ambiguous high-impact targets, and verify the actual artifact or remote state after acting.
+Follow the user's Git policy and create only authorized checkpoints containing this task's changes. For versioning, packaging, deployment, or publication, read `references/ship.md`. Verify actual artifacts and remote outcomes when those actions are requested.

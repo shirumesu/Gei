@@ -42,4 +42,4 @@ Report:
 
 Do not call a release complete based only on a successful local command when the requested outcome is external.
 
-Before closing a GeiSpec-backed version or checkpoint, run Memo's release reconciliation. Use the release delta to check every primary Spec surface while opening only affected domain detail; align current facts, impacts, decisions, Memory, and active task material before finalizing the versioned Changelog. Keep public release history in the repository's native changelog or release notes.
+After release, update only external knowledge made stale by the verified result. Preserve a new decision or pitfall when it earns a note; no separate Spec release sweep is required. Public release history belongs in the repository's native changelog or release notes.

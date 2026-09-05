@@ -1,0 +1,27 @@
+name: Check
+
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python -m pip install PyYAML
+      - run: node --test tests/knowledge.test.mjs
+      - name: Validate Skills
+        shell: bash
+        run: |
+          for skill in skills/*/SKILL.md; do
+            python skills/create-skill/scripts/quick_validate.py "$(dirname "$skill")"
+          done
+      - run: git diff --check

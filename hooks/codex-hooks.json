@@ -6,45 +6,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_using_gei.mjs\"",
             "statusMessage": "Loading Gei router",
-            "timeout": 5
+            "timeout": 5,
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_using_gei.mjs\""
           },
           {
             "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_memory.mjs\" context",
-            "statusMessage": "Loading Gei shared memory",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_overview.mjs\" group",
-            "statusMessage": "Loading Gei group overview",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_memory.mjs\" group",
-            "statusMessage": "Loading Gei group memory",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_overview.mjs\" project",
-            "statusMessage": "Loading Gei project overview",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_changelog.mjs\"",
-            "statusMessage": "Loading Gei recent project outcomes",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_memory.mjs\" project",
-            "statusMessage": "Loading Gei project memory",
-            "timeout": 5
+            "statusMessage": "Loading Gei project knowledge",
+            "timeout": 5,
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_context.mjs\""
           }
         ]
       }

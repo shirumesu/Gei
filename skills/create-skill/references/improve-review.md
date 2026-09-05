@@ -87,4 +87,4 @@ Treat a Skill edit as an interface change, not an isolated Markdown patch:
 | Script, schema, tool, or asset interface | Calling instructions, `--help` or schema surface, focused tests, and examples that encode the old interface |
 | Removed or renamed resource | Every local link, route, validator expectation, package manifest, and distribution surface |
 
-Keep history in repository release notes or version control, not inside the Skill. Rewrite current guidance, delete obsolete rules and fixtures, and verify no duplicate authority remains. If future maintainers could easily miss a repository-specific consequence, record that route in the repository's own impact map rather than teaching every consumer Skill about the repository layout.
+Keep history in repository release notes or version control, not inside the Skill. Rewrite current guidance, delete obsolete rules and fixtures, and verify no duplicate authority remains. Record easy-to-miss project consequences in the owning external topic or existing native documentation; consumer Skills should not learn this repository's layout.

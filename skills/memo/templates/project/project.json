@@ -1,6 +1,0 @@
-{
-  "schemaVersion": 2,
-  "id": {{PROJECT_ID_JSON}},
-  "name": {{PROJECT_NAME_JSON}},
-  "root": {{PROJECT_ROOT_JSON}}
-}

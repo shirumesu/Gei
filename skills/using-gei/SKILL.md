@@ -1,23 +1,19 @@
 ---
 name: using-gei
-description: Gei's lightweight entry router. Use when the Gei bundle is active and a request may match one of its task Skills.
+description: Gei's compact task router and autonomous knowledge-update trigger. Use when Gei is active and the request matches a task skill.
 ---
 
 # Using Gei
 
-Choose a Skill by the user's final objective. Supporting actions such as reading, searching, or checking do not determine the route.
+Choose by the final objective; supporting reads and searches do not change the route.
 
-- `consider`: an idea needs design or a consequential decision before implementation
-- `work`: code, tests, builds, fixes, refactors, Git diagnosis, or release execution
-- `create-skill`: create, improve, review, or validate Skills
-- `memo`: maintain or reconcile GeiSpec background, architecture, impacts, changelog, memory, Groups, task references, drift, or compaction
-- `code-review`: a read-only audit is the final deliverable
-- `see`: external research or source-backed synthesis is the final deliverable
+- consider: unresolved requirements or consequential design
+- work: implementation, fixes, verification, or release execution
+- memo: external project knowledge, conditional lessons, or handoffs
+- code-review: read-only implementation audit
+- see: source-backed external research
+- create-skill: create, improve, or validate Skills
 
-Honor an explicitly named Skill. If no Skill fits, continue normally.
+Honor named Skills. Load the selected Skill, then only conditional references needed for this task. If none fits, continue normally.
 
-Load the selected Skill and let it own the workflow. Do not preload other Skills merely because they might become useful later.
-
-After a state-changing task, make one lightweight GeiSpec pass using the changed surface plus the injected Project Overview and Unreleased outcomes. Record or fold in one concise durable outcome, and read or update only a current-state document directly affected by the change. Do not audit unrelated Spec surfaces; broad reconciliation belongs to a release, checkpoint, broad migration, or explicit drift review. Purely transient or generated changes may remain no-write.
-
-Before the final response, briefly assess whether the conversation or outcome revealed a durable, non-obvious lesson that could change future work. When a candidate exists, use Memo's memory write gate and update memory autonomously; keep a no-write decision silent. Write to the narrowest complete scope: Project by default, Group when multiple members share the lesson, and Shared Context only when it clearly applies across unrelated projects.
+Use the injected project background and topic routes without loading Memo just to read. When a task establishes useful background, an accepted tradeoff, a verified reusable pitfall, stale knowledge, or a necessary handoff, apply Memo and land the external update before the final reply. Maintenance is authorized without separate confirmation, subject to host permissions. Do not merely propose to remember; do not manufacture a note for routine work.
