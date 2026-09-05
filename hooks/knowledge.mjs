@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -7,7 +7,8 @@ import path from "node:path";
 export const SCHEMA_VERSION = 3;
 export const PROJECT_INDEX_BYTES = 3072;
 export const SHARED_INDEX_BYTES = 1024;
-export const CONTEXT_BYTES = 7168;
+export const CONTEXT_BYTES = 4096;
+export const SHARED_CONTEXT_BYTES = 1536;
 
 export function getGeiSpecHome(env = process.env) {
   const configured = env.GEI_SPEC_HOME?.trim() || "";
@@ -38,7 +39,8 @@ export function writeSessionStartContext(additionalContext) {
 
 export function writeSessionStartError(operation, error) {
   process.stdout.write(`${JSON.stringify({
-    systemMessage: `Gei ${operation} failed: ${error.message || String(error)}`,
+    systemMessage: clipLines(`Gei ${operation} failed.\n${error.message || String(error)}`, 1024,
+      "\n[Error detail clipped.]"),
   })}\n`);
 }
 
@@ -75,25 +77,27 @@ function readOptional(filePath) {
 
 export function resolveRepository(startDir) {
   const cwd = normalizeRoot(startDir);
+  if (!fs.statSync(cwd).isDirectory()) throw new Error(`Not a workspace directory: ${cwd}`);
   let output;
   try {
     output = execFileSync("git", ["-C", cwd, "rev-parse", "--path-format=absolute",
-      "--show-toplevel", "--git-common-dir"], {
+      "--git-common-dir", "--show-toplevel"], {
       encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: 2000,
       windowsHide: true,
     });
   } catch (error) {
-    if (error.code === "ENOENT" || /not a git repository/iu.test(String(error.stderr))) {
+    if (/must be run in a work tree/iu.test(String(error.stderr)) && String(error.stdout || "").trim()) {
+      output = String(error.stdout);
+    } else if (error.code === "ENOENT" || /not a git repository/iu.test(String(error.stderr))) {
       return { checkoutRoot: cwd, projectRoot: cwd, gitCommonDir: null };
-    }
-    throw error;
+    } else throw error;
   }
-  const [checkout, common] = output.trim().split(/\r?\n/u);
-  const checkoutRoot = normalizeRoot(checkout);
+  const [common, checkout] = output.trim().split(/\r?\n/u);
   const gitCommonDir = normalizeRoot(common);
   // Normal repositories and linked worktrees retain the original root id.
   const projectRoot = path.basename(gitCommonDir) === ".git"
     ? path.dirname(gitCommonDir) : gitCommonDir;
+  const checkoutRoot = checkout ? normalizeRoot(checkout) : projectRoot;
   return { checkoutRoot, projectRoot, gitCommonDir };
 }
 
@@ -103,7 +107,6 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}
   const projectsRoot = path.join(geiSpecHome, "projects");
   let specRoot = path.join(projectsRoot, projectId);
   let manifestText = readOptional(path.join(specRoot, "project.json"));
-  let matchedRoot;
   // Explicit root/alias edits preserve identity when a project moves.
   if (!manifestText && fs.existsSync(projectsRoot)) {
     const matches = [];
@@ -118,18 +121,17 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}
       const aliases = Array.isArray(candidate.aliases) ? candidate.aliases : [];
       const roots = [candidate.root, ...aliases].filter(x => typeof x === "string");
       const matched = roots.find(root => {
-        const relative = path.relative(comparablePath(root), comparablePath(repository.checkoutRoot));
-        return relative === "" || comparablePath(root) === comparablePath(repository.projectRoot)
-          || (!repository.gitCommonDir && relative !== ".."
-          && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+        return comparablePath(root) === comparablePath(repository.checkoutRoot)
+          || comparablePath(root) === comparablePath(repository.projectRoot);
       });
-      if (matched) matches.push({ candidateRoot, raw, matchedRoot: matched });
+      const commonMatch = repository.gitCommonDir && typeof candidate.gitCommonDir === "string"
+        && comparablePath(candidate.gitCommonDir) === comparablePath(repository.gitCommonDir);
+      if (matched || commonMatch) matches.push({ candidateRoot, raw });
     }
     if (matches.length > 1) throw new Error("Multiple project manifests match this directory; fix their roots or aliases.");
     if (matches.length === 1) {
       specRoot = matches[0].candidateRoot;
       manifestText = matches[0].raw;
-      matchedRoot = matches[0].matchedRoot;
     }
   }
   const manifest = manifestText ? JSON.parse(manifestText) : {
@@ -140,59 +142,73 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}
   if (!manifest || manifest.id !== path.basename(specRoot) || typeof manifest.root !== "string") {
     throw new Error(`Invalid project manifest: ${specRoot}`);
   }
-  const checkoutRoot = !repository.gitCommonDir && matchedRoot
-    ? normalizeRoot(matchedRoot) : repository.checkoutRoot;
-  return { ...repository, checkoutRoot, projectId: manifest.id, specRoot, manifest,
+  return { ...repository, projectId: manifest.id, specRoot, manifest,
     manifestExists: Boolean(manifestText), geiSpecHome };
 }
 
 export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the source index if relevant; shorten it during maintenance.]") {
   if (Buffer.byteLength(content, "utf8") <= maxBytes) return content;
   const lines = [];
-  const budget = Math.max(0, maxBytes - Buffer.byteLength(suffix, "utf8"));
+  const budget = maxBytes - Buffer.byteLength(suffix, "utf8");
+  if (budget < 0) return "";
+  let used = 0;
   for (const line of content.split(/\r?\n/u)) {
-    if (Buffer.byteLength([...lines, line].join("\n"), "utf8") > budget) break;
+    const size = Buffer.byteLength(line, "utf8") + (lines.length ? 1 : 0);
+    if (used + size > budget) break;
     lines.push(line);
+    used += size;
   }
   return lines.join("\n") + suffix;
 }
 
-function indexBlock(indexPath, budget) {
-  const content = readOptional(indexPath).replace(/<!--[\s\S]*?-->/gu, "").trim();
-  return content ? `Index: ${indexPath}\n${clipLines(content, budget)}` : "";
+function publishMissing(filePath, content) {
+  if (fs.existsSync(filePath)) return;
+  const temporary = `${filePath}.${randomUUID()}.tmp`;
+  fs.writeFileSync(temporary, content, { flag: "wx" });
+  try {
+    // Publish complete bytes without replacing another session's file.
+    try { fs.linkSync(temporary, filePath); }
+    catch (error) { if (error.code !== "EEXIST") throw error; }
+  } finally { fs.unlinkSync(temporary); }
 }
 
-function legacyBlock(root) {
-  const names = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
-    .filter(name => fs.existsSync(path.join(root, name)));
-  return names.length
-    ? `Legacy files in ${root}: ${names.join(", ")}. Use memo references/migrate.md to build INDEX.md from relevant verified knowledge; preserve originals until links and unique lessons are accounted for.`
-    : "";
+export function ensureWorkspace(startDir, options = {}) {
+  const project = resolveProject(startDir, options);
+  fs.mkdirSync(project.specRoot, { recursive: true });
+  publishMissing(path.join(project.specRoot, "project.json"), `${JSON.stringify(project.manifest, null, 2)}\n`);
+  const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
+    .filter(name => fs.existsSync(path.join(project.specRoot, name)));
+  const index = [`# ${project.manifest.name || "Workspace"}`, "",
+    "Agent workspace allocated. Add reliable background and topic routes as work establishes them."];
+  if (legacy.length) index.push("", "Legacy knowledge: use Memo migration before replacing these sources.",
+    ...legacy.map(name => `- [${name}](${name})`));
+  publishMissing(path.join(project.specRoot, "INDEX.md"), `${index.join("\n")}\n`);
+  return { ...project, manifestExists: true };
+}
+
+function boundedIndex(header, indexPath, indexBudget, totalBudget) {
+  const content = readOptional(indexPath).replace(/<!--[\s\S]*?-->/gu, "").trim();
+  const prefix = `${header}\nIndex: ${indexPath}\n\n`;
+  const available = Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix));
+  return clipLines(prefix + clipLines(content || "Index is empty; maintain it through Memo when context is known.", available), totalBudget);
 }
 
 export function buildProjectContext(startDir, options = {}) {
-  const project = resolveProject(startDir, options);
-  const indexPath = path.join(project.specRoot, "INDEX.md");
-  const sharedRoot = path.join(project.geiSpecHome, "context");
-  const policy = [
-    "Gei external project knowledge",
-    `Checkout: ${project.checkoutRoot}`,
+  const project = ensureWorkspace(startDir, options);
+  const header = ["Gei agent workspace", `Checkout: ${project.checkoutRoot}`,
     `Knowledge: ${project.specRoot}`,
-    `Shared: ${sharedRoot}`,
-    "Read matching INDEX routes -> topic README -> relevant notes/code only. Search that topic by business terms and decision criteria; widen only for a concrete dependency. Stop when scope, constraints and verification are clear.",
-    "Existing user/project instructions govern. Code establishes current behavior; accepted requirements establish the target. Notes are scoped evidence, not universal rules. Recheck old tradeoff conditions before applying them to new alternatives.",
-    "You own this external knowledge. Write/update it autonomously in this task when background becomes clear, a decision is accepted, a reusable pitfall is verified, a route becomes stale, or a handoff is needed. No separate user confirmation; honor host filesystem permissions. Do not merely offer to remember. Use memo for maintenance; ordinary reading needs no skill load.",
-    "Keep agent-readable facts and retrieval cues terse. No repository scaffolding, transcripts, routine changelog or whole-store audit. Resolve repo-relative evidence against this checkout and verify branch-specific claims. Briefly report meaningful writes; silence when nothing merits writing.",
-  ].join("\n");
-  const projectIndex = indexBlock(indexPath, PROJECT_INDEX_BYTES);
-  const blocks = [policy];
-  if (!project.manifestExists) {
-    blocks.push(`On the first useful write, create project.json here with: ${JSON.stringify(project.manifest)}`);
+    "Read matching INDEX routes -> topic -> relevant notes or source. Resolve source evidence against this checkout; verify branch-specific claims."].join("\n");
+  return boundedIndex(header, path.join(project.specRoot, "INDEX.md"), PROJECT_INDEX_BYTES, CONTEXT_BYTES);
+}
+
+export function buildSharedContext({ geiSpecHome = getGeiSpecHome() } = {}) {
+  const root = path.join(geiSpecHome, "context");
+  const indexPath = path.join(root, "INDEX.md");
+  if (!fs.existsSync(indexPath)) {
+    return fs.existsSync(path.join(root, "MEMORY.md"))
+      ? clipLines(`Gei shared legacy knowledge: ${path.join(root, "MEMORY.md")}. Read only when relevant; migrate through Memo.`, SHARED_CONTEXT_BYTES)
+      : "";
   }
-  blocks.push(projectIndex || `No usable INDEX.md at ${indexPath}. Recover focused project evidence, then create a short background/working-agreements/topic-routing index autonomously when the task reveals reliable context. Do not fill unknowns.`);
-  if (!projectIndex) blocks.push(legacyBlock(project.specRoot));
-  const sharedIndex = indexBlock(path.join(sharedRoot, "INDEX.md"), SHARED_INDEX_BYTES);
-  if (sharedIndex) blocks.push(sharedIndex);
-  else blocks.push(legacyBlock(sharedRoot));
-  return clipLines(blocks.filter(Boolean).join("\n\n"), CONTEXT_BYTES);
+  return boundedIndex("Gei shared conditions: read only matching lessons; check their applicability.",
+    indexPath, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
 }

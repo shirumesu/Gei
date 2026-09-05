@@ -19,8 +19,6 @@ Inspect the relevant worktree, diff, dependencies, and credentials or permission
 
 Build or inspect the distributable artifact when packaging can differ from the source tree. Check secrets, local paths, ignored files, generated outputs, and metadata on the actual distribution surface as relevant.
 
-`scripts/ship_scan.py` is an optional diagnostic for absolute paths and junk candidates. Its scope and exit behavior do not make it a complete release, secret, or security gate; use it only when that narrow scan adds value.
-
 Resolve blockers before creating external state. Ask the user only when the target, authority, or irreversible consequence remains materially ambiguous.
 
 ## 3. Execute The Authorized Action

@@ -2,6 +2,8 @@
 
 This document is for the installing AI agent. Install only Gei, verify the selected install path, and report the result.
 
+Plugin Hooks require `node` on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. Skills-only methods do not run Hooks.
+
 ## Boundaries
 
 - Do not install, copy, or modify `AGENTS.md`, `CLAUDE.md`, shell profiles, PATH, credentials, or unrelated host configuration.
@@ -61,6 +63,7 @@ gei
   hooks/knowledge.mjs
   hooks/inject_using_gei.mjs
   hooks/inject_context.mjs
+  hooks/inject_shared.mjs
   skills/memo/templates/index.md
 ```
 
@@ -83,6 +86,7 @@ Gei
   hooks/knowledge.mjs
   hooks/inject_using_gei.mjs
   hooks/inject_context.mjs
+  hooks/inject_shared.mjs
   skills/memo/templates/index.md
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md

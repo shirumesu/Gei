@@ -20,11 +20,11 @@ Gei provides small task Skills for Codex and Claude Code, plus project knowledge
 
 Ordinary context reads need no Memo load. Clear tasks go straight to execution; ambiguous consequential work uses Consider. Skills and conditional references load on demand. Gei supplies task boundaries and project knowledge conventions.
 
-Consider contributes designs and challenges its own recommendation; Code Review prioritizes actual experience and grounded consistency judgments. Work stays a thin delivery convention whose added value needs real-task evidence; see the [task Skill behavior comparisons](docs/task-skill-behavior.md).
+Consider contributes designs and challenges its own recommendation; Code Review prioritizes actual experience and grounded consistency judgments. Work stays a thin delivery convention whose added value needs real-task evidence; see the [verification scope](docs/verification.md).
 
 ## External Project Knowledge
 
-Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Create the following only as content earns a place, never as an empty startup scaffold:
+Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Session start allocates `project.json` and a minimal `INDEX.md`. Other files and directories are created only as useful knowledge is earned:
 
 ```text
 projects/<project-id>/
@@ -57,13 +57,13 @@ Routine changes require neither a note nor an internal Changelog or whole-store 
 
 ## Hooks And Reading Budgets
 
-Two independent SessionStart Hooks inject task routing and project knowledge. Knowledge discovery reads only metadata and Project/Shared INDEX files and supplies autonomous maintenance instructions; topic bodies, notes, history, and sibling projects remain on demand. Users need not author AGENTS.md; existing user/repository instructions still govern.
+Three independent SessionStart Hooks supply task routing, workspace allocation/project context, and shared conditions. Only the workspace Hook creates missing metadata and a minimal index; repeated startup preserves existing files. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
 
-Project INDEX bodies are capped at 3 KiB, Shared INDEX bodies at 1 KiB, total knowledge context at 7 KiB, and router bodies at 2 KiB. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped source indexes for relevant reads and compaction. They are output caps, not token measurements or guarantees about host UI rendering.
+Complete outputs are capped at 2 KiB for the router, 4 KiB for workspace context, and 1.5 KiB for shared conditions. Project/Shared INDEX bodies allow at most 3/1 KiB, with paths counted against the whole-output budget. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped sources. Splitting Hooks does not authorize injecting the whole knowledge store.
 
-Git subdirectories and linked worktrees share knowledge identity while retaining the active checkout for evidence checks. Nested Git repositories stay separate. Non-Git projects use directory identity; existing root/aliases metadata can associate their subdirectories. Update existing metadata to preserve knowledge when a project moves.
+Git subdirectories and linked worktrees share knowledge identity while retaining the active checkout for evidence checks. Nested Git repositories stay separate. Non-Git directories have independent identities; parent workspaces do not absorb children. Roots/aliases match exact paths. Update existing metadata to preserve knowledge when a project moves.
 
-The old five-file collection remains a migration source. When INDEX is missing, Hooks report legacy locations without injecting their bodies. Agents follow [migration guidance](skills/memo/references/migrate.md); unreviewed knowledge must not be discarded.
+When a legacy store has no INDEX, allocation links its old entry files from a minimal index. Agents follow [migration guidance](skills/memo/references/migrate.md), then remove obsolete files and placeholders from active knowledge. Keep any required migration snapshot outside the active store.
 
 ## Installation
 
@@ -78,11 +78,11 @@ Alternatively install and enable Gei through the host's plugin marketplace. Host
 ## Verification And Releases
 
 ```shell
-node --test tests/knowledge.test.mjs
+node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-Run these commands from a source checkout. Format validation requires PyYAML. CI runs Hook regressions and all Skill format checks on Windows/Linux. Tests do not prove model compliance or a particular token saving. See [Memo behavioral checks](docs/memo-behavior.md) for evaluation cases.
+Run these commands from a source checkout. Format validation requires PyYAML. CI runs Hook regressions and all Skill format checks on Windows/Linux. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
 
 Public release history lives in [CHANGELOG.md](CHANGELOG.md).
 

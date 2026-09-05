@@ -29,6 +29,3 @@ dist/
 
 # Jupyter
 .ipynb_checkpoints/
-
-# workflow comment
-docs/release.md

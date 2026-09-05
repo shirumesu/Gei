@@ -8,5 +8,5 @@ import {
 try {
   writeSessionStartContext(buildProjectContext(getHookStartDir(readHookInput())));
 } catch (error) {
-  writeSessionStartError("knowledge discovery", error);
+  writeSessionStartError("workspace allocation/loading", error);
 }

@@ -13,7 +13,9 @@ try {
   const text = fs.readFileSync(skillPath, "utf8");
   const body = text.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/u, "").trim();
   if (!body) throw new Error("using-gei has no body");
-  writeSessionStartContext(`<gei-router>\n${clipLines(body, 2048)}\n</gei-router>`);
+  const prefix = "<gei-router>\n";
+  const suffix = "\n</gei-router>";
+  writeSessionStartContext(prefix + clipLines(body, 2048 - Buffer.byteLength(prefix + suffix)) + suffix);
 } catch (error) {
   writeSessionStartError("router loading; use the installed using-gei skill", error);
 }

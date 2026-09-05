@@ -20,11 +20,11 @@ Gei 为 Codex 和 Claude Code 提供小型任务 Skills，以及项目外部的�
 
 普通读取不需要加载 Memo。清晰任务直接执行；复杂需求才进入 Consider。Skills 和它们的条件参考按需加载；Gei 的作用是提供明确的任务边界与项目知识约定。
 
-Consider 负责带着方案参与设计，并挑战自己的推荐；Code Review 以实际体验和有依据的一致性判断为主。Work 保持为薄的交付约定，其额外价值需要真实任务验证，参见[任务 Skill 行为对照](docs/task-skill-behavior.md)。
+Consider 负责带着方案参与设计，并挑战自己的推荐；Code Review 以实际体验和有依据的一致性判断为主。Work 保持为薄的交付约定，其额外价值需要真实任务验证，参见[验证范围](docs/verification.md)。
 
 ## 外部项目知识
 
-默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。以下内容按实际需要创建，启动不会生成空骨架：
+默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。启动会分配 `project.json` 和最小 `INDEX.md`；其余内容只在获得实际知识时创建：
 
 ```text
 projects/<project-id>/
@@ -57,13 +57,13 @@ context/
 
 ## Hooks 与读取预算
 
-两条独立 SessionStart Hook 分别注入任务路由和项目知识入口。后者只读取项目元数据及 Project/Shared INDEX，提供自主维护指令；不会加载领域正文、笔记、历史或兄弟项目内容。用户无需自行维护 AGENTS.md；已有用户和仓库指令仍然优先。
+三条独立 SessionStart Hook 分别负责任务路由、workspace 分配与项目入口、共享经验入口。仅 workspace Hook 写入缺少的元数据和最小索引；重复启动保留已有文件。各 Hook 可独立运行，不依赖执行顺序；不会加载领域正文、笔记或历史。用户无需自行维护 AGENTS.md。
 
-Project INDEX 正文上限 3 KiB，Shared INDEX 正文上限 1 KiB，知识上下文整体上限 7 KiB，路由正文上限 2 KiB。以 UTF-8 字节计量，超限只保留完整行，并提示按需读取源索引及精简。这些是输出上限，不是 token 数量或宿主 UI 展示保证。
+路由完整输出上限 2 KiB，workspace 完整输出上限 4 KiB，共享入口完整输出上限 1.5 KiB。Project/Shared INDEX 正文分别最多 3/1 KiB，路径占用也计入整体预算。以 UTF-8 字节计量，超限保留完整行并提示读取源索引；不会通过拆分 Hook 注入整库资料。
 
-Git 子目录与 linked worktree 使用同一知识身份，并保留当前 checkout 路径用于核对证据；嵌套 Git 仓库独立。非 Git 项目按目录识别，已有 root/aliases 元数据可将其子目录关联起来。移动项目时更新原有元数据即可复用知识。
+Git 子目录与 linked worktree 使用同一知识身份，并保留当前 checkout 路径用于核对证据；嵌套 Git 仓库独立。非 Git 目录各自独立，父目录不会吸收子目录；root/aliases 只匹配确切路径。移动项目时更新原有元数据即可复用知识。
 
-旧五件套保留为按需迁移来源。Hook 在缺少新 INDEX 时只报告旧文件位置；Agent 按 [迁移规则](skills/memo/references/migrate.md) 核对后迁移，禁止直接丢弃未审阅的旧知识。
+已有旧五件套且缺少 INDEX 时，分配的索引保留旧资料链接。Agent 按[迁移规则](skills/memo/references/migrate.md)核对并整理后，清除活跃知识区的旧文件与占位目录；需要的迁移快照放在活跃存储之外。
 
 ## 安装
 
@@ -78,11 +78,11 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 ## 验证与发布历史
 
 ```shell
-node --test tests/knowledge.test.mjs
+node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-请在源码仓库运行这些命令；格式验证需要 PyYAML。CI 在 Windows/Linux 上运行 Hook 回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。行为评估案例见 [Memo 行为检查](docs/memo-behavior.md)。
+请在源码仓库运行这些命令；格式验证需要 PyYAML。CI 在 Windows/Linux 上运行 Hook 回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
 
 公开版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 

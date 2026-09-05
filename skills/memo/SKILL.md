@@ -15,7 +15,7 @@ Distinguish user-confirmed decisions, agent inferences, unimplemented targets, a
 
 ## Shape
 
-Use the Hook-provided external knowledge path. Store only an earned `INDEX.md`, `project.json`, topic pages/notes, and optional task records. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or whole-store close audit.
+Use the Hook-provided external workspace. Session start allocates `project.json` and a minimal `INDEX.md` even before useful knowledge exists. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
 
 - `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.

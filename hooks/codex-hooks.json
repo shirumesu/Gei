@@ -15,6 +15,12 @@
             "statusMessage": "Loading Gei project knowledge",
             "timeout": 5,
             "command": "node \"${PLUGIN_ROOT}/hooks/inject_context.mjs\""
+          },
+          {
+            "type": "command",
+            "statusMessage": "Loading Gei shared conditions",
+            "timeout": 5,
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_shared.mjs\""
           }
         ]
       }

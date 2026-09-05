@@ -2,9 +2,9 @@
 
 Use `~/.agents/geispec`, overridden by `GEI_SPEC_HOME`. All Gei knowledge stays outside the source repository; do not add AGENTS.md, local spec folders, or ignore rules for it.
 
-The Hook supplies the resolved checkout, knowledge directory, shared directory, and proposed metadata when absent. Its discovery is read-only. On the first evidence-backed write, create that `project.json` and a useful `INDEX.md` together. Create topic/note/task directories only with real content. Bootstrap autonomously once the current task establishes reliable purpose or agreements; leave unknowns out.
+The workspace Hook supplies the resolved checkout and knowledge directory, creating only missing `project.json` and `INDEX.md` on session start. This allocation records identity, not invented project knowledge. Enrich the index autonomously when the task establishes reliable purpose or agreements. Create topic/note/task directories only with real content. Shared Context has its own read-only Hook.
 
-Project metadata uses schemaVersion 3, id, name, root, optional gitCommonDir, and optional aliases. Git subdirectories and linked worktrees use one identity derived from the common Git directory (the main root for a normal .git directory). Existing root-based ids remain valid. Non-Git directories use their exact root until metadata identifies a containing project. Nested Git repositories remain distinct.
+Project metadata uses schemaVersion 3, id, name, root, optional gitCommonDir, and optional aliases. Git subdirectories and linked worktrees use one identity derived from the common Git directory (the main root for a normal .git directory). Existing root-based ids remain valid. Non-Git directories have exact-directory identities; a parent workspace does not absorb its children. Aliases match exact roots. Nested Git repositories remain distinct.
 
 For a moved project, update the existing manifest root/gitCommonDir and any intended aliases rather than copying the knowledge store. Shared worktree knowledge must not turn branch-specific observations into universal current facts; include a revision when it matters and check the active checkout.
 

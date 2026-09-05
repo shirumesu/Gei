@@ -2,7 +2,7 @@
 
 INDEX is a small map, not a file inventory. Include purpose, only recurring project-specific working agreements, and routes expressed in user/business vocabulary. The user need not maintain AGENTS.md. Existing user or repository instructions still govern; do not copy generic host instructions here.
 
-Aim below 2 KiB for Project INDEX and 768 bytes for Shared INDEX. Hooks cap their injected bodies at 3 KiB and 1 KiB respectively and identify clipped sources; shorten or repartition the index when clipped. These are UTF-8 byte budgets, not measured token counts. Keep retrieval cues and links on short complete lines.
+Aim below 2 KiB for Project INDEX and 768 bytes for Shared INDEX. Separate Hooks cap their index bodies at 3 KiB and 1 KiB, with whole-output limits of 4 KiB and 1.5 KiB including paths. They identify clipped sources; shorten or repartition the index when clipped. These are UTF-8 byte budgets, not measured token counts. Keep retrieval cues and links on short complete lines.
 
 A topic page should answer: which business terms belong here, what this domain owns, what constraints could change the solution, and where the evidence lives. Reuse native documentation by linking to it. External summaries earn space only when they resolve actual ambiguity or expensive repeated exploration.
 

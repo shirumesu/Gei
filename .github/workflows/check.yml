@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.x'
       - run: python -m pip install PyYAML
-      - run: node --test tests/knowledge.test.mjs
+      - run: node .github/scripts/check_hooks.mjs
       - name: Validate Skills
         shell: bash
         run: |
