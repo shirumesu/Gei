@@ -20,6 +20,18 @@
 - 合并重复上下文参考和验证说明，移除一次性评估报告、无发布流程调用的可选 Work 扫描器和空目录；原生 Changelog 保留公开历史。
 - 格式验证器保留对模板注释示例的过滤，避免将示例链接误报为失效链接。
 
+## v0.9.0 - 2026-9-7
+
+### 新功能
+
+- make geispec maintenance self-reconciling
+- align geispec startup hooks for v0.8.2
+- restore durable geispec workflows
+
+### 修复
+
+- report geispec hook initialization errors
+
 ## v0.8.2 - 2026-08-12
 
 ### 新增

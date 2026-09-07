@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "description": "Compact task skills with external, topic-routed project knowledge and autonomous maintenance of conditional decisions and lessons.",
   "author": {
     "name": "shirumesu",
@@ -9,7 +9,12 @@
   "homepage": "https://github.com/shirumesu/gei",
   "repository": "https://github.com/shirumesu/gei",
   "license": "MIT",
-  "keywords": ["agent", "skills", "workflow", "codex"],
+  "keywords": [
+    "agent",
+    "skills",
+    "workflow",
+    "codex"
+  ],
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
   "interface": {
@@ -18,7 +23,11 @@
     "longDescription": "Compact task skills with external, topic-routed project knowledge and autonomous maintenance of conditional decisions and lessons.",
     "developerName": "shirumesu",
     "category": "Productivity",
-    "capabilities": ["Read", "Write", "Interactive"],
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
     "websiteURL": "https://github.com/shirumesu/gei",
     "privacyPolicyURL": "https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement",
     "termsOfServiceURL": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
