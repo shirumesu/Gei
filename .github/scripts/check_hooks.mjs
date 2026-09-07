@@ -45,7 +45,20 @@ try {
     const manifestPath = path.join(workspace.specRoot, "project.json");
     fs.writeFileSync(manifestPath, JSON.stringify({ ...workspace.manifest, aliases: [moved] }));
     assert.equal(resolveProject(moved, options).projectId, workspace.projectId);
-    assert.equal(resolveProject(moved, options).checkoutRoot, fs.realpathSync(moved));
+    assert.equal(resolveProject(moved, options).checkoutRoot, fs.realpathSync.native(moved));
+  });
+  await check("relocation aliases resolve filesystem links without absorbing children", () => {
+    const moved = mkdir("relocated");
+    const alias = path.join(temporary, "relocation-alias");
+    fs.symlinkSync(moved, alias, process.platform === "win32" ? "junction" : "dir");
+    const manifestPath = path.join(workspace.specRoot, "project.json");
+    const manifest = json(manifestPath);
+    fs.writeFileSync(manifestPath, JSON.stringify({ ...manifest, aliases: [...manifest.aliases, alias] }));
+    assert.equal(ensureWorkspace(moved, options).projectId, workspace.projectId);
+    assert.equal(resolveProject(alias, options).projectId, workspace.projectId);
+    assert.notEqual(ensureWorkspace(mkdir("relocated/child"), options).projectId, workspace.projectId);
+    assert.match(runHook(source, "inject_context.mjs", moved).hookSpecificOutput.additionalContext,
+      /Preserve this decision/);
   });
   await check("Git subdirectories/worktrees share identity; nested repositories do not", () => {
     const repo = mkdir("repo");
@@ -59,7 +72,7 @@ try {
     const main = ensureWorkspace(repo, options);
     assert.equal(ensureWorkspace(sub, options).projectId, main.projectId);
     assert.equal(ensureWorkspace(linked, options).projectId, main.projectId);
-    assert.equal(resolveProject(linked, options).checkoutRoot, fs.realpathSync(linked));
+    assert.equal(resolveProject(linked, options).checkoutRoot, fs.realpathSync.native(linked));
     git(sub, "init");
     assert.notEqual(ensureWorkspace(sub, options).projectId, main.projectId);
   });

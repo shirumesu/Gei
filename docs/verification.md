@@ -7,7 +7,7 @@ node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-The Hook check uses temporary directories and a copied plugin. It exercises allocation, repeat-start preservation, independent non-Git directories, exact aliases, shared Git/worktree identity, nested repositories, concurrent first sessions, legacy retrieval, per-Hook output budgets, scoped reads, and error reporting. It also executes all configured entrypoints from both host configurations. CI runs it and all seven Skill format checks on Windows and Linux; Python validation needs PyYAML.
+The Hook check uses temporary directories and a copied plugin. It exercises allocation, repeat-start preservation, independent non-Git directories, exact aliases (including filesystem links), shared Git/worktree identity, nested repositories, concurrent first sessions, legacy retrieval, per-Hook output budgets, scoped reads, and error reporting. Checkout assertions use native real paths so Windows short-path spellings are compared consistently. It also executes all configured entrypoints from both host configurations. CI runs it and all seven Skill format checks on Windows and Linux; Python validation needs PyYAML.
 
 | Hook | Complete output cap | Responsibility |
 | --- | --- | --- |

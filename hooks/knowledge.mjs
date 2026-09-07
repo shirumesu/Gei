@@ -54,7 +54,7 @@ export function normalizeRoot(value) {
 }
 
 function comparablePath(value) {
-  const normalized = path.normalize(value);
+  const normalized = normalizeRoot(value);
   return process.platform === "win32" ? normalized.toLowerCase() : normalized;
 }
 
