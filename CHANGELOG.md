@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.9.0 - 2026-09-07
+
 ### 外部 Workspace
 - GeiSpec 统一为项目外部的 INDEX、按领域展开的 Topics、带适用条件的决策/踩坑 Notes 和必要交接，取消固定五件套、Group 注册与默认内部 Changelog。
 - SessionStart 自动分配缺少的 project.json 和最小 INDEX；重复启动不覆盖已有资料，并发会话发布完整文件。
@@ -20,17 +22,10 @@
 - 合并重复上下文参考和验证说明，移除一次性评估报告、无发布流程调用的可选 Work 扫描器和空目录；原生 Changelog 保留公开历史。
 - 格式验证器保留对模板注释示例的过滤，避免将示例链接误报为失效链接。
 
-## v0.9.0 - 2026-9-7
-
-### 新功能
-
-- make geispec maintenance self-reconciling
-- align geispec startup hooks for v0.8.2
-- restore durable geispec workflows
-
-### 修复
-
-- report geispec hook initialization errors
+### 发布后维护
+- 修复 Windows 8.3 短路径与长路径比较不一致导致迁移别名丢失项目身份的问题；统一真实路径比较，补充链接别名与子目录隔离回归检查，并修正 checkout 路径断言。
+- Check 仅由分支 push 和 PR 触发，避免推送 main 与 tag 时重复运行；tag 继续触发发布流程。
+- 以上两项修复已合入 main（提交 `1380613`），Windows/Linux CI 均通过；现有 v0.9.0 标签和下载包仍对应首次发布内容，尚未包含这些修复。
 
 ## v0.8.2 - 2026-08-12
 
