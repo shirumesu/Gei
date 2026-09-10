@@ -30,6 +30,7 @@ Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve 
 - Storage, first write, relocation, or missing Hook: [storage](references/storage.md).
 - Background, topic routing, scoped search, or compaction: [topics](references/topics.md).
 - Decisions, pitfalls, generalization, or handoff: [notes](references/notes.md).
+- Synced copies, divergent knowledge, or environment conflicts: [merge](references/merge.md).
 - Legacy path-hash identity or five-file/Group store: [migration](references/migrate.md).
 
 Use only the relevant [index](templates/index.md), [topic](templates/topic.md), [note](templates/note.md), or [task](templates/task.md) example; headings are optional. Write short statements and links for agent retrieval, not a narrative report.

@@ -6,7 +6,7 @@ Migrate the current project's useful knowledge autonomously when upgrading or wh
 
 Before switching an existing installation to project names, use `resolveProject(cwd)` to find its canonical `specRoot` and matching `legacyRoots`. Startup reports a migration requirement while matching legacy directories remain, even when the named destination already exists; it does not silently choose one copy or overwrite either side. Legacy metadata from another OS is a discovery hint, not a local path to execute or bind.
 
-Preserve a snapshot outside the active store. Reconcile useful content into `projects/<project-name>`; merge multiple old copies by claim and applicability rather than selecting a whole machine's version. Retain platform-specific observations with their conditions, and leave unresolved contradictions explicit. A missing observation on another machine does not disprove it. Keep INDEX compact and repair incoming links, including cross-project routes that contain the old directory name.
+Preserve a snapshot outside the active store. Reconcile useful content into `projects/<project-name>` using [merge](merge.md) for divergent copies and environment-specific claims. Keep INDEX compact and repair incoming links, including cross-project routes that contain the old directory name.
 
 Once the content and links are verified, remove obsolete `project.json` metadata from the destination and move the old directories outside `projects`. Do not leave active aliases or duplicate stores. Restart the updated Hook and verify it reads the intended index. A project rename uses the same content/link checks. Do not migrate unrelated projects without scope to do so.
 
