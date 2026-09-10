@@ -17,7 +17,7 @@ Distinguish user-confirmed decisions, agent inferences, unimplemented targets, a
 
 Use the Hook-provided external workspace. Session start allocates `project.json` and a minimal `INDEX.md` even before useful knowledge exists. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
 
-- `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact.
+- `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact by moving topic explanations, detailed decisions, and troubleshooting into linked topic/note files as they emerge, before reaching the byte budget. Leave only a short retrieval cue for moved content; a small project may need only an index.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.
 - `topics/<domain>/notes/<meaningful-name>.md`: scoped decision or pitfall, its reasons/evidence, and when to reconsider.
 - `tasks/<name>.md`: accepted work that must survive handoff; do not create a second task tracker.
@@ -36,4 +36,4 @@ Use only the relevant [index](templates/index.md), [topic](templates/topic.md), 
 
 ## Finish
 
-Before the final reply, land the earned update and repair its nearest incoming route. Check touched links and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.
+Before the final reply, land the earned update and repair its nearest incoming route. Check touched indexes for detail that belongs in topic/note files, verify touched links, and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.
