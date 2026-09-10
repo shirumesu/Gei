@@ -15,7 +15,7 @@ Distinguish user-confirmed decisions, agent inferences, unimplemented targets, a
 
 ## Shape
 
-Use the Hook-provided external workspace. Session start allocates `project.json` and a minimal `INDEX.md` even before useful knowledge exists. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
+Use the Hook-provided external workspace. Session start allocates a minimal `INDEX.md` under `projects/<project-name>` even before useful knowledge exists; no identity manifest is needed. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
 
 - `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact by moving topic explanations, detailed decisions, and troubleshooting into linked topic/note files as they emerge, before reaching the byte budget. Leave only a short retrieval cue for moved content; a small project may need only an index.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.
@@ -30,7 +30,7 @@ Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve 
 - Storage, first write, relocation, or missing Hook: [storage](references/storage.md).
 - Background, topic routing, scoped search, or compaction: [topics](references/topics.md).
 - Decisions, pitfalls, generalization, or handoff: [notes](references/notes.md).
-- Existing five-file/Group store: [migration](references/migrate.md).
+- Legacy path-hash identity or five-file/Group store: [migration](references/migrate.md).
 
 Use only the relevant [index](templates/index.md), [topic](templates/topic.md), [note](templates/note.md), or [task](templates/task.md) example; headings are optional. Write short statements and links for agent retrieval, not a narrative report.
 

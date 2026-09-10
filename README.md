@@ -24,11 +24,10 @@ Consider 负责带着方案参与设计，并挑战自己的推荐；Code Review
 
 ## 外部项目知识
 
-默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。启动会分配 `project.json` 和最小 `INDEX.md`；其余内容只在获得实际知识时创建：
+默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。启动只分配按项目名组织的最小 `INDEX.md`，无需身份元数据；其余内容只在获得实际知识时创建：
 
 ```text
-projects/<project-id>/
-  project.json
+projects/<project-name>/
   INDEX.md
   topics/<domain>/
     README.md
@@ -57,11 +56,15 @@ context/
 
 ## Hooks 与读取预算
 
-三条独立 SessionStart Hook 分别负责任务路由、workspace 分配与项目入口、共享经验入口。仅 workspace Hook 写入缺少的元数据和最小索引；重复启动保留已有文件。各 Hook 可独立运行，不依赖执行顺序；不会加载领域正文、笔记或历史。用户无需自行维护 AGENTS.md。
+三条独立 SessionStart Hook 分别负责任务路由、workspace 分配与项目入口、共享经验入口。仅 workspace Hook 写入缺少的最小索引；重复启动保留已有文件。各 Hook 可独立运行，不依赖执行顺序；不会加载领域正文、笔记或历史。用户无需自行维护 AGENTS.md。
 
 路由完整输出上限 2 KiB，workspace 完整输出上限 4 KiB，共享入口完整输出上限 1.5 KiB。Project/Shared INDEX 正文分别最多 3/1 KiB，路径占用也计入整体预算。以 UTF-8 字节计量，超限保留完整行并提示读取源索引；不会通过拆分 Hook 注入整库资料。
 
-Git 子目录与 linked worktree 使用同一知识身份，并保留当前 checkout 路径用于核对证据；嵌套 Git 仓库独立。非 Git 目录各自独立，父目录不会吸收子目录；root/aliases 只匹配确切路径。移动项目时更新原有元数据即可复用知识。
+普通 Git 项目及其子目录、linked worktree 使用主仓库目录名；独立 Git 元数据或 bare 仓库使用 common Git 目录名；嵌套仓库和非 Git 目录各自取名。名称规范化为小写等可移植形式，完整规则见 [存储约定](skills/memo/references/storage.md)。同名项目有意共享知识；无关项目应使用不同名称。移动路径无需配置，改名则需同步调整知识目录及引用。
+
+可将 `geispec` 单独放在私有 Git 仓库中。两端项目名一致，拉取知识后即可读取，无需 UUID、路径哈希或本机绑定。代码仓库和知识仓库分别同步；Hook 不联网、不提交或推送。平台与分支特有的经验保留适用条件，不因跨机同步变成通用结论。
+
+升级旧路径哈希存储前，先按 [迁移规则](skills/memo/references/migrate.md) 合并到命名目录并修复链接。Hook 发现旧副本会报告迁移需求，保留原文档，不静默新建空知识或选取其中一端。
 
 已有旧五件套且缺少 INDEX 时，分配的索引保留旧资料链接。Agent 按[迁移规则](skills/memo/references/migrate.md)核对并整理后，清除活跃知识区的旧文件与占位目录；需要的迁移快照放在活跃存储之外。
 
@@ -82,7 +85,7 @@ node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-请在源码仓库运行这些命令；格式验证需要 PyYAML。CI 在 Windows/Linux 上运行 Hook 回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
+请在源码仓库运行这些命令；格式验证需要 PyYAML。CI 配置覆盖 Windows/Linux/macOS 的 Hook 回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
 
 公开版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 

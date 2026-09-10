@@ -1,10 +1,9 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-export const SCHEMA_VERSION = 3;
 export const PROJECT_INDEX_BYTES = 3072;
 export const SHARED_INDEX_BYTES = 1024;
 export const CONTEXT_BYTES = 4096;
@@ -53,18 +52,14 @@ export function normalizeRoot(value) {
   }
 }
 
-function comparablePath(value) {
-  const normalized = normalizeRoot(value);
-  return process.platform === "win32" ? normalized.toLowerCase() : normalized;
+function projectName(value) {
+  return value.normalize("NFKC").trim().toLowerCase()
+    .replace(/\s+/gu, "-").replace(/[^\p{Letter}\p{Number}._-]+/gu, "-")
+    .replace(/^[._-]+|[._-]+$/gu, "") || "project";
 }
 
 export function projectIdForRoot(value) {
-  const root = normalizeRoot(value);
-  const slug = path.basename(root).normalize("NFKC").trim().toLowerCase()
-    .replace(/\s+/gu, "-").replace(/[^\p{Letter}\p{Number}._-]+/gu, "-")
-    .replace(/^[._-]+|[._-]+$/gu, "") || "project";
-  const hash = createHash("sha256").update(comparablePath(root)).digest("hex").slice(0, 12);
-  return `${slug}-${hash}`;
+  return projectName(path.basename(normalizeRoot(value)));
 }
 
 function readOptional(filePath) {
@@ -94,7 +89,7 @@ export function resolveRepository(startDir) {
   }
   const [common, checkout] = output.trim().split(/\r?\n/u);
   const gitCommonDir = normalizeRoot(common);
-  // Normal repositories and linked worktrees retain the original root id.
+  // Linked worktrees share the main root; separate metadata uses its own directory name.
   const projectRoot = path.basename(gitCommonDir) === ".git"
     ? path.dirname(gitCommonDir) : gitCommonDir;
   const checkoutRoot = checkout ? normalizeRoot(checkout) : projectRoot;
@@ -105,45 +100,30 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}
   const repository = resolveRepository(startDir);
   const projectId = projectIdForRoot(repository.projectRoot);
   const projectsRoot = path.join(geiSpecHome, "projects");
-  let specRoot = path.join(projectsRoot, projectId);
-  let manifestText = readOptional(path.join(specRoot, "project.json"));
-  // Explicit root/alias edits preserve identity when a project moves.
-  if (!manifestText && fs.existsSync(projectsRoot)) {
-    const matches = [];
+  const specRoot = path.join(projectsRoot, projectId);
+  const legacyRoots = [];
+  if (fs.existsSync(projectsRoot)) {
     for (const entry of fs.readdirSync(projectsRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory()) continue;
+      if (!entry.isDirectory() || entry.name === projectId) continue;
       const candidateRoot = path.join(projectsRoot, entry.name);
+      if (entry.name.replace(/-[a-f0-9]{12}$/u, "") === projectId) {
+        legacyRoots.push(candidateRoot);
+        continue;
+      }
       const raw = readOptional(path.join(candidateRoot, "project.json"));
       if (!raw) continue;
       let candidate;
       try { candidate = JSON.parse(raw); } catch { continue; }
       if (!candidate || typeof candidate !== "object") continue;
-      const aliases = Array.isArray(candidate.aliases) ? candidate.aliases : [];
-      const roots = [candidate.root, ...aliases].filter(x => typeof x === "string");
-      const matched = roots.find(root => {
-        return comparablePath(root) === comparablePath(repository.checkoutRoot)
-          || comparablePath(root) === comparablePath(repository.projectRoot);
-      });
-      const commonMatch = repository.gitCommonDir && typeof candidate.gitCommonDir === "string"
-        && comparablePath(candidate.gitCommonDir) === comparablePath(repository.gitCommonDir);
-      if (matched || commonMatch) matches.push({ candidateRoot, raw });
-    }
-    if (matches.length > 1) throw new Error("Multiple project manifests match this directory; fix their roots or aliases.");
-    if (matches.length === 1) {
-      specRoot = matches[0].candidateRoot;
-      manifestText = matches[0].raw;
+      const names = [candidate.name, candidate.root, candidate.gitCommonDir,
+        ...(Array.isArray(candidate.aliases) ? candidate.aliases : [])]
+        .filter(value => typeof value === "string")
+        .map(value => projectName(value.replace(/\\/gu, "/").replace(/\/\.git\/?$/u, "")
+          .replace(/\/$/u, "").split("/").pop()));
+      if (names.includes(projectId)) legacyRoots.push(candidateRoot);
     }
   }
-  const manifest = manifestText ? JSON.parse(manifestText) : {
-    schemaVersion: SCHEMA_VERSION, id: projectId,
-    name: path.basename(repository.projectRoot), root: repository.projectRoot,
-    ...(repository.gitCommonDir ? { gitCommonDir: repository.gitCommonDir } : {}),
-  };
-  if (!manifest || manifest.id !== path.basename(specRoot) || typeof manifest.root !== "string") {
-    throw new Error(`Invalid project manifest: ${specRoot}`);
-  }
-  return { ...repository, projectId: manifest.id, specRoot, manifest,
-    manifestExists: Boolean(manifestText), geiSpecHome };
+  return { ...repository, projectId, specRoot, legacyRoots, geiSpecHome };
 }
 
 export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the source index if relevant; shorten it during maintenance.]") {
@@ -174,16 +154,18 @@ function publishMissing(filePath, content) {
 
 export function ensureWorkspace(startDir, options = {}) {
   const project = resolveProject(startDir, options);
+  if (project.legacyRoots.length) {
+    throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories out of projects: ${project.legacyRoots.join(", ")}`);
+  }
   fs.mkdirSync(project.specRoot, { recursive: true });
-  publishMissing(path.join(project.specRoot, "project.json"), `${JSON.stringify(project.manifest, null, 2)}\n`);
   const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
     .filter(name => fs.existsSync(path.join(project.specRoot, name)));
-  const index = [`# ${project.manifest.name || "Workspace"}`, "",
+  const index = [`# ${project.projectId}`, "",
     "Agent workspace allocated. Add reliable background and topic routes as work establishes them."];
   if (legacy.length) index.push("", "Legacy knowledge: use Memo migration before replacing these sources.",
     ...legacy.map(name => `- [${name}](${name})`));
   publishMissing(path.join(project.specRoot, "INDEX.md"), `${index.join("\n")}\n`);
-  return { ...project, manifestExists: true };
+  return project;
 }
 
 function boundedIndex(header, indexPath, indexBudget, totalBudget) {

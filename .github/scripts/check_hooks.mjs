@@ -26,11 +26,11 @@ async function check(name, action) { await action(); console.log(`PASS ${++passe
 try {
   const plain = mkdir("plain");
   let workspace;
-  await check("new directory allocates only identity/index; repeat startup preserves content", () => {
+  await check("new directory allocates only a named index; repeat startup preserves content", () => {
     buildProjectContext(plain, options);
     workspace = resolveProject(plain, options);
-    assert.deepEqual(fs.readdirSync(workspace.specRoot).sort(), ["INDEX.md", "project.json"]);
-    assert.equal(json(path.join(workspace.specRoot, "project.json")).schemaVersion, 3);
+    assert.deepEqual(fs.readdirSync(workspace.specRoot), ["INDEX.md"]);
+    assert.equal(workspace.projectId, "plain");
     assert.deepEqual(fs.readdirSync(plain), []);
     const index = path.join(workspace.specRoot, "INDEX.md");
     fs.writeFileSync(index, "# Known purpose\nPreserve this decision.\n");
@@ -38,27 +38,60 @@ try {
     assert.match(buildProjectContext(plain, options), /Preserve this decision/);
     assert.equal(fs.statSync(index).mtimeMs, before);
   });
-  await check("non-Git children remain independent; exact relocation alias retains identity", () => {
+  await check("same names share knowledge across locations; different names remain separate", () => {
     const child = mkdir("plain/child");
     assert.notEqual(ensureWorkspace(child, options).projectId, workspace.projectId);
-    const moved = mkdir("moved");
-    const manifestPath = path.join(workspace.specRoot, "project.json");
-    fs.writeFileSync(manifestPath, JSON.stringify({ ...workspace.manifest, aliases: [moved] }));
-    assert.equal(resolveProject(moved, options).projectId, workspace.projectId);
-    assert.equal(resolveProject(moved, options).checkoutRoot, fs.realpathSync.native(moved));
+    const moved = mkdir("another-device/Plain");
+    assert.equal(ensureWorkspace(moved, options).specRoot, workspace.specRoot);
+    assert.match(buildProjectContext(moved, options), /Preserve this decision/);
+    assert.notEqual(ensureWorkspace(mkdir("another-device/renamed"), options).projectId, workspace.projectId);
   });
-  await check("relocation aliases resolve filesystem links without absorbing children", () => {
-    const moved = mkdir("relocated");
+  await check("filesystem links use the target project name without absorbing children", () => {
     const alias = path.join(temporary, "relocation-alias");
-    fs.symlinkSync(moved, alias, process.platform === "win32" ? "junction" : "dir");
-    const manifestPath = path.join(workspace.specRoot, "project.json");
-    const manifest = json(manifestPath);
-    fs.writeFileSync(manifestPath, JSON.stringify({ ...manifest, aliases: [...manifest.aliases, alias] }));
-    assert.equal(ensureWorkspace(moved, options).projectId, workspace.projectId);
+    fs.symlinkSync(plain, alias, process.platform === "win32" ? "junction" : "dir");
     assert.equal(resolveProject(alias, options).projectId, workspace.projectId);
-    assert.notEqual(ensureWorkspace(mkdir("relocated/child"), options).projectId, workspace.projectId);
-    assert.match(runHook(source, "inject_context.mjs", moved).hookSpecificOutput.additionalContext,
+    assert.notEqual(ensureWorkspace(path.join(alias, "child"), options).projectId, workspace.projectId);
+    assert.match(runHook(source, "inject_context.mjs", alias).hookSpecificOutput.additionalContext,
       /Preserve this decision/);
+  });
+  await check("a copied knowledge store is immediately usable by another clone with the same name", () => {
+    const first = mkdir("device-one/Example");
+    const second = mkdir("device-two/example");
+    git(first, "init");
+    git(second, "init");
+    const original = ensureWorkspace(first, options);
+    fs.writeFileSync(path.join(original.specRoot, "INDEX.md"), "# Example\nPortable project decision.\n");
+    const otherHome = path.join(temporary, "copied-knowledge");
+    fs.cpSync(home, otherHome, { recursive: true });
+    const output = runHook(source, "inject_context.mjs", second, { GEI_SPEC_HOME: otherHome });
+    assert.match(output.hookSpecificOutput.additionalContext, /Portable project decision/);
+    assert.deepEqual(fs.readdirSync(path.join(otherHome, "projects", "example")), ["INDEX.md"]);
+    assert.ok(!output.hookSpecificOutput.additionalContext.includes(first));
+    assert.deepEqual(fs.readdirSync(second), [".git"]);
+  });
+  await check("legacy stores from either OS require a deliberate merge without losing either side", () => {
+    const cwd = mkdir("merged");
+    const oldRoots = ["merged-111111111111", "custom-legacy-id"].map(name => path.join(home, "projects", name));
+    for (const [i, old] of oldRoots.entries()) {
+      fs.mkdirSync(old);
+      fs.writeFileSync(path.join(old, "project.json"), JSON.stringify({ schemaVersion: 3,
+        root: i ? "C:\\code\\Merged" : "/Users/example/code/merged",
+        gitCommonDir: i ? "C:\\code\\Merged\\.git" : "/Users/example/code/merged/.git" }));
+      fs.writeFileSync(path.join(old, "INDEX.md"), i ? "Windows observation" : "macOS observation");
+    }
+    assert.deepEqual(resolveProject(cwd, options).legacyRoots.sort(), oldRoots.sort());
+    assert.equal(ensureWorkspace(mkdir("git"), options).projectId, "git");
+    assert.match(runHook(source, "inject_context.mjs", cwd).systemMessage, /Memo migration/);
+    assert.ok(!fs.existsSync(path.join(home, "projects", "merged")));
+    const canonical = path.join(home, "projects", "merged");
+    fs.mkdirSync(canonical);
+    fs.writeFileSync(path.join(canonical, "INDEX.md"), "# Merged\nWindows and macOS conditions preserved.\n");
+    assert.throws(() => ensureWorkspace(cwd, options), /Memo migration/);
+    for (const old of oldRoots) {
+      assert.match(fs.readFileSync(path.join(old, "INDEX.md"), "utf8"), /observation/);
+      fs.renameSync(old, path.join(temporary, path.basename(old)));
+    }
+    assert.match(buildProjectContext(cwd, options), /Windows and macOS conditions preserved/);
   });
   await check("Git subdirectories/worktrees share identity; nested repositories do not", () => {
     const repo = mkdir("repo");
@@ -92,25 +125,22 @@ try {
       child.stdin.end(JSON.stringify({ cwd }));
     })));
     const result = resolveProject(cwd, options);
-    assert.deepEqual(fs.readdirSync(result.specRoot).sort(), ["INDEX.md", "project.json"]);
+    assert.deepEqual(fs.readdirSync(result.specRoot), ["INDEX.md"]);
   });
-  await check("separate Git metadata preserves old identities across worktrees; bare/internal directories allocate", () => {
+  await check("separate Git metadata shares its directory name across worktrees; bare/internal directories allocate", () => {
     const repo = mkdir("separate-repo");
     const metadata = path.join(temporary, "git-storage");
     git(repo, "init", "--separate-git-dir", metadata);
     fs.writeFileSync(path.join(repo, "tracked"), "fixture\n");
     git(repo, "add", "tracked");
     git(repo, "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "commit", "-m", "fixture");
-    const old = path.join(home, "projects", "preserved-id");
-    fs.mkdirSync(old);
-    fs.writeFileSync(path.join(old, "project.json"), JSON.stringify({ schemaVersion: 3, id: "preserved-id", root: repo, gitCommonDir: metadata }));
     const linked = path.join(temporary, "separate-worktree");
     git(repo, "worktree", "add", "--detach", linked);
-    assert.equal(ensureWorkspace(repo, options).projectId, "preserved-id");
-    assert.equal(ensureWorkspace(linked, options).projectId, "preserved-id");
+    assert.equal(ensureWorkspace(repo, options).projectId, "git-storage");
+    assert.equal(ensureWorkspace(linked, options).projectId, "git-storage");
     const bare = mkdir("bare.git");
     git(bare, "init", "--bare");
-    assert.ok(ensureWorkspace(bare, options).manifestExists);
+    assert.ok(fs.existsSync(path.join(ensureWorkspace(bare, options).specRoot, "INDEX.md")));
     assert.equal(ensureWorkspace(path.join(temporary, "repo/.git"), options).projectId,
       resolveProject(path.join(temporary, "repo"), options).projectId);
   });

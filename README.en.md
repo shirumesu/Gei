@@ -24,11 +24,10 @@ Consider contributes designs and challenges its own recommendation; Code Review 
 
 ## External Project Knowledge
 
-Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Session start allocates `project.json` and a minimal `INDEX.md`. Other files and directories are created only as useful knowledge is earned:
+Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Session start allocates only a minimal `INDEX.md` under the project name, without identity metadata. Other files and directories are created only as useful knowledge is earned:
 
 ```text
-projects/<project-id>/
-  project.json
+projects/<project-name>/
   INDEX.md
   topics/<domain>/
     README.md
@@ -57,11 +56,15 @@ Routine changes require neither a note nor an internal Changelog or whole-store 
 
 ## Hooks And Reading Budgets
 
-Three independent SessionStart Hooks supply task routing, workspace allocation/project context, and shared conditions. Only the workspace Hook creates missing metadata and a minimal index; repeated startup preserves existing files. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
+Three independent SessionStart Hooks supply task routing, workspace allocation/project context, and shared conditions. Only the workspace Hook creates a missing minimal index; repeated startup preserves existing files. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
 
 Complete outputs are capped at 2 KiB for the router, 4 KiB for workspace context, and 1.5 KiB for shared conditions. Project/Shared INDEX bodies allow at most 3/1 KiB, with paths counted against the whole-output budget. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped sources. Splitting Hooks does not authorize injecting the whole knowledge store.
 
-Git subdirectories and linked worktrees share knowledge identity while retaining the active checkout for evidence checks. Nested Git repositories stay separate. Non-Git directories have independent identities; parent workspaces do not absorb children. Roots/aliases match exact paths. Update existing metadata to preserve knowledge when a project moves.
+Ordinary Git repositories, subdirectories, and linked worktrees use the main repository directory name. Separate Git metadata and bare repositories use the common Git directory name; nested repositories and non-Git directories resolve their own names. Names are normalized to lowercase and portable characters; see [storage](skills/memo/references/storage.md) for the complete rule. Equal names intentionally share knowledge. Give unrelated projects different names. Moving a checkout requires no configuration; renaming it requires updating the knowledge directory and incoming links.
+
+The `geispec` store can be a separate private Git repository. Matching project names can read pulled knowledge immediately, without UUIDs, path hashes, or local bindings. Code and knowledge repositories synchronize separately; Hooks do not fetch, commit, or push. Preserve platform and branch conditions when sharing observations across machines.
+
+Before upgrading a path-hash store, [migrate](skills/memo/references/migrate.md) its content into named directories and repair links. Hooks report matching legacy copies for migration, preserving their files rather than silently allocating empty knowledge or choosing one machine's version.
 
 When a legacy store has no INDEX, allocation links its old entry files from a minimal index. Agents follow [migration guidance](skills/memo/references/migrate.md), then remove obsolete files and placeholders from active knowledge. Keep any required migration snapshot outside the active store.
 
@@ -82,7 +85,7 @@ node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-Run these commands from a source checkout. Format validation requires PyYAML. CI runs Hook regressions and all Skill format checks on Windows/Linux. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
+Run these commands from a source checkout. Format validation requires PyYAML. CI is configured for Hook regressions and all Skill format checks on Windows/Linux/macOS. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
 
 Public release history lives in [CHANGELOG.md](CHANGELOG.md).
 

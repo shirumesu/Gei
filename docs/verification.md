@@ -7,12 +7,12 @@ node .github/scripts/check_hooks.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-The Hook check uses temporary directories and a copied plugin. It exercises allocation, repeat-start preservation, independent non-Git directories, exact aliases (including filesystem links), shared Git/worktree identity, nested repositories, concurrent first sessions, legacy retrieval, per-Hook output budgets, scoped reads, and error reporting. Checkout assertions use native real paths so Windows short-path spellings are compared consistently. It also executes all configured entrypoints from both host configurations. CI runs it and all seven Skill format checks on Windows and Linux; Python validation needs PyYAML.
+The Hook check uses temporary directories and a copied plugin. It exercises named index allocation, repeat-start preservation, same-name sharing across locations, copied knowledge consumed by another clone without bindings, filesystem links, shared Git/worktree naming, nested repositories, concurrent first sessions, legacy migration diagnostics without data loss, per-Hook output budgets, scoped reads, and error reporting. Checkout assertions use native real paths so Windows short-path spellings are compared consistently. It also executes all configured entrypoints from both host configurations. CI is configured to run it and all seven Skill format checks on Windows, Linux, and macOS; Python validation needs PyYAML. A local run simulates separate devices through independent directories/stores; it does not establish a live cross-device Git synchronization or a successful run on other operating systems.
 
 | Hook | Complete output cap | Responsibility |
 | --- | --- | --- |
 | Router | 2 KiB | Task selection and autonomous maintenance trigger |
-| Workspace | 4 KiB | Allocate missing metadata/index; inject checkout and Project INDEX |
+| Workspace | 4 KiB | Allocate a missing named index; inject checkout and Project INDEX |
 | Shared | 1.5 KiB | Read-only Shared INDEX, silent when no shared knowledge exists |
 
 Budgets measure UTF-8 bytes including headers and paths. Project/Shared index bodies additionally allow at most 3/1 KiB. Oversized indexes are clipped on whole lines with their source path retained for selective reading. Detail is retrieved through routes, never injected in bulk. Each Hook is independent; a shared-index failure does not prevent workspace allocation.

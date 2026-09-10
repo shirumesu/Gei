@@ -4,6 +4,8 @@ This document is for the installing AI agent. Install only Gei, verify the selec
 
 Plugin Hooks require `node` on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. Skills-only methods do not run Hooks.
 
+For an existing path-hash knowledge store, reconcile the affected project's old directories through [Memo migration](../skills/memo/references/migrate.md) before enabling the updated Hooks. New storage uses project names without `project.json` or local path bindings. Keep the same normalized project names across machines and synchronize the external knowledge store separately from source code. Hooks perform no Git synchronization. Do not migrate unrelated projects as part of an installation.
+
 ## Boundaries
 
 - Do not install, copy, or modify `AGENTS.md`, `CLAUDE.md`, shell profiles, PATH, credentials, or unrelated host configuration.
