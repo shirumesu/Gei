@@ -324,6 +324,7 @@ export class SpecStore {
   }
   async index(name, { allocate = false, initialContent } = {}) {
     documentPath(name);
+    // SessionStart knowledge hooks can overlap a remote refresh in another process.
     return this.run(async config => {
       if (config.mode === "local") {
         const file = safeFile(this.home, name);
@@ -335,6 +336,6 @@ export class SpecStore {
       await this.hydrate(config, snapshot, [name], { timeout: 1000, allowUnavailable: true });
       return { content: snapshot.files[name] || "", revision: this.version(config, snapshot.oid), mode: config.mode,
         source: snapshot.source, stale: Boolean(snapshot.stale), checkedAt: snapshot.checkedAt, available: own(snapshot.files, name) };
-    }, { lockTimeout: 400 });
+    }, { lockTimeout: 4000 });
   }
 }

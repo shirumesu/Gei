@@ -320,6 +320,38 @@ test("GitHub tools and installed Hook entrypoints work without the former local 
   assert.equal(fs.existsSync(env.GEI_SPEC_HOME), false);
 });
 
+test("project Hook waits for a concurrent GitHub shared-index refresh", async t => {
+  const projectIndex = `projects/${path.basename(source).toLowerCase()}/INDEX.md`;
+  const projectContent = "# Project\n\n- [Final project route](topics/runtime/README.md)\n";
+  const sharedContent = "# Shared\n\n- Final shared condition\n";
+  const { store, api, env } = remoteFixture(t, {
+    [projectIndex]: projectContent, "context/INDEX.md": sharedContent,
+  });
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  const config = store.config();
+  writeJson(store.headFile(config), { oid: api.head, checkedAt: "2000-01-01T00:00:00.000Z" });
+  const entered = Promise.withResolvers();
+  const fetcher = store.github.fetcher;
+  store.github.fetcher = async (url, options) => {
+    if (url.includes("/git/ref/heads/")) {
+      entered.resolve();
+      await new Promise(resolve => setTimeout(resolve, 900));
+    }
+    return fetcher(url, options);
+  };
+  const shared = store.index("context/INDEX.md");
+  await entered.promise;
+  const [sharedResult, projectResult] = await Promise.all([
+    shared, run([path.join(source, "hooks/inject_context.mjs")], env, JSON.stringify({ cwd: source })),
+  ]);
+  assert.equal(sharedResult.content, sharedContent);
+  assert.equal(projectResult.code, 0, projectResult.stderr);
+  const output = JSON.parse(projectResult.stdout);
+  assert.ok(output.hookSpecificOutput, projectResult.stdout);
+  assert.ok(output.hookSpecificOutput.additionalContext.endsWith(projectContent.trim()));
+  assert.equal(fs.existsSync(env.GEI_SPEC_HOME), false);
+});
+
 test("disable stops tools and both knowledge hooks, while router keeps other Skills", async t => {
   const { root, env, store } = fixture(t);
   await seed(store); await store.setEnabled(false);

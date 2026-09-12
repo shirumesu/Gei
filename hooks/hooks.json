@@ -13,13 +13,13 @@
           {
             "type": "command",
             "statusMessage": "Loading Gei project knowledge",
-            "timeout": 5,
+            "timeout": 10,
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_context.mjs\""
           },
           {
             "type": "command",
             "statusMessage": "Loading Gei shared conditions",
-            "timeout": 5,
+            "timeout": 10,
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_shared.mjs\""
           }
         ]
