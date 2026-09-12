@@ -2,9 +2,9 @@
 
 This document is for the installing AI agent. Install only Gei, verify the selected install path, and report the result.
 
-Plugin Hooks require `node` on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. Skills-only methods do not run Hooks.
+Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but include the standalone Spec CLI.
 
-For an existing path-hash knowledge store, reconcile the affected project's old directories through [Memo migration](../skills/memo/references/migrate.md) before enabling the updated Hooks. New storage uses project names without `project.json` or local path bindings. Keep the same normalized project names across machines and synchronize the external knowledge store separately from source code. Hooks perform no Git synchronization. Do not migrate unrelated projects as part of an installation.
+For an existing path-hash knowledge store, reconcile the affected project's old directories through [Memo migration](../skills/memo/references/migrate.md) before enabling the updated Hooks. Storage uses project names without `project.json` or per-project bindings. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
 
 ## Boundaries
 
@@ -53,6 +53,8 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git
 ```text
 gei
   .codex-plugin/plugin.json
+  .codex-plugin/spec.mcp.json
+  bin/gei.mjs
   skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
@@ -69,7 +71,7 @@ gei
   skills/memo/templates/index.md
 ```
 
-Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, list four tools, and respond to `spec_status`. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Claude Plugin
 
@@ -84,6 +86,8 @@ Use this for Claude Code when plugin marketplace installation is available.
 ```text
 Gei
   .claude-plugin/plugin.json
+  .mcp.json
+  bin/gei.mjs
   hooks/hooks.json
   hooks/knowledge.mjs
   hooks/inject_using_gei.mjs
@@ -100,7 +104,7 @@ Gei
   skills/create-skill/SKILL.md
 ```
 
-Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start through `${CLAUDE_PLUGIN_ROOT}`, list four tools, and respond to `spec_status`. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Skills Zip
 

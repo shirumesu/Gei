@@ -15,6 +15,8 @@ Distinguish user-confirmed decisions, agent inferences, unimplemented targets, a
 
 ## Shape
 
+Use `spec_read/search/edit` for knowledge access; these tools resolve the user's local or GitHub binding. Read a revision, then submit the complete Markdown update through `spec_edit`, including related INDEX/link repairs. On a revision conflict, reconcile the changed knowledge before retrying. Do not bypass the tools with direct file edits or Git synchronization. When Spec is disabled, skip maintenance. Without MCP, use the bundled [CLI](scripts/spec/cli.mjs); its `--help` describes equivalent JSON operations and storage controls. Read [tool access](references/tools.md) only for setup, fallback, or failures.
+
 Use the Hook-provided external workspace. Session start allocates a minimal `INDEX.md` under `projects/<project-name>` even before useful knowledge exists; no identity manifest is needed. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
 
 - `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact by moving topic explanations, detailed decisions, and troubleshooting into linked topic/note files as they emerge, before reaching the byte budget. Leave only a short retrieval cue for moved content; a small project may need only an index.

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "spec": {
+      "command": "node",
+      "args": ["skills/memo/scripts/spec/mcp.mjs"],
+      "cwd": "."
+    }
+  }
+}

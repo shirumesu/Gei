@@ -62,7 +62,21 @@ context/
 
 普通 Git 项目及其子目录、linked worktree 使用主仓库目录名；独立 Git 元数据或 bare 仓库使用 common Git 目录名；嵌套仓库和非 Git 目录各自取名。名称规范化为小写等可移植形式，完整规则见 [存储约定](skills/memo/references/storage.md)。同名项目有意共享知识；无关项目应使用不同名称。移动路径无需配置，改名则需同步调整知识目录及引用。
 
-可将 `geispec` 单独放在私有 Git 仓库中。两端项目名一致，拉取知识后即可读取，无需 UUID、路径哈希或本机绑定。代码仓库和知识仓库分别同步；Hook 不联网、不提交或推送。平台与分支特有的经验保留适用条件，不因跨机同步变成通用结论。
+默认本地使用，无需账号。也可连接自己的 GitHub 私有知识仓库：两端项目名一致并绑定同一知识仓库后，工具直接读取和保存远端内容，无需 Agent 另行 push。Hook 使用有版本的 INDEX 缓存，过期后短时检查远端，离线时标明缓存状态。平台与分支特有的经验保留适用条件，不因跨机同步变成通用结论。
+
+## Spec 工具与开关
+
+插件捆绑本地 stdio MCP，不需要部署服务器。`spec_read`、`spec_search`、`spec_edit`、`spec_status` 统一访问本地或 GitHub；编辑支持精确文本替换和多文件批量更新，检查基础版本以避免多会话覆盖。Markdown 格式和目录结构保持不变。日常维护通过工具完成，避免直接编辑共享目录或并行执行 Git 同步。
+
+```shell
+node <gei>/bin/gei.mjs spec status
+node <gei>/bin/gei.mjs spec disable
+node <gei>/bin/gei.mjs spec enable
+node <gei>/bin/gei.mjs spec connect github --repo owner/private-knowledge
+node <gei>/bin/gei.mjs spec use local
+```
+
+连接与切回命令先预览，加入 `--apply` 执行；新建私有仓库可加 `--create`。切回本地会先备份原有内容。关闭 Spec 保留数据和其他 Skills。GitHub 模式断网时只读缓存，不创建可写本地分支或排队上传。身份认证、仓库绑定、完整缓存刷新和 Skills-only CLI 入口见[使用说明](docs/spec.md)；接口依据见[工具设计](docs/spec-tools.md)。安装不会添加全局 `gei` 命令。
 
 升级旧路径哈希存储前，先按 [迁移规则](skills/memo/references/migrate.md) 合并到命名目录并修复链接。Hook 发现旧副本会报告迁移需求，保留原文档，不静默新建空知识或选取其中一端。
 
@@ -82,10 +96,11 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 ```shell
 node .github/scripts/check_hooks.mjs
+node --test tests/spec.test.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-请在源码仓库运行这些命令；格式验证需要 PyYAML。CI 配置覆盖 Windows/Linux/macOS 的 Hook 回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
+请在源码仓库运行这些命令，运行时需要 Node.js 22 或更新版本；格式验证需要 PyYAML。CI 配置覆盖 Windows/Linux/macOS 的 Hook、存储/协议回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
 
 公开版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 

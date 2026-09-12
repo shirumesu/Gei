@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 import {
-  buildProjectContext, getHookStartDir, readHookInput,
+  loadProjectContext, getHookStartDir, readHookInput,
   writeSessionStartContext, writeSessionStartError,
 } from "./knowledge.mjs";
 
 try {
-  writeSessionStartContext(buildProjectContext(getHookStartDir(readHookInput())));
+  writeSessionStartContext(await loadProjectContext(getHookStartDir(readHookInput())));
 } catch (error) {
   writeSessionStartError("workspace allocation/loading", error);
 }

@@ -12,6 +12,7 @@
   "keywords": ["agent", "skills", "workflow", "codex"],
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
+  "mcpServers": "./.codex-plugin/spec.mcp.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Progressive skill routing for practical agent workflows.",

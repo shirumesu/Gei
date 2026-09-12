@@ -1,0 +1,55 @@
+import { fail } from "./io.mjs";
+
+const string = description => ({ type: "string", description });
+const integer = (description, minimum, maximum) => ({ type: "integer", description, minimum, maximum });
+const schema = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
+const revision = string("Opaque revision returned by a prior read/search. Omit to read current knowledge; pass to continue the same snapshot.");
+const path = string("Knowledge-relative Markdown path, e.g. projects/example/INDEX.md or context/INDEX.md. Use the project route injected at startup; never provide a repository or machine path.");
+export const tools = [
+  { name: "spec_read", description: "Read up to 20 knowledge documents from one snapshot. Returns Markdown, an opaque revision, and explicit truncation. Missing files are reported and can be created with spec_edit. Continue with revision to keep INDEX and body consistent.",
+    inputSchema: schema({ paths: { type: "array", items: path, minItems: 1, maxItems: 20 }, revision,
+      start_line: integer("First line, default 1.", 1, 1000000), start_column: integer("Unicode character column on the first line, default 1. Continue a long line using next_column.", 1, 2000000), max_lines: integer("Lines per file, default 200. Content output is bounded; continue with next_line and next_column on the same revision.", 1, 1000) }, ["paths"]),
+    annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "spec_search", description: "Find knowledge by literal text (case-insensitive) within a path prefix. Empty query lists document paths. Returns a compact batch of matches and the snapshot revision; narrow the prefix or query when truncated.",
+    inputSchema: schema({ query: string("Literal text; default empty to list paths."), path_prefix: string("Knowledge prefix, e.g. projects/example/ or context/. Default projects/."), revision,
+      max_results: integer("Maximum matches, default 30.", 1, 100) }), annotations: { readOnlyHint: true, openWorldHint: true } },
+  { name: "spec_edit", description: "Save one complete knowledge update atomically using a prior read/search revision. Replace exact old_text including whitespace; it must occur once. Operations run in order. Create/delete can move documents in the same batch as INDEX repairs. A stale revision or any invalid operation applies nothing. Success in GitHub mode means remote persistence; no separate commit/push is needed. Reconcile conflicts instead of substituting a newer revision blindly.",
+    inputSchema: schema({ base_revision: string("Revision returned by the read/search that informed this update."), summary: string("Concise single-line description of the final change (1–200 characters)."),
+      edits: { type: "array", minItems: 1, maxItems: 100, items: { oneOf: [
+        schema({ op: { const: "replace", type: "string" }, path, old_text: string("Nonempty, unique exact text to replace."), new_text: string("Replacement text; empty removes the matched text.") }, ["op", "path", "old_text", "new_text"]),
+        schema({ op: { const: "create", type: "string" }, path, content: string("Complete Markdown for a new document.") }, ["op", "path", "content"]),
+        schema({ op: { const: "delete", type: "string" }, path }, ["op", "path"]),
+      ] } } }, ["base_revision", "summary", "edits"]), annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true } },
+  { name: "spec_status", description: "Inspect Spec enablement, storage binding, and last cache/connection status. No network request. Settings are controlled by the bundled CLI; this is not required before ordinary reads or edits.",
+    inputSchema: schema({}), annotations: { readOnlyHint: true, openWorldHint: false } },
+];
+
+export function validate(value, rule, location = "arguments") {
+  if (rule.oneOf) {
+    const operation = rule.oneOf.find(candidate => candidate.properties?.op?.const === value?.op);
+    if (operation) { validate(value, operation, location); return; }
+    const matching = rule.oneOf.filter(candidate => { try { validate(value, candidate, location); return true; } catch { return false; } });
+    if (matching.length !== 1) fail("ARGUMENT", `${location} must match one supported operation schema.`);
+    return;
+  }
+  if (rule.type === "object") {
+    if (!value || typeof value !== "object" || Array.isArray(value)) fail("ARGUMENT", `${location} must be an object.`);
+    for (const key of rule.required || []) if (!Object.hasOwn(value, key)) fail("ARGUMENT", `${location}.${key} is required.`);
+    for (const [key, item] of Object.entries(value)) {
+      if (!rule.properties[key]) fail("ARGUMENT", `Unknown argument ${location}.${key}.`);
+      validate(item, rule.properties[key], `${location}.${key}`);
+    }
+  } else if (rule.type === "array") {
+    if (!Array.isArray(value) || value.length < (rule.minItems || 0) || value.length > (rule.maxItems || Infinity)) fail("ARGUMENT", `${location} has an invalid number of items.`);
+    value.forEach((item, index) => validate(item, rule.items, `${location}[${index}]`));
+  } else if (rule.type === "integer") {
+    if (!Number.isInteger(value) || value < rule.minimum || value > rule.maximum) fail("ARGUMENT", `${location} is out of range.`);
+  } else if (typeof value !== rule.type) fail("ARGUMENT", `${location} must be ${rule.type}.`);
+  if (rule.const !== undefined && value !== rule.const) fail("ARGUMENT", `${location} must be ${rule.const}.`);
+}
+export async function callTool(store, name, args = {}) {
+  const tool = tools.find(item => item.name === name);
+  if (!tool) fail("UNKNOWN_TOOL", `Unknown tool: ${name}`);
+  validate(args, tool.inputSchema);
+  return store[name.slice(5)](args);
+}

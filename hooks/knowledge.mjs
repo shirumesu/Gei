@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
 
 export const PROJECT_INDEX_BYTES = 3072;
 export const SHARED_INDEX_BYTES = 1024;
@@ -193,4 +194,34 @@ export function buildSharedContext({ geiSpecHome = getGeiSpecHome() } = {}) {
   }
   return boundedIndex("Gei shared conditions: read only matching lessons; check their applicability.",
     indexPath, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
+}
+
+function toolContext(header, name, result, indexBudget, totalBudget) {
+  const state = result.stale ? "offline cache" : result.source;
+  const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n\n`;
+  const content = result.content.replace(/<!--[\s\S]*?-->/gu, "").trim()
+    || "Index is unavailable or not yet created. Read this path with spec_read before creating knowledge.";
+  return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
+}
+
+export async function loadProjectContext(cwd) {
+  const store = new SpecStore({ authTimeout: 500 });
+  if (!store.config().enabled) return "";
+  const project = resolveProject(cwd);
+  if (project.legacyRoots.length) throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories: ${project.legacyRoots.join(", ")}`);
+  const name = `projects/${project.projectId}/INDEX.md`;
+  const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
+    .filter(file => fs.existsSync(path.join(project.specRoot, file)));
+  const initialContent = [`# ${project.projectId}`, "", "Agent workspace allocated. Add reliable background and topic routes as work establishes them.",
+    ...(legacy.length ? ["", "Legacy knowledge: use Memo migration before replacing these sources.", ...legacy.map(file => `- [${file}](${file})`)] : [])].join("\n") + "\n";
+  const result = await store.index(name, { allocate: true, initialContent });
+  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nRead matching INDEX routes -> topic -> relevant notes or source. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
+}
+
+export async function loadSharedContext() {
+  const store = new SpecStore({ authTimeout: 500 });
+  if (!store.config().enabled) return "";
+  const result = await store.index("context/INDEX.md");
+  if (!result.content) return "";
+  return toolContext("Gei shared conditions: read only matching lessons; check their applicability.", "context/INDEX.md", result, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
 }

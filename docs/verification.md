@@ -4,6 +4,8 @@ Run from the source checkout:
 
 ```shell
 node .github/scripts/check_hooks.mjs
+node --test tests/spec.test.mjs
+python .github/scripts/check_packages.py
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
@@ -20,5 +22,15 @@ Budgets measure UTF-8 bytes including headers and paths. Project/Shared index bo
 Claude Code currently turns Hook output strings exceeding 10,000 characters into file previews. All three caps stay below that threshold; this is not a token measurement or a claim about every host version's rendering. See the [official Hook output contract](https://code.claude.com/docs/en/hooks#json-output).
 
 These checks establish runtime contracts, not agent compliance or design quality. Earlier small agent comparisons found no completion advantage for Work on a simple CLI task; keep it a thin delivery convention. Multi-turn design quality, long-term autonomous maintenance, and live host rendering require real usage evidence. Historical evaluation transcripts and migration snapshots are not part of the active plugin package.
+
+## Spec runtime
+
+The Spec test suite exercises CLI and stdio MCP entrypoints, exact Unicode/CRLF edits, multi-document moves, batch failure, two separate writer processes, stale reading premises, immutable snapshot reads, bounded results, interrupted transaction recovery, disable/enable behavior, and both copied plugin MCP configurations. A controlled HTTP fixture exercises the real GitHub adapter, including migration conflicts, private repository creation, compare-and-set races, lost successful responses, offline cache reads, and backed-up switches to local. No credentials or account access are required for this suite.
+
+For opt-in live integration, set `GEI_TEST_REPO` to an authorized private repository and run `node tests/live-github.mjs`. It creates a uniquely named temporary branch, connects through the real adapter, creates/edits/reads/deletes a fixture, rejects an old revision, checks that the default branch stayed unchanged, and removes the test branch. The test never changes the user's active Spec binding. This is separate from public release/installation verification.
+
+Local checks do not establish a successful run on other operating systems or automatic discovery in every installed desktop version. The CI matrix runs the deterministic suite on Windows, Linux, and macOS. Tool design sources and evaluation limits are documented in [Spec tool design](spec-tools.md).
+
+`check_packages.py` builds both actual ZIPs and exercises the extracted Skills-only CLI and plugin Hook with isolated state. An optional official-client check uses `npm install --prefix dist/mcp-client @modelcontextprotocol/sdk`, then `node tests/mcp-sdk.mjs`; this dependency is used only for verification and is not shipped. It validates initialization, discovery, structured read/edit responses, and actionable tool errors through the official SDK.
 
 The Codex catalog lives at `.agents/plugins/marketplace.json`. Because the plugin occupies the repository root, its entry uses a Git URL source instead of a nonexistent local subdirectory. This follows the [official marketplace source contract](https://developers.openai.com/plugins/build/plugins#how-local-marketplaces-work). Local package checks do not establish successful remote installation or publication.

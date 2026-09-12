@@ -18,7 +18,7 @@ const json = file => JSON.parse(fs.readFileSync(file, "utf8"));
 const git = (cwd, ...args) => execFileSync("git", ["-C", cwd, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
 const runHook = (root, script, cwd, extra = {}) => jsonOutput(execFileSync(process.execPath,
   [path.join(root, "hooks", script)], { input: JSON.stringify({ cwd }), encoding: "utf8",
-    env: { ...process.env, GEI_SPEC_HOME: home, PLUGIN_ROOT: root, CLAUDE_PLUGIN_ROOT: root, ...extra }, windowsHide: true }));
+    env: { ...process.env, GEI_SPEC_HOME: home, GEI_SPEC_STATE: path.join(temporary, "state"), PLUGIN_ROOT: root, CLAUDE_PLUGIN_ROOT: root, ...extra }, windowsHide: true }));
 const jsonOutput = output => output.trim() ? JSON.parse(output) : null;
 let passed = 0;
 async function check(name, action) { await action(); console.log(`PASS ${++passed}: ${name}`); }
@@ -113,7 +113,7 @@ try {
     const cwd = mkdir("concurrent");
     await Promise.all(Array.from({ length: 6 }, () => new Promise((resolve, reject) => {
       const child = spawn(process.execPath, [path.join(source, "hooks/inject_context.mjs")], {
-        env: { ...process.env, GEI_SPEC_HOME: home }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"],
+        env: { ...process.env, GEI_SPEC_HOME: home, GEI_SPEC_STATE: path.join(temporary, "state") }, windowsHide: true, stdio: ["pipe", "pipe", "pipe"],
       });
       let output = "";
       child.stdout.on("data", chunk => { output += chunk; });
@@ -186,7 +186,7 @@ try {
   });
   await check("both host configurations run all three hooks from a copied plugin", () => {
     const packaged = mkdir("package");
-    for (const entry of [".codex-plugin", ".claude-plugin", "assets", "skills", "docs", "hooks", "LICENSE", "README.md", "README.en.md", "CHANGELOG.md"]) {
+    for (const entry of [".codex-plugin", ".claude-plugin", ".mcp.json", "bin", "package.json", "assets", "skills", "docs", "hooks", "LICENSE", "README.md", "README.en.md", "CHANGELOG.md"]) {
       fs.cpSync(path.join(source, entry), path.join(packaged, entry), { recursive: true });
     }
     for (const name of ["hooks.json", "codex-hooks.json"]) {

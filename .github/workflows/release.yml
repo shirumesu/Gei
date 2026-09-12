@@ -52,17 +52,7 @@ jobs:
           git push origin "HEAD:${{ github.event.repository.default_branch }}"
 
       - name: Build release archive
-        run: |
-          rm -rf skills-package plugin-package Gei-skills.zip Gei-codex-plugin.zip
-          mkdir -p skills-package/Gei
-          cp -R skills/. skills-package/Gei/
-          cd skills-package
-          zip -r ../Gei-skills.zip .
-          cd ..
-          mkdir -p plugin-package/gei
-          cp -R .codex-plugin assets skills docs hooks LICENSE README.md README.en.md CHANGELOG.md plugin-package/gei/
-          cd plugin-package
-          zip -r ../Gei-codex-plugin.zip gei
+        run: python .github/scripts/build_packages.py
 
       - name: Create GitHub release
         env:
@@ -73,10 +63,10 @@ jobs:
             RELEASE_TAG="${{ inputs.tag }}"
           fi
           if [ -s release-notes.md ]; then
-            gh release create "${RELEASE_TAG}" Gei-skills.zip Gei-codex-plugin.zip \
+            gh release create "${RELEASE_TAG}" dist/Gei-skills.zip dist/Gei-codex-plugin.zip \
               --generate-notes \
               --notes "$(cat release-notes.md)"
           else
-            gh release create "${RELEASE_TAG}" Gei-skills.zip Gei-codex-plugin.zip \
+            gh release create "${RELEASE_TAG}" dist/Gei-skills.zip dist/Gei-codex-plugin.zip \
               --generate-notes
           fi

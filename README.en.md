@@ -62,7 +62,21 @@ Complete outputs are capped at 2 KiB for the router, 4 KiB for workspace context
 
 Ordinary Git repositories, subdirectories, and linked worktrees use the main repository directory name. Separate Git metadata and bare repositories use the common Git directory name; nested repositories and non-Git directories resolve their own names. Names are normalized to lowercase and portable characters; see [storage](skills/memo/references/storage.md) for the complete rule. Equal names intentionally share knowledge. Give unrelated projects different names. Moving a checkout requires no configuration; renaming it requires updating the knowledge directory and incoming links.
 
-The `geispec` store can be a separate private Git repository. Matching project names can read pulled knowledge immediately, without UUIDs, path hashes, or local bindings. Code and knowledge repositories synchronize separately; Hooks do not fetch, commit, or push. Preserve platform and branch conditions when sharing observations across machines.
+Local use needs no account. Optionally connect a private GitHub knowledge repository: matching project names and the same repository binding let tools read and save remote knowledge without a separate agent push. Hooks use versioned INDEX caches, briefly check expired entries, and label offline cache use. Preserve platform and branch conditions when sharing observations across machines.
+
+## Spec Tools And Controls
+
+The plugin bundles a local stdio MCP server; no hosted server is needed. `spec_read`, `spec_search`, `spec_edit`, and `spec_status` access either backend. Edits support exact text replacement and multi-file batches with base-revision checks to prevent concurrent overwrites. Markdown and its directory structure remain unchanged. Use the tools for active maintenance instead of directly editing the shared directory or running independent Git synchronization.
+
+```shell
+node <gei>/bin/gei.mjs spec status
+node <gei>/bin/gei.mjs spec disable
+node <gei>/bin/gei.mjs spec enable
+node <gei>/bin/gei.mjs spec connect github --repo owner/private-knowledge
+node <gei>/bin/gei.mjs spec use local
+```
+
+Connect and switch commands preview first; add `--apply` to execute. Add `--create` to create a private repository. Switching to local backs up previous local content. Disabling Spec retains data and other Skills. GitHub mode can read cached documents offline but never creates a writable local fork or upload queue. See [usage](docs/spec.md) for authentication, bindings, complete refresh, and the Skills-only CLI, and [tool design](docs/spec-tools.md) for interface evidence. Installation does not add a global `gei` command.
 
 Before upgrading a path-hash store, [migrate](skills/memo/references/migrate.md) its content into named directories and repair links. Hooks report matching legacy copies for migration, preserving their files rather than silently allocating empty knowledge or choosing one machine's version.
 
@@ -82,10 +96,11 @@ Alternatively install and enable Gei through the host's plugin marketplace. Host
 
 ```shell
 node .github/scripts/check_hooks.mjs
+node --test tests/spec.test.mjs
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
 
-Run these commands from a source checkout. Format validation requires PyYAML. CI is configured for Hook regressions and all Skill format checks on Windows/Linux/macOS. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
+Run these commands from a source checkout with Node.js 22 or newer. Format validation requires PyYAML. CI is configured for Hook, storage/protocol regressions, and all Skill format checks on Windows/Linux/macOS. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
 
 Public release history lives in [CHANGELOG.md](CHANGELOG.md).
 

@@ -4,7 +4,7 @@ Use when knowledge arrives from another machine, branch, or independent store. A
 
 ## Establish The Inputs
 
-Preserve both inputs outside active knowledge before replacing content. Inspect local edits and remote revisions; use a common ancestor when available, but do not invent one for separately created stores. Record the source revisions and a temporary source-to-owner map for coverage checks, not a permanent document registry. Do not push without authorization.
+Preserve both inputs outside active knowledge before replacing content. Inspect local edits and remote revisions; use a common ancestor when available, but do not invent one for separately created stores. Record the source revisions and a temporary source-to-owner map for coverage checks, not a permanent document registry. Use the configured Spec tools to publish active knowledge; a GitHub binding saves directly to its selected repository. Do not bypass that binding with separate Git operations.
 
 Confirm which projects correspond using their purpose and repository evidence. Directory names are the runtime lookup convention, not proof that differently named stores are unrelated. Reconcile a confirmed rename into one owner and repair routes; do not silently rename a code checkout or combine unrelated projects merely to eliminate duplicates.
 
