@@ -102,6 +102,100 @@ test("local CLI creates and atomically edits Markdown without credentials or Git
   assert.deepEqual(fs.readdirSync(env.GEI_SPEC_HOME), ["projects"]);
 });
 
+test("short revisions survive restart, accept previous references, and never select another binding", async t => {
+  const { env, store } = fixture(t);
+  const saved = await seed(store);
+  assert.match(saved.revision, /^r_[a-f0-9]{16}$/u);
+  const restarted = new SpecStore({ env });
+  assert.equal((await restarted.read({ paths: [name], revision: saved.revision })).files[0].content, disk(env, name));
+  const legacy = `${store.target(store.config())}:${store.oid(store.config(), saved.revision)}`;
+  const read = await restarted.read({ paths: [name], revision: legacy });
+  assert.equal(read.revision, saved.revision);
+  await assert.rejects(store.read({ paths: [name], revision: "r_0000000000000000" }), { code: "REVISION" });
+  writeJson(store.configFile, { ...store.config(), generation: "another-binding" });
+  await assert.rejects(store.read({ paths: [name], revision: saved.revision }), { code: "REVISION" });
+  await assert.rejects(store.read({ paths: [name], revision: legacy }), { code: "REVISION" });
+});
+
+test("numbered reads and base-relative line replacements avoid repeating old content", async t => {
+  const { store, env } = fixture(t);
+  const saved = await seed(store, { [name]: "Title\r\nold A\r\nold B\r\nkeep\r\nold C\r\n" });
+  const read = await store.read({ paths: [name], start_line: 2, max_lines: 4, line_numbers: true });
+  assert.equal(read.files[0].content, "2: old A\n3: old B\n4: keep\n5: old C");
+  assert.equal(read.files[0].line_numbers, true);
+  await store.edit({ base_revision: saved.revision, summary: "Replace two sections", edits: [
+    { op: "replace_lines", path: name, start_line: 2, end_line: 3, new_text: "new A\n" },
+    { op: "replace_lines", path: name, start_line: 5, end_line: 5, new_text: "new C\nextra" },
+  ] });
+  assert.equal(disk(env, name), "Title\r\nnew A\r\nkeep\r\nnew C\r\nextra\r\n");
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Old line numbers", edits: [
+    { op: "replace_lines", path: name, start_line: 4, end_line: 4, new_text: "Wrong" },
+  ] }), { code: "REVISION_CONFLICT" });
+});
+
+test("line ranges reject overlap, mixed addressing, and invalid bounds before any publication", async t => {
+  const { store, env } = fixture(t);
+  const saved = await seed(store, { [name]: "one\ntwo\nthree" });
+  const range = { op: "replace_lines", path: name, start_line: 1, end_line: 2, new_text: "replacement" };
+  for (const edits of [
+    [range, { ...range, start_line: 2, end_line: 3 }],
+    [range, { op: "replace", path: name, old_text: "three", new_text: "other" }],
+    [{ ...range, end_line: 9 }],
+    [{ ...range, start_line: 0 }],
+  ]) {
+    await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Invalid ranges", edits: [
+      { op: "create", path: "projects/example/new.md", content: "Must not exist" }, ...edits,
+    ] }), error => error.code === "RANGE" && error.details.applied === false && error.details.read.paths[0] === name);
+    assert.equal(disk(env, name), "one\ntwo\nthree");
+    assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, "projects/example/new.md")), false);
+  }
+});
+
+test("line replacement deletion and final newline handling preserve untouched bytes", async t => {
+  for (const [original, start, end, replacement, expected] of [
+    ["one\ntwo\nthree", 2, 2, "", "one\nthree"],
+    ["one\ntwo", 2, 2, "new\n", "one\nnew"],
+    ["one\ntwo\n", 2, 2, "new", "one\nnew\n"],
+    ["one\r\ntwo\nthree", 2, 2, "new\nmore", "one\r\nnew\nmore\nthree"],
+    ["one\ntwo\n", 1, 3, "", ""],
+    ["", 1, 1, "new", "new"],
+  ]) {
+    const { store, env } = fixture(t);
+    const saved = await seed(store, { [name]: original });
+    await store.edit({ base_revision: saved.revision, summary: "Replace lines", edits: [
+      { op: "replace_lines", path: name, start_line: start, end_line: end, new_text: replacement },
+    ] });
+    assert.equal(disk(env, name), expected);
+  }
+});
+
+test("match errors carry bounded numbered context and a pinned reread request", async t => {
+  const { store, env } = fixture(t);
+  const saved = await seed(store, { [name]: "# Rules\r\nID: 123-abc\r\nRule: enabled\r\nRule: enabled\r\n" });
+  for (const [old_text, code] of [["ID: 123-abx", "NO_MATCH"], ["Rule: enabled", "AMBIGUOUS_MATCH"]]) {
+    await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Diagnose match", edits: [
+      { op: "replace", path: name, old_text, new_text: "Updated" },
+    ] }), error => {
+      assert.equal(error.code, code);
+      assert.equal(error.details.read.revision, saved.revision);
+      assert.equal(error.details.read.line_numbers, true);
+      assert.match(error.details.context, /2: ID: 123-abc/);
+      assert.ok(Buffer.byteLength(error.details.context) <= 2400);
+      return true;
+    });
+  }
+  assert.match(disk(env, name), /ID: 123-abc/);
+});
+
+test("exact replacement rejects overlapping occurrences instead of guessing the first", async t => {
+  const { store, env } = fixture(t);
+  const saved = await seed(store, { [name]: "aaa" });
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Ambiguous overlap", edits: [
+    { op: "replace", path: name, old_text: "aa", new_text: "b" },
+  ] }), error => error.code === "AMBIGUOUS_MATCH" && error.details.matches === 2);
+  assert.equal(disk(env, name), "aaa");
+});
+
 test("ambiguous and failed later edits never partially update a batch", async t => {
   const { env, store } = fixture(t);
   const initial = await seed(store, { [name]: "same\nsame\n" });
@@ -183,6 +277,47 @@ test("long Unicode lines paginate with progress and search snippets include the 
   const result = await store.search({ query: "needle", path_prefix: "projects/example/" });
   assert.match(result.results[0].text, /needle/);
   assert.equal(result.results[0].snippet_truncated, true);
+});
+
+test("numbered long-line pages fit the content budget and columns still address raw text", async t => {
+  const { store } = fixture(t);
+  const content = "字".repeat(18000) + "end";
+  await seed(store, { [name]: content });
+  const first = await store.read({ paths: [name], line_numbers: true });
+  assert.ok(Buffer.byteLength(first.files[0].content) <= 48000);
+  const next = await store.read({ paths: [name], revision: first.revision, start_line: first.files[0].next_line,
+    start_column: first.files[0].next_column, line_numbers: true });
+  assert.equal(first.files[0].content.slice(3) + next.files[0].content.slice(3), content);
+  assert.equal(next.files[0].truncated, false);
+});
+
+test("search scopes literal full-text matches by knowledge prefix, not current checkout", async t => {
+  const { store } = fixture(t);
+  await seed(store, { [name]: "First\nNeedle one\n", "projects/another/INDEX.md": "NEEDLE two", "context/INDEX.md": "Needle shared" });
+  const scoped = await store.search({ query: "needle", path_prefix: "projects/example/" });
+  assert.deepEqual(scoped.results.map(result => result.path), [name]);
+  assert.equal(scoped.results[0].line, 2);
+  assert.equal((await store.search({ query: "needle" })).results.length, 2);
+  assert.equal((await store.search({ query: "needle", path_prefix: "context/" })).results.length, 1);
+  assert.equal((await store.search({ query: "Needle.*" })).results.length, 0);
+});
+
+test("GitHub tools and installed Hook entrypoints work without the former local directory", async t => {
+  const hookIndex = `projects/${path.basename(source).toLowerCase()}/INDEX.md`;
+  const { store, env } = remoteFixture(t, { [hookIndex]: "# Remote-only project\n", "context/INDEX.md": "# Remote-only shared\n" });
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  assert.equal(fs.existsSync(env.GEI_SPEC_HOME), false);
+  const read = await store.read({ paths: [hookIndex] });
+  await store.edit({ base_revision: read.revision, summary: "Remote-only update", edits: [
+    { op: "replace_lines", path: hookIndex, start_line: 1, end_line: 1, new_text: "# Remote-only updated" },
+  ] });
+  for (const hook of ["inject_context.mjs", "inject_shared.mjs"]) {
+    const result = await run([path.join(source, "hooks", hook)], env, JSON.stringify({ cwd: source }));
+    assert.equal(result.code, 0, result.stderr);
+    assert.match(result.stdout, /Spec: github; cache/);
+    assert.match(result.stdout, /Remote-only/);
+  }
+  assert.equal(fs.existsSync(env.GEI_SPEC_HOME), false);
 });
 
 test("disable stops tools and both knowledge hooks, while router keeps other Skills", async t => {

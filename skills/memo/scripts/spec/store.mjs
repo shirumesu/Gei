@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
+import { editHelp, rangeReplacements } from "./editing.mjs";
 
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -29,8 +30,22 @@ export class SpecStore {
     }, lockTimeout);
   }
   target(config) { return `${config.generation}:${config.mode}:${config.mode === "github" ? hash(JSON.stringify(config.github)).slice(0, 12) : "local"}`; }
-  version(config, oid) { return `${this.target(config)}:${oid}`; }
+  version(config, oid) {
+    const target = this.target(config);
+    const reference = `r_${hash(`${target}:${oid}`).slice(0, 16)}`;
+    const file = path.join(this.state, "revisions", `${reference}.json`);
+    const existing = readJson(file);
+    if (existing && (existing.target !== target || existing.oid !== oid)) fail("REVISION", "Revision reference collision; read again after repairing the local reference cache.");
+    if (!existing) writeJson(file, { target, oid });
+    return reference;
+  }
   oid(config, revision) {
+    if (typeof revision === "string" && /^r_[a-f0-9]{16}$/u.test(revision)) {
+      const resolved = readJson(path.join(this.state, "revisions", `${revision}.json`));
+      if (!resolved || resolved.target !== this.target(config) || !/^[a-f0-9]{40,64}$/u.test(resolved.oid)) fail("REVISION", "This revision reference is unavailable or belongs to another binding. Read the documents again.");
+      return resolved.oid;
+    }
+    // Already-running clients may still hold the previous full revision representation.
     const prefix = this.target(config) + ":";
     if (typeof revision !== "string" || !revision.startsWith(prefix) || !/^[a-f0-9]{40,64}$/u.test(revision.slice(prefix.length))) {
       fail("REVISION", "Read from the current storage binding before editing.");
@@ -113,9 +128,10 @@ export class SpecStore {
   async setEnabled(enabled) {
     return this.run(config => { writeJson(this.configFile, { ...config, enabled }); return { enabled, mode: config.mode }; }, { enabled: false });
   }
-  async read({ paths, revision, start_line = 1, start_column = 1, max_lines = 200 } = {}) {
+  async read({ paths, revision, start_line = 1, start_column = 1, max_lines = 200, line_numbers = false } = {}) {
     if (!Array.isArray(paths) || !paths.length || paths.length > 20) fail("ARGUMENT", "Read between 1 and 20 paths in one call.");
     paths.forEach(documentPath);
+    if (typeof line_numbers !== "boolean") fail("ARGUMENT", "line_numbers must be a boolean.");
     if (!Number.isInteger(start_line) || start_line < 1 || !Number.isInteger(start_column) || start_column < 1 || !Number.isInteger(max_lines) || max_lines < 1 || max_lines > 1000) fail("ARGUMENT", "Use start_line/start_column >= 1 and max_lines between 1 and 1000.");
     return this.run(async config => {
       const snapshot = await this.snapshot(config, revision);
@@ -132,17 +148,21 @@ export class SpecStore {
             const chars = Array.from(lines[index]);
             const offset = index === start_line - 1 ? start_column - 1 : 0;
             if (offset > chars.length) fail("ARGUMENT", "start_column is beyond the selected line.", { path: name });
-            let available = remaining - (selected.length ? 1 : 0);
+            const label = line_numbers ? `${index + 1}: ` : "";
+            let available = remaining - (selected.length ? 1 : 0) - Buffer.byteLength(label);
+            if (available < 0) break;
             let end = offset;
             while (end < chars.length && Buffer.byteLength(chars[end]) <= available) { available -= Buffer.byteLength(chars[end]); end++; }
             if (end === offset && chars.length > offset) break;
-            selected.push(chars.slice(offset, end).join("")); remaining = available;
+            const segment = chars.slice(offset, end).join("");
+            selected.push(label + (line_numbers ? segment.replace(/\r$/u, "") : segment)); remaining = available;
             nextLine = end < chars.length ? index + 1 : index + 2;
             nextColumn = end < chars.length ? end + 1 : 1;
             if (end < chars.length) break;
           }
           const truncated = nextLine <= lines.length;
           return { path: name, exists: true, content: selected.join("\n"), start_line, total_lines: lines.length,
+            ...(line_numbers ? { line_numbers: true } : {}),
             start_column, truncated, next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
         }) };
     });
@@ -180,7 +200,7 @@ export class SpecStore {
   async edit({ base_revision, summary, edits } = {}) {
     if (typeof summary !== "string" || !summary.trim() || summary.length > 200 || /[\r\n]/u.test(summary)) fail("ARGUMENT", "Provide a concise, single-line summary (1–200 characters).");
     if (!Array.isArray(edits) || !edits.length || edits.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits.");
-    for (const edit of edits) { documentPath(edit.path); if (!["replace", "create", "delete"].includes(edit.op)) fail("ARGUMENT", "Edit op must be replace, create, or delete."); }
+    for (const edit of edits) { documentPath(edit.path); if (!["replace", "replace_lines", "create", "delete"].includes(edit.op)) fail("ARGUMENT", "Edit op must be replace, replace_lines, create, or delete."); }
     return this.run(async config => {
       const expected = this.oid(config, base_revision);
       const current = await this.latest(config, { refresh: true });
@@ -191,11 +211,15 @@ export class SpecStore {
           { applied: false, current_revision: this.version(config, current.oid), changed_paths: base ? changed(versions(base), versions(current)) : undefined });
       }
       await this.hydrate(config, current, [...new Set(edits.map(edit => edit.path))]);
+      const revision = this.version(config, current.oid);
+      const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
       for (const [index, edit] of edits.entries()) {
         const exists = own(result, edit.path);
         const error = (code, message, extra = {}) => fail(code, message, { applied: false, edit_index: index, path: edit.path, ...extra });
-        if (edit.op === "create") {
+        if (edit.op === "replace_lines") {
+          result[edit.path] = ranges.get(edit.path);
+        } else if (edit.op === "create") {
           if (exists) error("EXISTS", "The document already exists; read it and use replace.");
           if (typeof edit.content !== "string") error("ARGUMENT", "create requires content.");
           result[edit.path] = edit.content;
@@ -204,8 +228,9 @@ export class SpecStore {
           if (edit.op === "delete") delete result[edit.path];
           else {
             if (typeof edit.old_text !== "string" || !edit.old_text || typeof edit.new_text !== "string") error("ARGUMENT", "replace requires nonempty old_text and a string new_text.");
-            const matches = result[edit.path].split(edit.old_text).length - 1;
-            if (matches !== 1) error(matches ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once, including whitespace. Read the document or include surrounding text.", { matches });
+            let matches = 0;
+            for (let at = result[edit.path].indexOf(edit.old_text); at >= 0; at = result[edit.path].indexOf(edit.old_text, at + 1)) matches++;
+            if (matches !== 1) error(matches ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once. Use the base context below, or reread with line numbers and use replace_lines.", { matches, ...editHelp(current.files[edit.path], edit, revision) });
             result[edit.path] = result[edit.path].replace(edit.old_text, () => edit.new_text);
           }
         }

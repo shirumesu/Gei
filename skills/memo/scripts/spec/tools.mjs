@@ -3,20 +3,24 @@ import { fail } from "./io.mjs";
 const string = description => ({ type: "string", description });
 const integer = (description, minimum, maximum) => ({ type: "integer", description, minimum, maximum });
 const schema = (properties, required = []) => ({ type: "object", properties, required, additionalProperties: false });
-const revision = string("Opaque revision returned by a prior read/search. Omit to read current knowledge; pass to continue the same snapshot.");
+const revision = string("Short revision reference returned by read/search. Copy it unchanged to continue the same snapshot; reread if lost. Omit to read current knowledge.");
 const path = string("Knowledge-relative Markdown path, e.g. projects/example/INDEX.md or context/INDEX.md. Use the project route injected at startup; never provide a repository or machine path.");
 export const tools = [
   { name: "spec_read", description: "Read up to 20 knowledge documents from one snapshot. Returns Markdown, an opaque revision, and explicit truncation. Missing files are reported and can be created with spec_edit. Continue with revision to keep INDEX and body consistent.",
     inputSchema: schema({ paths: { type: "array", items: path, minItems: 1, maxItems: 20 }, revision,
-      start_line: integer("First line, default 1.", 1, 1000000), start_column: integer("Unicode character column on the first line, default 1. Continue a long line using next_column.", 1, 2000000), max_lines: integer("Lines per file, default 200. Content output is bounded; continue with next_line and next_column on the same revision.", 1, 1000) }, ["paths"]),
+      start_line: integer("First line, default 1.", 1, 1000000), start_column: integer("Unicode character column on the first line, default 1. Continue a long line using next_column.", 1, 2000000), max_lines: integer("Lines per file, default 200. Content output is bounded; continue with next_line and next_column on the same revision.", 1, 1000),
+      line_numbers: { type: "boolean", description: "Default false (raw Markdown). Set true for line edits: content is prefixed with line numbers, which are not part of the document." } }, ["paths"]),
     annotations: { readOnlyHint: true, openWorldHint: true } },
   { name: "spec_search", description: "Find knowledge by literal text (case-insensitive) within a path prefix. Empty query lists document paths. Returns a compact batch of matches and the snapshot revision; narrow the prefix or query when truncated.",
     inputSchema: schema({ query: string("Literal text; default empty to list paths."), path_prefix: string("Knowledge prefix, e.g. projects/example/ or context/. Default projects/."), revision,
       max_results: integer("Maximum matches, default 30.", 1, 100) }), annotations: { readOnlyHint: true, openWorldHint: true } },
-  { name: "spec_edit", description: "Save one complete knowledge update atomically using a prior read/search revision. Replace exact old_text including whitespace; it must occur once. Operations run in order. Create/delete can move documents in the same batch as INDEX repairs. A stale revision or any invalid operation applies nothing. Success in GitHub mode means remote persistence; no separate commit/push is needed. Reconcile conflicts instead of substituting a newer revision blindly.",
+  { name: "spec_edit", description: "Save one knowledge update atomically using a prior read/search revision. Small changes: replace unique exact old_text. Larger changes: read with line_numbers and use replace_lines without copying old content. Line ranges always refer to the base snapshot; never mix them with other operations on the same file. Other operations run in order. A stale revision or invalid operation applies nothing. GitHub success means remote persistence, no push. Reconcile conflicts instead of substituting a newer revision blindly.",
     inputSchema: schema({ base_revision: string("Revision returned by the read/search that informed this update."), summary: string("Concise single-line description of the final change (1–200 characters)."),
       edits: { type: "array", minItems: 1, maxItems: 100, items: { oneOf: [
         schema({ op: { const: "replace", type: "string" }, path, old_text: string("Nonempty, unique exact text to replace."), new_text: string("Replacement text; empty removes the matched text.") }, ["op", "path", "old_text", "new_text"]),
+        schema({ op: { const: "replace_lines", type: "string" }, path,
+          start_line: integer("First line in the base snapshot, inclusive, 1-based.", 1, 1000000), end_line: integer("Last line in the base snapshot, inclusive. Ranges on the same file must not overlap.", 1, 1000000),
+          new_text: string("Replacement lines, without number prefixes; empty deletes the range. Uses the replaced block's newline style and ending; one optional final newline is ignored.") }, ["op", "path", "start_line", "end_line", "new_text"]),
         schema({ op: { const: "create", type: "string" }, path, content: string("Complete Markdown for a new document.") }, ["op", "path", "content"]),
         schema({ op: { const: "delete", type: "string" }, path }, ["op", "path"]),
       ] } } }, ["base_revision", "summary", "edits"]), annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true } },

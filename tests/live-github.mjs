@@ -33,14 +33,17 @@ try {
   const updated = await store.edit({ base_revision: saved.revision, summary: "Verify exact replacement", edits: [{ op: "replace", path: name, old_text: "Original.", new_text: "Verified. 中文。" }] });
   const content = await store.read({ paths: [name], revision: updated.revision });
   assert.match(content.files[0].content, /Verified\. 中文。/);
+  assert.match(updated.revision, /^r_[a-f0-9]{16}$/u);
+  const numbered = await store.read({ paths: [name], revision: updated.revision, line_numbers: true });
+  assert.match(numbered.files[0].content, /2: Verified\. 中文。/);
   await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Reject stale edit", edits: [{ op: "delete", path: name }] }), { code: "REVISION_CONFLICT" });
 
   const other = new SpecStore({ env: { ...process.env, GEI_SPEC_HOME: path.join(root, "other-knowledge"), GEI_SPEC_STATE: path.join(root, "other-state") }, github: api });
   await other.connect({ repo, branch, apply: true });
   const otherRead = await other.read({ paths: [name] });
   const raced = await Promise.allSettled([
-    store.edit({ base_revision: updated.revision, summary: "First writer", edits: [{ op: "replace", path: name, old_text: "Verified.", new_text: "First." }] }),
-    other.edit({ base_revision: otherRead.revision, summary: "Second writer", edits: [{ op: "replace", path: name, old_text: "Verified.", new_text: "Second." }] }),
+    store.edit({ base_revision: updated.revision, summary: "First writer", edits: [{ op: "replace_lines", path: name, start_line: 2, end_line: 2, new_text: "First. 中文。" }] }),
+    other.edit({ base_revision: otherRead.revision, summary: "Second writer", edits: [{ op: "replace_lines", path: name, start_line: 2, end_line: 2, new_text: "Second. 中文。" }] }),
   ]);
   assert.equal(raced.filter(result => result.status === "fulfilled").length, 1);
   assert.equal(raced.find(result => result.status === "rejected").reason.code, "REVISION_CONFLICT");
