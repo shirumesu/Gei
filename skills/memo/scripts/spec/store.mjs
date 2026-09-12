@@ -7,6 +7,8 @@ import { GitHub } from "./github.mjs";
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
 const changed = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(name => a[name] !== b[name]);
+// Git checkouts may convert LF to CRLF; only migration treats those bytes as equivalent.
+const sameImportContent = (a, b) => typeof b === "string" && a.replaceAll("\r\n", "\n") === b.replaceAll("\r\n", "\n");
 export class SpecStore {
   constructor({ env = process.env, github, ...options } = {}) {
     Object.assign(this, locations(env));
@@ -263,7 +265,7 @@ export class SpecStore {
       const remote = await this.latest(next, { refresh: true });
       await this.hydrate(next, remote, this.names(remote));
       const local = scan(this.home);
-      const conflicts = Object.keys(local).filter(name => own(remote.files, name) && local[name] !== remote.files[name]);
+      const conflicts = Object.keys(local).filter(name => own(remote.files, name) && !sameImportContent(local[name], remote.files[name]));
       if (conflicts.length) fail("MIGRATION_CONFLICT", "Local and remote documents differ. Reconcile them before connecting; the active mode was not changed.", { paths: conflicts });
       const additions = Object.fromEntries(Object.entries(local).filter(([name]) => !own(remote.files, name)));
       validateNames([...this.names(remote), ...Object.keys(additions)]);
@@ -271,7 +273,7 @@ export class SpecStore {
       if (Object.keys(additions).length) await this.github.commit(next.github, remote.oid, additions, "Import local project knowledge");
       const verified = await this.latest(next, { refresh: true });
       await this.hydrate(next, verified, this.names(verified));
-      if (!Object.entries(local).every(([name, content]) => verified.files[name] === content)) fail("MIGRATION_CONFLICT", "Remote verification changed during import; active mode remains local.");
+      if (!Object.entries(local).every(([name, content]) => sameImportContent(content, verified.files[name]))) fail("MIGRATION_CONFLICT", "Remote verification changed during import; active mode remains local.");
       writeJson(this.configFile, next);
       return { mode: "github", repo: next.github.repo, branch: next.github.branch, revision: this.version(next, verified.oid) };
     }, { enabled: false });

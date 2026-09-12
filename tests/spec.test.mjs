@@ -258,6 +258,37 @@ test("connection conflicts and public repositories do not change active mode", a
   await assert.rejects(store.connect({ repo: "fixture/knowledge", apply: true }), { code: "CONFIG" });
 });
 
+test("connection accepts checkout newline conversion without rewriting either copy", async t => {
+  const remote = "# Example\nRule.\n";
+  const local = remote.replaceAll("\n", "\r\n");
+  const added = "projects/example/topics/new.md";
+  const { store, api, env } = remoteFixture(t, { [name]: remote });
+  await seed(store, { [name]: local, [added]: "New.\r\n" });
+  const preview = await store.connect({ repo: "fixture/knowledge" });
+  assert.deepEqual(preview.upload_paths, [added]);
+  assert.equal((await store.status()).mode, "local");
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  assert.equal(api.commits, 1);
+  assert.equal(api.revisions.get(api.head)[name], remote);
+  assert.equal(api.revisions.get(api.head)[added], "New.\r\n");
+  assert.equal(disk(env, name), local);
+  const read = await store.read({ paths: [name] });
+  assert.equal(read.files[0].content, remote);
+  await assert.rejects(store.edit({ base_revision: read.revision, summary: "Exact means exact", edits: [
+    { op: "replace", path: name, old_text: local, new_text: "Changed" },
+  ] }), { code: "NO_MATCH" });
+});
+
+test("connection still rejects meaningful whitespace and final newline differences", async t => {
+  for (const local of ["Rule.  \r\n", "Rule.", "Other.\r\n"]) {
+    const { store, api } = remoteFixture(t, { [name]: "Rule.\n" });
+    await seed(store, { [name]: local });
+    await assert.rejects(store.connect({ repo: "fixture/knowledge", apply: true }), { code: "MIGRATION_CONFLICT" });
+    assert.equal((await store.status()).mode, "local");
+    assert.equal(api.commits, 0);
+  }
+});
+
 test("private repository creation is previewed and explicit", async t => {
   const { store, api } = remoteFixture(t);
   api.exists = false;
