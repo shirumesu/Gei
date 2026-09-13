@@ -6,7 +6,7 @@ const schema = (properties, required = []) => ({ type: "object", properties, req
 const revision = string("Short revision reference returned by read/search. Copy it unchanged to continue the same snapshot; reread if lost. Omit to read current knowledge.");
 const path = string("Knowledge-relative Markdown path, e.g. projects/example/INDEX.md or context/INDEX.md. Use the project route injected at startup; never provide a repository or machine path.");
 export const tools = [
-  { name: "spec_read", description: "Read up to 20 knowledge documents from one snapshot. Returns Markdown, an opaque revision, and explicit truncation. Missing files are reported and can be created with spec_edit. Continue with revision to keep INDEX and body consistent.",
+  { name: "spec_read", description: "Read up to 20 knowledge documents from one snapshot. Follow injected INDEX links directly to relevant documents. Returns Markdown, an opaque revision, and explicit truncation. Missing files are reported and can be created with spec_edit. Continue with revision to keep related reads on the same snapshot.",
     inputSchema: schema({ paths: { type: "array", items: path, minItems: 1, maxItems: 20 }, revision,
       start_line: integer("First line, default 1.", 1, 1000000), start_column: integer("Unicode character column on the first line, default 1. Continue a long line using next_column.", 1, 2000000), max_lines: integer("Lines per file, default 200. Content output is bounded; continue with next_line and next_column on the same revision.", 1, 1000),
       line_numbers: { type: "boolean", description: "Default false (raw Markdown). Set true for line edits: content is prefixed with line numbers, which are not part of the document." } }, ["paths"]),

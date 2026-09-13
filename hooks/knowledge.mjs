@@ -180,7 +180,7 @@ export function buildProjectContext(startDir, options = {}) {
   const project = ensureWorkspace(startDir, options);
   const header = ["Gei agent workspace", `Checkout: ${project.checkoutRoot}`,
     `Knowledge: ${project.specRoot}`,
-    "Read matching INDEX routes -> topic -> relevant notes or source. Resolve source evidence against this checkout; verify branch-specific claims."].join("\n");
+    "INDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout; verify branch-specific claims."].join("\n");
   return boundedIndex(header, path.join(project.specRoot, "INDEX.md"), PROJECT_INDEX_BYTES, CONTEXT_BYTES);
 }
 
@@ -192,7 +192,7 @@ export function buildSharedContext({ geiSpecHome = getGeiSpecHome() } = {}) {
       ? clipLines(`Gei shared legacy knowledge: ${path.join(root, "MEMORY.md")}. Read only when relevant; migrate through Memo.`, SHARED_CONTEXT_BYTES)
       : "";
   }
-  return boundedIndex("Gei shared conditions: read only matching lessons; check their applicability.",
+  return boundedIndex("Gei shared conditions: INDEX content is supplied below; follow matching lesson links directly without rereading INDEX. Check their applicability.",
     indexPath, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
 }
 
@@ -215,7 +215,7 @@ export async function loadProjectContext(cwd) {
   const initialContent = [`# ${project.projectId}`, "", "Agent workspace allocated. Add reliable background and topic routes as work establishes them.",
     ...(legacy.length ? ["", "Legacy knowledge: use Memo migration before replacing these sources.", ...legacy.map(file => `- [${file}](${file})`)] : [])].join("\n") + "\n";
   const result = await store.index(name, { allocate: true, initialContent });
-  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nRead matching INDEX routes -> topic -> relevant notes or source. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
+  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
 }
 
 export async function loadSharedContext() {
@@ -223,5 +223,5 @@ export async function loadSharedContext() {
   if (!store.config().enabled) return "";
   const result = await store.index("context/INDEX.md");
   if (!result.content) return "";
-  return toolContext("Gei shared conditions: read only matching lessons; check their applicability.", "context/INDEX.md", result, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
+  return toolContext("Gei shared conditions: INDEX content is supplied below; follow matching lesson links directly without rereading INDEX. Check their applicability.", "context/INDEX.md", result, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
 }

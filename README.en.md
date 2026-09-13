@@ -44,7 +44,7 @@ context/
 - **Task**: accepted work requiring cross-session recovery; remove active routes when complete.
 - **Context**: only lessons whose conditions apply across unrelated projects. Project scope remains the default.
 
-Read INDEX → matching domain → relevant notes or code. Search by business concepts, symptoms, and evaluation criteria. Expand only for concrete dependencies; search project evidence when knowledge is absent. Split a large domain by responsibility rather than keeping a corpus-wide inventory.
+Follow the Hook-injected INDEX directly to the matching domain, then relevant notes or code; no preliminary INDEX tool read is needed. Read INDEX only when its content is missing, clipped, needs refreshing, or an index edit needs a revision. Search by business concepts, symptoms, and evaluation criteria. Expand only for concrete dependencies; search project evidence when knowledge is absent. Split a large domain by responsibility rather than keeping a corpus-wide inventory.
 
 When old A/B reasoning informs C/D, check whether priorities and constraints still hold and explain material differences. Distinguish user confirmation, agent inference, accepted unimplemented targets, and verified implementation.
 
