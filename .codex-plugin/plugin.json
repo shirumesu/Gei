@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Compact task skills with external, topic-routed project knowledge and autonomous maintenance of conditional decisions and lessons.",
   "author": {
     "name": "shirumesu",
