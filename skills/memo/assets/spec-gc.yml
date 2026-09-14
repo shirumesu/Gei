@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: shirumesu/Gei
-          ref: f3414751d24b15b48482a6707d4919bedede4011
+          ref: v0.10.4
           path: gei-runtime
           persist-credentials: false
       - uses: actions/setup-node@v4
