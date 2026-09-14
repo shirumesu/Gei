@@ -84,6 +84,14 @@ function targetPath(owner, raw) {
 }
 export function references(owner, content, knownTargets = []) {
   const result = [], definitions = new Map();
+  // Text mentions need a path relative to this document or the knowledge root.
+  // A shared basename alone must not link unrelated project indexes and topics.
+  const textualTargets = knownTargets.filter(target => target !== owner).map(target => {
+    const aliases = [target, path.posix.relative(path.posix.dirname(owner), target)];
+    if (!aliases[1].startsWith("../")) aliases.push(`./${aliases[1]}`);
+    const escaped = aliases.map(alias => alias.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"));
+    return { target, pattern: new RegExp(`(?<![\\p{L}\\p{N}_./%:+-])(?:${escaped.join("|")})(?![\\p{L}\\p{N}_./%+-])`, "iu") };
+  });
   const lines = content.split("\n");
   let fence = null, managed = false;
   const usable = lines.map(line => {
@@ -120,8 +128,8 @@ export function references(owner, content, knownTargets = []) {
     // Unparsed Markdown or textual references are dependencies, never disposable navigation.
     let mention = lines[index].replaceAll("\\", "");
     try { mention = decodeURIComponent(mention); } catch { /* Keep literal malformed URI text. */ }
-    for (const target of knownTargets) {
-      if (target !== owner && mention.toLowerCase().includes(path.posix.basename(target).toLowerCase()) && !result.some(item => item.target === target && item.line === index + 1)) {
+    for (const { target, pattern } of textualTargets) {
+      if (pattern.test(mention) && !result.some(item => item.target === target && item.line === index + 1)) {
         result.push({ path: owner, target, line: index + 1, navigation: false, text: lines[index].slice(0, 500), uncertain: true });
       }
     }

@@ -643,6 +643,30 @@ test("GC blocks substantive, reference-style, and cross-project dependencies", a
   ], reviews: [{ path: transient, outcome: "delete", reason: "Relevant requirement preserved in current owners" }] });
 });
 
+test("same-named indexes and topics do not create dependencies across projects", async t => {
+  const { store, env } = fixture(t);
+  const retired = "projects/retired/INDEX.md", topic = "projects/retired/topics/README.md";
+  const other = "projects/current/INDEX.md", otherTopic = "projects/current/topics/README.md";
+  const original = "# Current\n- [Topic](topics/README.md)\nUse `README.md` for native project instructions.\n";
+  await seed(store, { [retired]: "# Retired\n- [Topic](topics/README.md)\n", [topic]: "# Topic\n", [other]: original, [otherTopic]: "# Current topic\n" });
+  const check = await store.check({ path_prefix: "projects/retired/" });
+  assert.deepEqual(check.results.find(item => item.path === retired).incoming, []);
+  assert.deepEqual(check.results.find(item => item.path === topic).incoming.map(item => item.path), [retired]);
+  await store.edit({ base_revision: check.revision, summary: "Remove retired project", reviews: [retired, topic].map(path => ({ path, outcome: "delete", reason: "Project explicitly retired" })) });
+  assert.equal(disk(env, other), original);
+  assert.equal(disk(env, otherTopic), "# Current topic\n");
+});
+
+test("textual dependencies resolve local and knowledge-root paths without basename guessing", async t => {
+  const { store } = fixture(t);
+  const target = "projects/example/README.md";
+  const local = "projects/example/decision.md", cross = "projects/other/decision.md";
+  await seed(store, { [target]: "# Requirement\n", [local]: "Consult `README.md` before changing scope.\n", [cross]: "Consult projects/example/README.md and ../example/README.md.\n" });
+  const check = await store.check({ path_prefix: "projects/example/" });
+  assert.deepEqual(check.results.find(item => item.path === target).incoming.map(item => item.path).sort(), [local, cross].sort());
+  await assert.rejects(store.edit({ base_revision: check.revision, summary: "Incomplete removal", reviews: [{ path: target, outcome: "delete", reason: "Superseded" }] }), { code: "DEPENDENCY" });
+});
+
 test("changed transient content revokes mechanical disposal and stale GC cannot apply", async t => {
   const { store } = fixture(t);
   const transient = "projects/example/temp.md";

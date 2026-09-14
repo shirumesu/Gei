@@ -8,7 +8,7 @@ Use `node <gei>/bin/gei.mjs spec check --scope projects/example/` (or `--all` fo
 
 Checks return 10 candidates by default, their reasons, evidence routes, incoming references, counts, and a revision. `--limit`, `--offset`, and `--revision` paginate a fixed snapshot. `--checkout-root` enables source-file comparisons for one explicit project; without the checkout those sources are unavailable, not invalid. All knowledge bodies are inspected to find cross-project incoming dependencies, but only the requested scope enters the worklist. This is a read-only operation on knowledge; it updates local check cadence/cache.
 
-Candidates include missing/invalid metadata, changed or unverified content, review dates, unavailable/changed evidence, unconfirmed environments, broken links, and expired transient retention. Low usage is not measured. Textual or unsupported Markdown references are conservative dependencies; false positives require semantic review, not mechanical deletion. A source fingerprint change only asks for investigation.
+Candidates include missing/invalid metadata, changed or unverified content, review dates, unavailable/changed evidence, unconfirmed environments, broken links, and expired transient retention. Low usage is not measured. Textual or unsupported Markdown references are conservative dependencies when they name a path relative to the referring document or the knowledge root; a shared basename does not connect unrelated projects. False positives still require semantic review, not mechanical deletion. A source fingerprint change only asks for investigation.
 
 Use the existing `spec_edit` with optional `reviews` alongside normal edits. Each review has a path, outcome and reason:
 

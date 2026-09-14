@@ -14,7 +14,8 @@ const client = new Client({ name: "gei-interoperability-test", version: "1.0.0" 
 try {
   await client.connect(new StdioClientTransport({ command: process.execPath, args: [path.join(plugin, "skills/memo/scripts/spec/mcp.mjs")],
     env: { ...process.env, GEI_SPEC_HOME: path.join(root, "knowledge"), GEI_SPEC_STATE: path.join(root, "state") } }));
-  assert.equal((await client.listTools()).tools.length, 4);
+  assert.deepEqual((await client.listTools()).tools.map(tool => tool.name).sort(),
+    ["spec_status", "spec_read", "spec_search", "spec_edit", "spec_check", "spec_gc"].sort());
   const name = "projects/sdk-test/INDEX.md";
   const read = await client.callTool({ name: "spec_read", arguments: { paths: [name] } });
   assert.equal(read.isError, undefined);
@@ -50,7 +51,29 @@ try {
   assert.equal(mismatch.structuredContent.code, "NO_MATCH");
   assert.equal(mismatch.structuredContent.read.line_numbers, true);
   assert.match(mismatch.structuredContent.context, /2: Record 0:/);
-  console.log(`PASS official MCP SDK: discovery, short references, numbered read, exact/range edits, stale rejection and recovery hints. Same 30-record edit input: exact ${exactBytes} bytes; range ${rangeBytes} bytes (not a token or model-quality benchmark).`);
+  const checked = await client.callTool({ name: "spec_check", arguments: { path_prefix: "projects/sdk-test/" } });
+  assert.equal(checked.isError, undefined);
+  assert.equal(checked.structuredContent.candidates, 1);
+  const transient = "projects/sdk-test/probe.md";
+  const declared = await client.callTool({ name: "spec_edit", arguments: {
+    base_revision: checked.structuredContent.revision, summary: "Declare completed disposable probe",
+    edits: [{ op: "create", path: transient, content: "# Temporary probe\n" }],
+    reviews: [{ path: transient, outcome: "update", kind: "transient", reason: "Completed disposable probe",
+      evidence: ["Isolated SDK fixture"], delete_after: "2020-01-01T00:00:00Z", deletion_reason: "Probe is complete" }],
+  } });
+  assert.equal(declared.isError, undefined);
+  const preview = await client.callTool({ name: "spec_gc", arguments: { path_prefix: "projects/sdk-test/" } });
+  assert.deepEqual(preview.structuredContent.deleted, [transient]);
+  assert.equal(fs.existsSync(path.join(root, "knowledge", transient)), true);
+  const incomplete = await client.callTool({ name: "spec_gc", arguments: { path_prefix: "projects/sdk-test/", apply: true, base_revision: preview.structuredContent.revision } });
+  assert.equal(incomplete.isError, true);
+  assert.equal(incomplete.structuredContent.code, "PLAN_CHANGED");
+  const removed = await client.callTool({ name: "spec_gc", arguments: { path_prefix: "projects/sdk-test/", apply: true,
+    base_revision: preview.structuredContent.revision, plan_id: preview.structuredContent.plan_id } });
+  assert.equal(removed.structuredContent.applied, true);
+  assert.equal(fs.existsSync(path.join(root, "knowledge", transient)), false);
+  assert.equal(fs.readFileSync(path.join(root, "knowledge", name), "utf8"), original.replaceAll("enabled", "disabled"));
+  console.log(`PASS official MCP SDK: discovery, short references, numbered read, exact/range edits, stale rejection, recovery hints, maintenance reviews and preview-bound GC. Same 30-record edit input: exact ${exactBytes} bytes; range ${rangeBytes} bytes (not a token or model-quality benchmark).`);
 } finally {
   await client.close();
   const resolved = fs.realpathSync(root);
