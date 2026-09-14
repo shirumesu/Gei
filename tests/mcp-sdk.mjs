@@ -24,6 +24,8 @@ try {
     summary: "Verify SDK interoperability", edits: [{ op: "create", path: name, content: "# SDK fixture\n" }] } });
   assert.equal(result.structuredContent.applied, true);
   assert.equal(await content(), "# SDK fixture\n");
+  assert.equal(fs.readFileSync(path.join(root, "knowledge", name), "utf8"), await content());
+  assert.ok(fs.existsSync(path.join(root, "knowledge", "metadata", name + ".json")));
   const error = await client.callTool({ name: "spec_edit", arguments: { base_revision: result.structuredContent.revision, summary: "Missing field",
     edits: [{ op: "replace", path: name, old_text: "SDK" }] } });
   assert.equal(error.isError, true);
@@ -75,7 +77,18 @@ try {
   assert.equal(removed.structuredContent.applied, true);
   assert.equal(fs.existsSync(path.join(root, "knowledge", transient)), false);
   assert.equal(await content(), original.replaceAll("enabled", "disabled"));
-  console.log(`PASS official MCP SDK: discovery, short references, numbered read, exact/range edits, stale rejection, recovery hints, maintenance reviews and preview-bound GC. Same 30-record edit input: exact ${exactBytes} bytes; range ${rangeBytes} bytes (not a token or model-quality benchmark).`);
+  const renameBase = await client.callTool({ name: "spec_read", arguments: { paths: [name] } });
+  const stateBeforeMove = fs.readFileSync(path.join(root, "knowledge", "metadata", name + ".json"), "utf8");
+  const moved = "projects/sdk-test/moved.md";
+  const renamed = await client.callTool({ name: "spec_edit", arguments: { base_revision: renameBase.structuredContent.revision, summary: "Move SDK fixture",
+    edits: [{ op: "rename", path: name, to: moved }] } });
+  assert.equal(renamed.isError, undefined);
+  assert.equal(fs.existsSync(path.join(root, "knowledge", name)), false);
+  assert.equal(fs.existsSync(path.join(root, "knowledge", "metadata", name + ".json")), false);
+  assert.equal(fs.readFileSync(path.join(root, "knowledge", "metadata", moved + ".json"), "utf8"), stateBeforeMove);
+  const movedRead = await client.callTool({ name: "spec_read", arguments: { paths: [moved] } });
+  assert.equal(movedRead.structuredContent.files[0].content, fs.readFileSync(path.join(root, "knowledge", moved), "utf8"));
+  console.log(`PASS official MCP SDK: discovery, short references, numbered read, exact/range edits, stale rejection, recovery hints, maintenance reviews, physical Markdown equality, metadata-preserving rename and preview-bound GC. Same 30-record edit input: exact ${exactBytes} bytes; range ${rangeBytes} bytes (not a token or model-quality benchmark).`);
 } finally {
   await client.close();
   const resolved = fs.realpathSync(root);
