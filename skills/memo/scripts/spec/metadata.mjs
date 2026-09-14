@@ -3,22 +3,30 @@ import { fail, hash, metadataPath } from "./io.mjs";
 const intervals = { knowledge: 90, handoff: 14, transient: 30 };
 const own = (value, key) => Object.hasOwn(value, key);
 export const bodyHash = body => hash(body.replaceAll("\r\n", "\n"));
+
+function parts(content) {
+  const match = /^(?:\uFEFF)?---\r?\n([\s\S]*?)(?<=\n)---(?:\r?\n|$)/u.exec(content);
+  if (!match) return { header: "", body: content, fields: [] };
+  const opening = /^(?:\uFEFF)?---\r?\n/u.exec(match[0])[0];
+  const block = match[1];
+  const fields = [...block.matchAll(/^gei:[^\n]*(?:\n[ \t]+[^\n]*)*(?:\n|$)/gmu)].map(field => ({
+    text: field[0], start: opening.length + field.index, end: opening.length + field.index + field[0].length,
+  }));
+  return { header: match[0], body: content.slice(match[0].length), opening, block, fields };
+}
 export function parseDocument(content) {
-  const header = /^(?:\uFEFF)?---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/u.exec(content);
-  if (!header) return { body: content, metadata: null, header: "" };
-  const rows = header[1].split(/\r?\n/u);
-  const fields = rows.filter(line => /^gei:/u.test(line));
-  if (!fields.length) return { body: content.slice(header[0].length), metadata: null, header: header[0] };
+  const parsed = parts(content);
+  if (!parsed.fields.length) return { ...parsed, metadata: null };
   try {
-    if (fields.length !== 1) throw new Error("Duplicate gei field");
-    const metadata = JSON.parse(fields[0].slice(4).trim());
+    if (parsed.fields.length !== 1) throw new Error("Duplicate gei field");
+    const metadata = JSON.parse(parsed.fields[0].text.slice(4).trim());
     validateMetadata(metadata);
-    return { body: content.slice(header[0].length), metadata, header: header[0] };
-  } catch (error) { return { body: content.slice(header[0].length), metadata: null, header: header[0], error: error.message }; }
+    return { ...parsed, metadata };
+  } catch (error) { return { ...parsed, metadata: null, error: error.message }; }
 }
 function date(value) { return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u.test(value) && Number.isFinite(Date.parse(value)); }
 export function validateMetadata(value) {
-  if (!value || ![1, 2, 3].includes(value.version) || !own(intervals, value.kind) || !date(value.created_at)) throw new Error("Invalid lifecycle metadata");
+  if (!value || ![1, 2, 3, 4].includes(value.version) || !own(intervals, value.kind) || (value.version < 4 && !date(value.created_at))) throw new Error("Invalid lifecycle metadata");
   if (value.migrated_hash !== undefined && (!/^[a-f0-9]{64}$/u.test(value.migrated_hash?.markdown || "") || !/^[a-f0-9]{64}$/u.test(value.migrated_hash?.legacy || ""))) throw new Error("Invalid migrated_hash");
   for (const key of ["verified_at", "review_after", "retry_after", "delete_after"]) if (value[key] !== undefined && !date(value[key])) throw new Error(`Invalid ${key}`);
   if (!Number.isInteger(value.review_days) || value.review_days < 1 || value.review_days > 365) throw new Error("Invalid review_days");
@@ -28,69 +36,95 @@ export function validateMetadata(value) {
   if (value.scope !== undefined && (!value.scope || typeof value.scope.environment !== "string")) throw new Error("Invalid scope");
 }
 
-// Legacy extraction is used only when committing a migration, never for ordinary reads.
-export function extractLegacy(content) {
-  const parsed = parseDocument(content);
-  if (!parsed.header) return { content, fields: [] };
-  const opening = /^(?:\uFEFF)?---\r?\n/u.exec(parsed.header)[0];
-  const closing = /\r?\n---(?:\r?\n|$)$/u.exec(parsed.header);
-  const separator = closing[0].startsWith("\r\n") ? "\r\n" : "\n";
-  const block = parsed.header.slice(opening.length, closing.index) + separator;
-  const fields = block.split(/\r?\n/u).filter(row => /^gei:/u.test(row));
-  if (!fields.length) return { content, fields };
-  const kept = block.replace(/^gei:[^\n]*(?:\n|$)/gmu, "");
+export function withoutMetadata(content) {
+  const parsed = parts(content);
+  if (!parsed.header) return content;
+  let header = parsed.header;
+  for (const field of parsed.fields.toReversed()) header = header.slice(0, field.start) + header.slice(field.end);
+  const remaining = parts(header);
+  return remaining.block?.trim() ? header + parsed.body : (content.startsWith("\uFEFF") ? "\uFEFF" : "") + parsed.body;
+}
+function withField(content, field) {
+  const parsed = parts(content);
+  if (parsed.fields.length) {
+    let result = content;
+    for (const [index, existing] of [...parsed.fields.entries()].toReversed()) {
+      result = result.slice(0, existing.start) + (index === 0 ? field : "") + result.slice(existing.end);
+    }
+    return result;
+  }
+  if (parsed.header) {
+    const at = parsed.opening.length + parsed.block.length;
+    return content.slice(0, at) + field + content.slice(at);
+  }
+  const newline = content.match(/\r?\n/u)?.[0] || "\n";
   const bom = content.startsWith("\uFEFF") ? "\uFEFF" : "";
-  const hasHeader = Boolean(kept.trim());
-  return { content: hasHeader ? opening + kept + closing[0].slice(separator.length) + parsed.body : bom + parsed.body,
-    fields, hasHeader, parsed };
+  return `${bom}---${newline}${field}---${newline}${content.slice(bom.length)}`;
+}
+export function withMetadata(content, metadata) {
+  const newline = content.match(/\r?\n/u)?.[0] || "\n";
+  // JSON is a YAML flow mapping. Multiline output keeps diffs local without a YAML dependency.
+  const field = `gei: ${JSON.stringify(metadata, null, 2).replaceAll("\n", newline + "  ")}${newline}`;
+  return withField(content, field);
+}
+export function preserveMetadata(content, original) {
+  const fields = parts(original).fields;
+  if (!fields.length) return content;
+  const existing = parts(content).fields;
+  if (JSON.stringify(existing.map(field => field.text)) === JSON.stringify(fields.map(field => field.text))) return content;
+  return withField(content, fields.map(field => field.text).join(""));
 }
 
 export function metadataFor(files, name) {
   const raw = files[metadataPath(name)];
-  const legacy = parseDocument(files[name] || "");
-  if (raw === undefined) return legacy;
+  const embedded = parseDocument(files[name] || "");
+  if (raw === undefined) return embedded;
   try {
     const metadata = JSON.parse(raw);
     validateMetadata(metadata);
-    if (legacy.metadata || legacy.error) return { metadata: null, error: "Both embedded and separate lifecycle metadata exist" };
+    if (embedded.fields.length) return { metadata: null, error: "Both embedded and separate lifecycle metadata exist" };
     return { metadata };
   } catch (error) { return { metadata: null, error: error.message }; }
 }
 export function writeMetadata(files, name, metadata) {
-  files[metadataPath(name)] = JSON.stringify(metadata, null, 2) + "\n";
+  files[name] = withMetadata(files[name], metadata);
+  delete files[metadataPath(name)];
 }
 export function migrateDocument(files, name) {
-  const legacy = extractLegacy(files[name]);
-  if (!legacy.fields.length) return false;
   const target = metadataPath(name);
-  if (files[target] !== undefined) fail("METADATA_CONFLICT", "Embedded and separate lifecycle state both exist; reconcile them before migrating.", { path: name, applied: false });
-  const metadata = legacy.parsed.metadata;
-  if (metadata) {
-    // Keep verification, destruction and deferred fingerprints unchanged across byte-preserving extraction.
-    // The bridge stops matching after any Markdown change and is removed by explicit verification.
-    writeMetadata(files, name, { ...metadata, migrated_hash: { markdown: bodyHash(legacy.content), legacy: contentHash(files[name], metadata) } });
-  } else {
-    writeMetadata(files, name, { legacy_fields: legacy.fields });
-  }
-  files[name] = legacy.content;
+  if (files[target] === undefined) return false;
+  if (typeof files[name] !== "string") fail("METADATA_CONFLICT", "Separate lifecycle state has no document; reconcile the orphan before migrating.", { path: name, applied: false });
+  if (parts(files[name]).fields.length) fail("METADATA_CONFLICT", "Embedded and separate lifecycle state both exist; reconcile them before migrating.", { path: name, applied: false });
+  let metadata;
+  try { metadata = JSON.parse(files[target]); validateMetadata(metadata); }
+  catch { fail("METADATA_CONFLICT", "Invalid separate lifecycle state; verify the document to rebuild it before migrating.", { path: name, applied: false }); }
+  const priorHash = contentHash(files[name], metadata);
+  const embedded = withMetadata(files[name], metadata);
+  // Preserve deployed verification and destruction baselines, including old BOM/hash contracts.
+  if (contentHash(embedded, metadata) !== priorHash) metadata = { ...metadata, migrated_hash: { markdown: bodyHash(withoutMetadata(embedded)), legacy: priorHash } };
+  writeMetadata(files, name, metadata);
   return true;
 }
-export function initializeMetadata(files, name, now) {
-  if (files[metadataPath(name)] !== undefined) return;
-  const kind = name.includes("/tasks/") ? "handoff" : "knowledge";
-  writeMetadata(files, name, { version: 3, kind, created_at: new Date(now).toISOString(), review_days: intervals[kind] });
+export function reviewAfter(metadata) {
+  return metadata?.review_after || (metadata?.version === 4 && metadata.verified_at ? new Date(Date.parse(metadata.verified_at) + metadata.review_days * 86400000).toISOString() : undefined);
 }
 export function contentHash(content, metadata) {
-  const current = bodyHash(content);
+  const current = bodyHash(!metadata || metadata.version >= 4 || parts(content).fields.length ? withoutMetadata(content) : content);
   if (metadata?.migrated_hash) return current === metadata.migrated_hash.markdown ? metadata.migrated_hash.legacy : current;
-  if (metadata?.version === 3) return current;
-  if (metadata?.version === 1) return bodyHash(parseDocument(content).body);
-  // Version 2 hashed the old reader view, which normalized rows inside mixed frontmatter.
-  const match = /^(\uFEFF?---\r?\n)([\s\S]*?)(\r?\n---(?:\r?\n|$))/u.exec(content);
-  if (!match) return current;
-  const rows = match[2].split(/\r?\n/u);
-  if (!rows.some(row => /^gei:/u.test(row))) return current;
-  const kept = rows.filter(row => !/^gei:/u.test(row));
-  const body = content.slice(match[0].length);
-  return bodyHash(kept.some(row => row.trim()) ? match[1] + kept.join(content.includes("\r\n") ? "\r\n" : "\n") + match[3] + body : body);
+  if (!metadata || metadata.version >= 3) return current;
+  if (metadata.version === 1) return bodyHash(parseDocument(content).body);
+  // Version 2 normalized frontmatter rows in the old reader view, including mixed line endings.
+  const parsed = parts(content);
+  if (!parsed.fields.length) return bodyHash(content);
+  const stripped = withoutMetadata(content), header = parts(stripped);
+  if (!header.header) return bodyHash(stripped.replace(/^\uFEFF/u, ""));
+  const newline = content.includes("\r\n") ? "\r\n" : "\n";
+  return bodyHash(header.opening + header.block.replace(/\r?\n/gu, newline) + header.header.slice(header.opening.length + header.block.length) + header.body);
+}
+
+// Reference scanning ignores historical maintenance evidence without changing physical line numbers.
+export function referenceContent(content) {
+  let result = content;
+  for (const field of parts(content).fields.toReversed()) result = result.slice(0, field.start) + field.text.replace(/[^\r\n]/gu, " ") + result.slice(field.end);
+  return result;
 }

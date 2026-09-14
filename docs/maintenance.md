@@ -8,9 +8,9 @@ Use `node <gei>/bin/gei.mjs spec check --scope projects/example/` (or `--all` fo
 
 Checks return 10 candidates by default, their reasons, evidence routes, incoming references, counts, and a revision. `--limit`, `--offset`, and `--revision` paginate a fixed snapshot. `--checkout-root` enables source-file comparisons for one explicit project; without the checkout those sources are unavailable, not invalid. All knowledge bodies are inspected to find cross-project incoming dependencies, but only the requested scope enters the worklist. This is a read-only operation on knowledge; it updates local check cadence/cache.
 
-Candidates include missing/invalid metadata, changed or unverified content, review dates, unavailable/changed evidence, unconfirmed environments, broken links, and expired transient retention. Low usage is not measured. Textual or unsupported Markdown references are conservative dependencies when they name a path relative to the referring document or the knowledge root; a shared basename does not connect unrelated projects. False positives still require semantic review, not mechanical deletion. A source fingerprint change only asks for investigation.
+Candidates include invalid metadata, changed or unverified content, review dates, unavailable/changed evidence, unconfirmed environments, broken links, and expired transient retention. Low usage is not measured. Textual or unsupported Markdown references are conservative dependencies when they name a path relative to the referring document or the knowledge root; a shared basename does not connect unrelated projects. False positives still require semantic review, not mechanical deletion. A source fingerprint change only asks for investigation.
 
-Ordinary `spec_edit` calls need only edits and a summary. Creation and correction initialize unverified lifecycle state when needed; they never renew whole-document verification. Add optional `reviews` when an explicit semantic review has been completed. Each review has a path, outcome and concise `basis`:
+Ordinary `spec_edit` calls need only edits and a summary. Creation and correction preserve existing lifecycle state without initializing a new record or renewing whole-document verification. Documents without metadata remain ordinary Markdown; missing state alone does not create a maintenance candidate. Add optional `reviews` when an explicit semantic review has been completed. Each review has a path, outcome and concise `basis`:
 
 - `verify` confirms the entire resulting document against current evidence, with or without accompanying edits. The basis can reference evidence already in the document.
 - `delete` gives the deletion rationale and removes that record; repair incoming references in the same batch.
@@ -35,19 +35,41 @@ Pass this through `spec edit --input FILE`, or use the same structured arguments
 
 ## Metadata and legacy knowledge
 
-Markdown is the content source of truth. Read, search, exact edits, range edits, error contexts, and reference locations address its stored bytes and physical lines. There is no virtual document view or line offset conversion. Lifecycle state lives under the Spec root, one JSON record per document: `projects/example/topics/design.md` uses `metadata/projects/example/topics/design.md.json`. This directory is outside knowledge INDEX routes and ordinary read/search/edit paths.
+Each document is one Markdown file. Optional lifecycle state lives in its own `gei` frontmatter field. The runtime owns that field through structured `reviews`; agents maintain substantive content and supply review outcomes and evidence, without manually calculating timestamps or hashes. Plain INDEX, topic and note files need no header until an actual review requires state.
 
-The shared runtime maintains both files in one local transaction or GitHub commit. Ordinary edits preserve existing verification, and new or edited unannotated documents acquire unverified state. A review-only operation changes only metadata. Use the `rename` edit operation with `path` and `to` to preserve state while moving a document; repair incoming and relative links in the batch. Deletion and GC remove the corresponding record. Local deletion recovery and remote export/import include both files.
+Read, search, exact edits, range edits, error contexts, and reference locations use the complete stored Markdown and its physical lines, including frontmatter. There is no hidden read mode, virtual document view, or line offset conversion. Reads remain bounded and can start at any physical line, so editing a tail section does not require reading the header. Startup INDEX injection still uses the body because it is a compact routing surface, not an editing view.
 
-Existing embedded `gei` state migrates automatically when that document is written. Read/search/check and startup hooks never commit a migration. Until migration, ordinary reads and searches include the original frontmatter, with its actual line numbers. Writes apply their ranges to that exact base before extracting the lifecycle field. Other frontmatter, BOM, and existing newline bytes are preserved. A full-document replacement retains the base document's lifecycle state. Metadata-free documents need no migration and remain unchanged until written.
+The managed field is a multiline JSON-as-YAML flow mapping, extending the previous single-line JSON format without adding a YAML dependency:
 
-For an explicit batch migration, run `spec migrate-metadata --all` (or `--scope projects/example/`). It reports document paths and conflicts without changing knowledge. Apply with `spec migrate-metadata --all --apply --base-revision REV` from the preview. All selected migrations form one commit; a changed revision or conflicting embedded/separate records applies nothing. Repeating the operation is a no-op. Invalid embedded fields move losslessly into an invalid record and remain review candidates, rather than becoming verified or eligible for GC.
+```markdown
+---
+gei: {
+    "version": 4,
+    "kind": "knowledge",
+    "review_days": 90,
+    "verified_at": "2026-09-14T08:00:00Z",
+    "verified_hash": "<runtime-generated SHA-256>",
+    "basis": "Current evidence recorded beside the claims"
+  }
+---
+# A durable constraint
 
-Migration retains verification dates, review deadlines, destruction declarations, and deferred review conditions. A temporary hash bridge preserves the original hashing input even when old formats treated frontmatter or BOM differently; any subsequent Markdown change invalidates that match. Explicit verification adopts version 3 state, hashes the complete Markdown including meaningful frontmatter, and removes the bridge. An evidence-based `verify` can rebuild invalid state.
+The actual knowledge and its supporting evidence.
+```
 
-Upgrade writers and the scheduled GC runtime together before migrating a shared store. Older runtimes do not maintain separate records. Revision references from the former virtual-view interface require a fresh read, preventing an old visible line number from addressing a different physical line. This does not invalidate local deletion backups. Bulk migration belongs to storage administration through the CLI; it adds no daily MCP tool or AI-maintained state field.
+Ordinary edits preserve the existing managed block byte for byte, including when a whole-document replacement omits it. A review updates only that block; the rest of the frontmatter, comments, BOM, body and newline bytes are not reformatted. Stable multiline serialization keeps individual field changes local in Git diff. New verification uses version 4 and hashes the content outside the managed field, including meaningful user frontmatter. Review deadlines are calculated from `verified_at` and `review_days`; new verification no longer stores `created_at` or redundant `review_after`. Prior version 1–3 baselines remain readable, and explicit verification adopts the current format. Historical evidence is not treated as a substantive document reference by GC; reference positions still use physical lines.
 
-MCP check/GC text is a formatted worklist containing reasons, relevant evidence, environment conditions, retention declarations and reference locations. The CLI uses the same presentation by default; `--json` requests structured output for scripts. MCP also preserves structured results for clients. Neither representation includes internal content/defer fingerprints. Ordinary reads return content; maintenance state is inspected through `spec_check`.
+The existing `rename` operation carries the complete file without renewing state; repair incoming and relative links in the same batch. Deletion, GC, local recovery and GitHub commits likewise operate on the complete file. Semantic deletion and link repairs remain atomic. Plain documents still receive structural link checks, but absence of a review baseline does not establish that their knowledge is invalid.
+
+### Migration from separate metadata
+
+Existing `metadata/<document-path>.json` records remain readable for compatibility and move into their document when it is written. Reads, checks, startup hooks and storage import/export never silently migrate content. For a whole-store migration, run `spec migrate-metadata --all` (or `--scope projects/example/`). The preview identifies the destination as Markdown and reports candidate and blocked paths. Apply with `spec migrate-metadata --all --apply --base-revision REV` from that preview. The Markdown update and old JSON removal form one transaction or GitHub commit. Repeating the operation is a no-op; documents already using embedded metadata retain their existing formatting until a review changes it.
+
+Migration preserves verification dates, review deadlines, destruction declarations and deferred conditions. Existing hash bridges remain only as long as needed to preserve deployed baselines; migration may add a bridge for old formats whose BOM/header hash input differs. A content change invalidates that bridge, and explicit verification removes it. Conflicting embedded/separate records, invalid JSON/state or orphan records block bulk migration without losing either copy. An evidence-based `verify` can rebuild invalid state; reading it does not make it verified or eligible for deletion.
+
+Upgrade writers and the scheduled GC runtime together before migrating a shared store, and restart long-lived MCP processes. Older writers may move embedded state back to separate files or misread multiline fields. Until that coordinated upgrade, the new runtime can read the existing separate records. The bundled Actions template targets the matching release tag; a development build that has not been published needs its tested runtime supplied to the scheduled job. Previously issued physical-Markdown revisions keep their coordinate contract; a migration changes the content revision and requires a fresh read before subsequent edits.
+
+MCP check/GC text is a formatted worklist containing reasons, relevant evidence, environment conditions, retention declarations and reference locations. The CLI uses the same presentation by default; `--json` requests structured output for scripts. Neither maintenance representation includes internal content/defer fingerprints. This formatting does not hide the actual frontmatter in ordinary read/search results.
 
 Kinds are `knowledge` (default), `handoff` (default under tasks/), and `transient`. Default review intervals are 90, 14, and 30 days respectively, configurable from 1 to 365. Environment observations normally use knowledge with a 30-day review interval. Stable accepted requirements can use 365 days. These are review intervals, not deletion deadlines. Read/search/import, ordinary edits, and opening a project never renew verification. Transport/cache `stale` describes snapshot freshness, independently of knowledge validity.
 

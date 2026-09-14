@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-VERSION_HEADING_RE = re.compile(r"^##\s+v?(?P<version>\d+\.\d+\.\d+)(?:\s+-\s+.*)?\s*$")
+VERSION_HEADING_RE = re.compile(r"^##\s+v?(?P<version>\d+\.\d+\.\d+(?:\.\d+)?)(?:\s+-\s+.*)?\s*$")
 
 
 def latest_changelog_version(path: Path) -> str:

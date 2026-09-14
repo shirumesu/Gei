@@ -10,10 +10,17 @@ import sys
 import tempfile
 from zipfile import ZipFile
 
+from sync_plugin_version import latest_changelog_version
+from extract_latest_release_notes import extract_changelog_entry
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> None:
+    version = latest_changelog_version(ROOT / "CHANGELOG.md")
+    assert extract_changelog_entry(ROOT / "CHANGELOG.md", version).startswith(f"## v{version} -")
+    for manifest in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json"):
+        assert json.loads((ROOT / manifest).read_text())["version"] == version
     with tempfile.TemporaryDirectory(prefix="gei-packages-") as temporary:
         root = Path(temporary)
         subprocess.run([sys.executable, str(ROOT / ".github/scripts/build_packages.py"), "--output", str(root)], check=True)
@@ -42,22 +49,25 @@ def main() -> None:
             name = "projects/package-test/probe.md"
             knowledge = Path(env["GEI_SPEC_HOME"])
             body = "# Package fixture\nBefore.\n"
-            metadata = {"version": 1, "kind": "knowledge", "created_at": "2026-01-01T00:00:00Z", "review_days": 90,
+            metadata = {"version": 3, "kind": "knowledge", "created_at": "2026-01-01T00:00:00Z", "review_days": 90,
                 "verified_at": "2026-01-01T00:00:00Z", "verified_hash": hashlib.sha256(body.encode()).hexdigest(), "basis": "internal-package-marker"}
-            raw = "---\ngei: " + json.dumps(metadata) + "\n---\n" + body
             (knowledge / name).parent.mkdir(parents=True, exist_ok=True)
-            (knowledge / name).write_text(raw, encoding="utf-8", newline="")
-            assert invoke("read", data={"paths": [name]})["files"][0]["content"] == raw
+            (knowledge / name).write_text(body, encoding="utf-8", newline="")
+            record = knowledge / ("metadata/" + name + ".json")
+            record.parent.mkdir(parents=True, exist_ok=True)
+            record.write_text(json.dumps(metadata), encoding="utf-8")
+            assert invoke("read", data={"paths": [name]})["files"][0]["content"] == body
             preview = invoke("migrate-metadata", "--all")
             assert preview["migrated"] == [name]
             migrated = invoke("migrate-metadata", "--all", "--apply", "--base-revision", preview["revision"])
-            assert (knowledge / name).read_text(encoding="utf-8") == body
-            record = knowledge / ("metadata/" + name + ".json")
-            assert json.loads(record.read_text())["verified_at"] == metadata["verified_at"]
-            assert invoke("search", data={"query": "internal-package-marker"})["results"] == []
+            migrated_text = (knowledge / name).read_text(encoding="utf-8")
+            assert migrated_text.endswith(body) and not record.exists()
+            assert '"verified_at": "2026-01-01T00:00:00Z"' in migrated_text
+            assert len(invoke("search", data={"query": "internal-package-marker"})["results"]) == 1
+            line = migrated_text.splitlines().index("Before.") + 1
             edited = invoke("edit", data={"base_revision": migrated["revision"], "summary": "Edit physical line", "edits": [
-                {"op": "replace_lines", "path": name, "start_line": 2, "end_line": 2, "new_text": "After."}]})
-            assert invoke("read", data={"paths": [name]})["files"][0]["content"] == "# Package fixture\nAfter.\n"
+                {"op": "replace_lines", "path": name, "start_line": line, "end_line": line, "new_text": "After."}]})
+            assert invoke("read", data={"paths": [name]})["files"][0]["content"] == migrated_text.replace("Before.", "After.")
             moved = "projects/package-test/moved.md"
             saved = invoke("edit", data={"base_revision": edited["revision"], "summary": "Move package probe", "edits": [
                 {"op": "rename", "path": name, "to": moved}]})
@@ -75,6 +85,8 @@ def main() -> None:
             if filename == "Gei-codex-plugin.zip":
                 assert (destination / "gei/.codex-plugin/spec.mcp.json").is_file()
                 assert (destination / "gei/.mcp.json").is_file()
+                for manifest in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json"):
+                    assert json.loads((destination / "gei" / manifest).read_text())["version"] == version
                 hook = subprocess.run(["node", str(destination / "gei/hooks/inject_context.mjs")], env=env,
                     input=json.dumps({"cwd": str(root)}), check=True, capture_output=True, text=True)
                 assert "spec_read" in json.loads(hook.stdout)["hookSpecificOutput"]["additionalContext"]

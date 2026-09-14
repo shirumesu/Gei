@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, storagePath, metadataPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { migrateDocument, initializeMetadata } from "./metadata.mjs";
+import { migrateDocument, preserveMetadata } from "./metadata.mjs";
 import { inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
@@ -311,15 +311,13 @@ export class SpecStore {
       }
       for (const name of touched) {
         if (result[name] === undefined) continue;
-        // Derive lifecycle state from the original document, including across ordered moves.
         const original = { [name]: bases[name] ?? result[name], [metadataPath(name)]: result[metadataPath(name)] };
-        if (migrateDocument(original, name)) {
-          result[metadataPath(name)] = original[metadataPath(name)];
-          const edited = { [name]: result[name] };
-          migrateDocument(edited, name);
-          result[name] = edited[name];
+        try {
+          if (migrateDocument(original, name)) delete result[metadataPath(name)];
+        } catch (error) {
+          if (error.code !== "METADATA_CONFLICT" || !reviews.some(review => review.path === name && review.outcome === "verify")) throw error;
         }
-        initializeMetadata(result, name, this.clock());
+        result[name] = preserveMetadata(result[name], original[name]);
       }
       applyReviews(current.files, result, reviews, { now: this.clock(), environment: this.environment(), checkoutRoot: checkout_root });
       if (deleting) assertDeletionLinks(current.files, result);
@@ -366,17 +364,17 @@ export class SpecStore {
     return this.run(async config => {
       const current = await this.latest(config, { refresh: true });
       if (apply && (!base_revision || this.oid(config, base_revision) !== current.oid)) fail("REVISION_CONFLICT", "Preview metadata migration and apply its current base_revision.", { applied: false });
-      const names = this.names(current).filter(name => isDocument(name) && selected(name));
+      const names = knowledgePaths(this.names(current)).filter(selected);
       await this.hydrate(config, current, names.flatMap(name => [name, metadataPath(name)]));
       const result = { ...current.files }, migrated = [], blocked = [];
       for (const name of names) {
         try { if (migrateDocument(result, name)) migrated.push(name); }
         catch (error) { if (error.code !== "METADATA_CONFLICT") throw error; blocked.push(name); }
       }
-      const preview = { preview: !apply, revision: this.version(config, current.oid), path_prefix, migrated, blocked };
+      const preview = { preview: !apply, revision: this.version(config, current.oid), path_prefix, destination: "markdown", migrated, blocked };
       if (!apply) return preview;
       if (blocked.length) fail("METADATA_CONFLICT", "Resolve conflicting lifecycle records before applying this migration.", { paths: blocked, applied: false });
-      return { ...preview, ...await this.commitChanges(config, current, result, "Move lifecycle metadata out of Markdown") };
+      return { ...preview, ...await this.commitChanges(config, current, result, "Embed lifecycle metadata in Markdown") };
     });
   }
   backupDeletion(config, before, changes) {
@@ -479,8 +477,7 @@ export class SpecStore {
         if (!fs.existsSync(file) && allocate) {
           const files = { [name]: initialContent || `# ${name.split("/")[1]}\n\nAgent workspace allocated. Add reliable background and topic routes as work establishes them.\n` };
           const existing = safeFile(this.home, metadataPath(name));
-          if (fs.existsSync(existing)) files[metadataPath(name)] = fs.readFileSync(existing, "utf8");
-          initializeMetadata(files, name, this.clock());
+          if (fs.existsSync(existing)) fail("EXISTS", "Restore or reconcile the orphan lifecycle record before allocating this index.", { path: name });
           publish(this.home, this.state, files);
         }
         const available = fs.existsSync(file);

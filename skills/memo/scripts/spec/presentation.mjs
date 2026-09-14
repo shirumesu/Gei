@@ -1,5 +1,4 @@
 const descriptions = {
-  missing_metadata: "Lifecycle review has not been initialized",
   invalid_metadata: "Lifecycle state needs rebuilding through an evidence-based verification",
   unverified: "Document has not been verified",
   content_changed: "Content changed since its last verification",

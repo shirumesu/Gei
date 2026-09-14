@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fail, hash, documentPath, metadataPath, isDocument } from "./io.mjs";
-import { metadataFor, writeMetadata, validateMetadata, contentHash } from "./metadata.mjs";
+import { metadataFor, writeMetadata, validateMetadata, contentHash, reviewAfter, referenceContent } from "./metadata.mjs";
 
 const DAY = 86400000;
 const intervals = { knowledge: 90, handoff: 14, transient: 30 };
@@ -27,10 +27,9 @@ export function lifecycle(content, { now = Date.now(), environment, checkoutRoot
   const reasons = [];
   const observedSources = [];
   if (parsed.error) reasons.push("invalid_metadata");
-  else if (!meta) reasons.push("missing_metadata");
-  else {
+  else if (meta) {
     if (meta.verified_hash !== contentHash(content, meta)) reasons.push(meta.verified_at ? "content_changed" : "unverified");
-    if (meta.review_after && Date.parse(meta.review_after) <= now) reasons.push("review_due");
+    if (reviewAfter(meta) && Date.parse(reviewAfter(meta)) <= now) reasons.push("review_due");
     if (meta.scope?.environment && environment !== meta.scope.environment) reasons.push("environment_unconfirmed");
     for (const source of meta.sources || []) {
       const actual = sourceHash(checkoutRoot, source.path);
@@ -61,7 +60,7 @@ export function references(owner, content, knownTargets = []) {
     const escaped = aliases.map(alias => alias.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"));
     return { target, pattern: new RegExp(`(?<![\\p{L}\\p{N}_./%:+-])(?:${escaped.join("|")})(?![\\p{L}\\p{N}_./%+-])`, "iu") };
   });
-  const lines = content.split("\n");
+  const lines = referenceContent(content).split("\n");
   let fence = null, managed = false;
   const usable = lines.map(line => {
     const marker = /^\s*(`{3,}|~{3,})/u.exec(line);
@@ -126,11 +125,11 @@ export function inventory(files, prefix, options = {}) {
       basis: (status.metadata?.basis || status.metadata?.evidence?.join("; ") || "").slice(0, 1200), scope: status.metadata?.scope,
       kind: status.metadata?.kind, delete_after: status.metadata?.delete_after, deletion_reason: status.metadata?.deletion_reason,
       last_attempt: status.metadata?.attempt_reason, retry_after: status.metadata?.retry_after,
-      verified_at: status.metadata?.verified_at, review_after: status.metadata?.review_after,
+      verified_at: status.metadata?.verified_at, review_after: reviewAfter(status.metadata),
       incoming: incoming.slice(0, 20), incoming_total: incoming.length, broken: broken.slice(0, 20), broken_total: broken.length,
       next: eligible ? "Preview GC; apply only within the authorized scope." : "Read the document and evidence; submit verify/delete/defer. Age is not a deletion reason." });
   }
-  const rank = item => item.action === "gc_eligible" ? 0 : item.reasons.some(reason => ["broken_reference", "substantive_dependency", "source_changed", "invalid_metadata"].includes(reason)) ? 1 : item.reasons.includes("missing_metadata") ? 3 : 2;
+  const rank = item => item.action === "gc_eligible" ? 0 : item.reasons.some(reason => ["broken_reference", "substantive_dependency", "source_changed", "invalid_metadata"].includes(reason)) ? 1 : 2;
   results.sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path));
   return { documents: all.length, results, cooling, refs };
 }
@@ -169,7 +168,7 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
     const kind = review.kind || parsed.metadata?.kind || (review.path.includes("/tasks/") ? "handoff" : "knowledge");
     if (!own(intervals, kind)) fail("ARGUMENT", "Use knowledge, handoff, or transient.");
     const stamp = new Date(now).toISOString();
-    const meta = { ...parsed.metadata, version: parsed.metadata?.version || 3, kind, created_at: parsed.metadata?.created_at || stamp,
+    const meta = { ...parsed.metadata, version: parsed.metadata?.version || 4, kind,
       review_days: review.review_days ?? (kind === parsed.metadata?.kind ? parsed.metadata.review_days : intervals[kind]) };
     if (review.scope) meta.scope = review.scope;
     if (review.outcome === "defer") {
@@ -178,9 +177,9 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
       meta.deferred_fingerprint = lifecycle(content, { now, environment, checkoutRoot, state: { metadata: meta } }).fingerprint;
       meta.retry_after = new Date(now + 30 * DAY).toISOString();
     } else {
-      meta.version = 3; delete meta.migrated_hash; meta.verified_at = stamp; meta.verified_hash = contentHash(content, meta); meta.basis = review.basis;
+      meta.version = 4; delete meta.migrated_hash; delete meta.created_at; meta.verified_at = stamp; meta.verified_hash = contentHash(content, meta); meta.basis = review.basis;
       delete meta.evidence; delete meta.reason;
-      meta.review_after = new Date(now + meta.review_days * DAY).toISOString();
+      delete meta.review_after;
       delete meta.retry_after; delete meta.deferred_fingerprint; delete meta.attempt_reason; delete meta.attempted_at;
       if (review.sources) {
         meta.sources = review.sources.map(name => {

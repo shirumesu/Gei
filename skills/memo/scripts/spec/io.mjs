@@ -145,8 +145,16 @@ export function recover(home, state) {
   if (!pending) return;
   for (const [name, content] of Object.entries(pending.files)) {
     const file = safeFile(home, name);
-    if (content === null) fs.rmSync(file, { force: true });
-    else atomicWrite(file, content);
+    if (content === null) {
+      fs.rmSync(file, { force: true });
+      if (name.startsWith("metadata/")) {
+        const root = path.join(home, "metadata");
+        for (let directory = path.dirname(file); directory === root || directory.startsWith(root + path.sep); directory = path.dirname(directory)) {
+          try { fs.rmdirSync(directory); }
+          catch (error) { if (error.code !== "ENOENT") break; }
+        }
+      }
+    } else atomicWrite(file, content);
   }
   fs.rmSync(journal);
 }
