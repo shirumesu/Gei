@@ -381,7 +381,8 @@ export class SpecStore {
         info = await this.github.create(repo);
       }
       if (!info.private) fail("CONFIG", "Use a private repository for Spec.");
-      if (info.permissions && !info.permissions.push) fail("AUTH", "The selected repository is not writable with these credentials.");
+      // Integration tokens need not expose user-level push permissions.
+      // Actual reads, imports, and later edits are authorized by GitHub's endpoints.
       const next = { ...config, mode: "github", generation: randomUUID(), github: { repo: info.full_name, branch: branch || info.default_branch } };
       const remote = await this.latest(next, { refresh: true });
       await this.hydrate(next, remote, this.names(remote));

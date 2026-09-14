@@ -57,7 +57,7 @@ class GitHubApi {
     const pathname = new URL(url).pathname;
     if (pathname === "/user") return this.response({ login: "fixture" });
     if (pathname === "/user/repos") { this.created = JSON.parse(options.body); this.exists = true; return this.response({ private: true, full_name: "fixture/knowledge", default_branch: "main" }, 201); }
-    if (pathname === "/repos/fixture/knowledge") return this.exists === false ? this.response({ message: "Not Found" }, 404) : this.response({ private: this.private !== false, full_name: "fixture/knowledge", default_branch: "main", permissions: { push: true } });
+    if (pathname === "/repos/fixture/knowledge") return this.exists === false ? this.response({ message: "Not Found" }, 404) : this.response({ private: this.private !== false, full_name: "fixture/knowledge", default_branch: "main", permissions: this.permissions ?? { push: true } });
     if (pathname.includes("/git/ref/heads/")) return this.response({ object: { sha: this.head } });
     if (pathname.includes("/git/trees/")) {
       const files = this.revisions.get(pathname.split("/").at(-1));
@@ -69,6 +69,7 @@ class GitHubApi {
       return this.response({ content: Buffer.from(content).toString("base64"), encoding: "base64", size: Buffer.byteLength(content) });
     }
     if (pathname === "/graphql") {
+      if (this.rejectWrites) return this.response({ message: "Resource not accessible by integration" }, 403);
       const { input } = JSON.parse(options.body).variables;
       assert.equal(input.branch.repositoryNameWithOwner, "fixture/knowledge");
       assert.equal(input.branch.branchName, "main");
@@ -423,6 +424,26 @@ test("connection conflicts and public repositories do not change active mode", a
   assert.equal((await store.status()).mode, "local"); assert.equal(api.commits, 0);
   api.private = false;
   await assert.rejects(store.connect({ repo: "fixture/knowledge", apply: true }), { code: "CONFIG" });
+});
+
+test("connection uses API access rather than user push metadata for integration tokens", async t => {
+  const { store, api } = remoteFixture(t, { [name]: "# Existing\n" });
+  api.permissions = { contents: "write", metadata: "read" };
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  assert.equal(api.commits, 0);
+  const read = await store.read({ paths: [name] });
+  const saved = await store.edit({ base_revision: read.revision, summary: "Integration write", edits: [{ op: "replace", path: name, old_text: "Existing", new_text: "Updated" }] });
+  assert.equal(saved.applied, true);
+  api.rejectWrites = true;
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Denied write", edits: [{ op: "replace", path: name, old_text: "Updated", new_text: "Denied" }] }), { code: "GITHUB" });
+  assert.equal(api.revisions.get(api.head)[name], "# Updated\n");
+  const denied = remoteFixture(t);
+  await seed(denied.store);
+  denied.api.permissions = { push: false };
+  denied.api.rejectWrites = true;
+  await assert.rejects(denied.store.connect({ repo: "fixture/knowledge", apply: true }), { code: "GITHUB" });
+  assert.equal(denied.store.config().mode, "local");
+  assert.equal(denied.api.commits, 0);
 });
 
 test("connection accepts checkout newline conversion without rewriting either copy", async t => {
