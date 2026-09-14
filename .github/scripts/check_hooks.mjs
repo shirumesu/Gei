@@ -205,8 +205,10 @@ try {
     const manifest = json(path.join(source, ".codex-plugin/plugin.json"));
     const marketplace = json(path.join(source, ".agents/plugins/marketplace.json"));
     const entry = marketplace.plugins.find(plugin => plugin.name === manifest.name);
-    assert.equal(entry.source.source, "url");
-    assert.equal(entry.source.url.replace(/\.git$/u, ""), manifest.repository);
+    assert.equal(entry.source.source, "local");
+    assert.equal(entry.source.path, "./");
+    const pluginRoot = path.resolve(source, entry.source.path);
+    assert.deepEqual(json(path.join(pluginRoot, ".codex-plugin/plugin.json")), manifest);
     assert.equal(json(path.join(source, ".claude-plugin/marketplace.json")).plugins[0].source, "./");
     for (const relative of [manifest.skills, manifest.hooks, manifest.interface.composerIcon, manifest.interface.logo]) {
       assert.ok(fs.existsSync(path.join(source, relative)), relative);

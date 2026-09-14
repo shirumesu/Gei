@@ -46,7 +46,17 @@ Use this for Codex or Codex CLI when `codex plugin marketplace` is available.
 codex plugin marketplace add https://github.com/shirumesu/gei.git
 ```
 
+For local development, add the source checkout instead:
+
+```shell
+codex plugin marketplace add /absolute/path/to/gei
+```
+
+The same marketplace entry uses `source: "local"` and `path: "./"` to load the plugin from the marketplace root. A local source includes working-tree edits; a Git source uses the fetched repository snapshot.
+
 2. Install and enable `gei` through the Codex plugin mechanism available in the current host.
+
+Local plugins are copied into `~/.codex/plugins/cache/gei/gei/local/`. After editing the source checkout, restart the desktop app and test in a new task so the local installation picks up the changes. Local iteration does not require a version bump or Git push. See the [official local installation workflow](https://developers.openai.com/plugins/build/plugins#install-a-local-plugin-manually).
 
 3. Verify the installed plugin exposes:
 

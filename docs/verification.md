@@ -35,7 +35,7 @@ Local checks do not establish a successful run on other operating systems or aut
 
 `check_packages.py` builds both actual ZIPs and exercises the extracted Skills-only CLI and plugin Hook with isolated state. An optional official-client check uses `npm install --prefix dist/mcp-client @modelcontextprotocol/sdk`, then `node tests/mcp-sdk.mjs`; this dependency is used only for verification and is not shipped. Set `GEI_TEST_PLUGIN` to verify an installed copy. It validates discovery, short references, numbered reads, exact/range edits, stale rejection, and actionable errors through the official SDK, and reports serialized input bytes for equivalent exact/range updates. That byte comparison is not a model or token benchmark.
 
-The Codex catalog lives at `.agents/plugins/marketplace.json`. Because the plugin occupies the repository root, its entry uses a Git URL source instead of a nonexistent local subdirectory. This follows the [official marketplace source contract](https://developers.openai.com/plugins/build/plugins#how-local-marketplaces-work). Local package checks do not establish successful remote installation or publication.
+The Codex catalog lives at `.agents/plugins/marketplace.json`. Because the plugin occupies the repository root, its entry uses `source: "local"` with `path: "./"`, resolved against the marketplace root. A local marketplace uses the working checkout; a Git marketplace uses its fetched checkout. This follows the [official marketplace source contract](https://developers.openai.com/plugins/build/plugins#how-local-marketplaces-work). Local package checks do not establish successful remote installation or publication.
 
 ## Maintenance
 

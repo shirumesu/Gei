@@ -7,8 +7,8 @@
     {
       "name": "gei",
       "source": {
-        "source": "url",
-        "url": "https://github.com/shirumesu/gei.git"
+        "source": "local",
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",
