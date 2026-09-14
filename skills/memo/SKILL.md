@@ -1,6 +1,6 @@
 ---
 name: memo
-description: Maintain external project background and topic routes, conditional decisions and pitfalls, stale knowledge, and necessary handoffs. Use proactively when a task earns a durable update; ordinary context reading does not require this skill.
+description: Maintain external project background, topic routes, conditional lessons, and handoffs. Use when work earns a durable update or Spec reports maintenance candidates; ordinary context reading does not require this skill.
 ---
 
 # Memo
@@ -26,6 +26,12 @@ Use the Hook-provided external workspace. Session start allocates a minimal `IND
 - `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects.
 
 Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve repository-relative evidence against the current checkout, not the knowledge directory.
+
+## Maintain From Evidence
+
+When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). A candidate is work to assess, not permission inferred from age to delete. Keep low-frequency knowledge and inactive projects while their conditions remain valid. Use `spec_edit` to land the review outcome with any content/link changes; finish confirmed deletions in that batch instead of leaving another cleanup task.
+
+Use knowledge by default. Reserve transient retention and a destruction date for records explicitly intended to be discarded, never to empty a review queue. Reading, importing, rewording, and reopening a project do not verify its knowledge. INDEX contains stable background and routes; environment observations and unfinished operations belong in scoped records.
 
 ## Read Only What This Write Needs
 

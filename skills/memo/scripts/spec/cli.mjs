@@ -15,6 +15,12 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
                                  Preview snapshot export; --apply backs up and switches
   refresh                        Download the current complete snapshot
   read | search | edit           Read JSON arguments from stdin or --input FILE
+  check --scope PREFIX          Bounded maintenance worklist; --all covers both roots
+  gc --scope PREFIX             Preview explicit transient cleanup; --apply executes
+                                with --base-revision REV --plan-id ID from the preview
+  restore [--backup ID]          List/preview local deletion recovery; --apply restores
+  check/gc also accept JSON via --input FILE (same schema as MCP).
+  check: --limit N --offset N --revision REV --checkout-root DIR
   login                          Explain GitHub authentication
 
 Use gh auth login or GEI_GITHUB_TOKEN for GitHub. No credentials are saved in Spec.
@@ -29,8 +35,8 @@ try {
   const options = {};
   const positional = [];
   for (let i = 0; i < args.length; i++) {
-    if (["--apply", "--create"].includes(args[i])) options[args[i].slice(2)] = true;
-    else if (["--repo", "--branch", "--input", "--cached-revision"].includes(args[i]) && args[i + 1] && !args[i + 1].startsWith("--")) options[args[i].slice(2).replaceAll("-", "_")] = args[++i];
+    if (["--apply", "--create", "--all"].includes(args[i])) options[args[i].slice(2)] = true;
+    else if (["--repo", "--branch", "--input", "--cached-revision", "--scope", "--base-revision", "--plan-id", "--revision", "--limit", "--offset", "--checkout-root", "--backup"].includes(args[i]) && args[i + 1] && !args[i + 1].startsWith("--")) options[args[i].slice(2).replaceAll("-", "_")] = args[++i];
     else if (args[i].startsWith("--")) throw new Error(`Unknown or incomplete option: ${args[i]}`);
     else positional.push(args[i]);
   }
@@ -41,6 +47,15 @@ try {
   else if (command === "refresh") result = await store.refresh();
   else if (command === "connect" && positional[0] === "github") result = await store.connect(options);
   else if (command === "use" && positional[0] === "local") result = await store.useLocal(options);
+  else if (command === "restore") result = await store.restore(options);
+  else if (["check", "gc"].includes(command)) {
+    const input = options.input ? JSON.parse(fs.readFileSync(options.input, "utf8")) : { path_prefix: options.all ? "all" : options.scope,
+      ...(options.base_revision ? { base_revision: options.base_revision } : {}), ...(options.revision ? { revision: options.revision } : {}),
+      ...(options.plan_id ? { plan_id: options.plan_id } : {}),
+      ...(options.limit ? { max_results: Number(options.limit) } : {}), ...(options.offset ? { offset: Number(options.offset) } : {}),
+      ...(options.checkout_root ? { checkout_root: options.checkout_root } : {}), ...(options.apply ? { apply: true } : {}) };
+    result = await callTool(store, `spec_${command}`, input);
+  }
   else if (command === "login") result = { command: "gh auth login --hostname github.com", alternative: "Set GEI_GITHUB_TOKEN in your private environment. Never put tokens in knowledge or plugin files." };
   else if (["read", "search", "edit"].includes(command)) {
     const input = options.input ? fs.readFileSync(options.input, "utf8") : fs.readFileSync(0, "utf8");

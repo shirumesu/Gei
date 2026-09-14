@@ -35,6 +35,10 @@ Hooks identify the project and inject compact INDEX content. Tools use knowledge
 - `spec_search`: literal, case-insensitive full-text search within a knowledge path prefix, or list paths with an empty query. Results include paths, line numbers, bounded text, and a revision. The default `projects/` covers all projects; use `projects/<project>/` for one project or `context/` for shared knowledge. It does not search source code or use semantic/regex matching.
 - `spec_edit`: submit a base revision, one-line summary, and a batch of operations. Use `replace` with unique exact old/new text for small changes. Use `replace_lines` with inclusive, 1-based `start_line`, `end_line`, and `new_text` for a larger section without repeating old text. All ranges refer to the base snapshot; ranges on one file must not overlap or mix with other operation types on that file. Other operations run in order. `create` supplies a complete new document and `delete` removes one; they can move a document in the same batch as INDEX repairs.
 - `spec_status`: inspect configuration or diagnose connectivity; ordinary reads and edits do not require it first.
+- `spec_check`: return a bounded scoped maintenance worklist with evidence and incoming references. Age requests review, not deletion.
+- `spec_gc`: preview explicitly declared transient destruction; applying requires the preview revision and plan identifier. Knowledge and handoff records never expire mechanically.
+
+`spec_edit` also accepts structured `reviews` alongside edits (or without text changes). The runtime owns lifecycle timestamps; semantic deletion and link repairs remain one atomic operation. See [knowledge maintenance](maintenance.md) for outcome schemas, legacy initialization, check/GC CLI flags, deletion recovery, and optional schedules.
 
 The CLI exposes the same read/search/edit JSON arguments on stdin or through `--input FILE`, with the same validation and error codes. New files use the supplied text; existing line endings, Unicode, quotes, and backslashes are preserved by exact replacement. There is no implicit replace-all or fuzzy matching.
 

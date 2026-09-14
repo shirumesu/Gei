@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "gei",
   "displayName": "Gei",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Compact task skills with external, topic-routed project knowledge and autonomous maintenance of conditional decisions and lessons.",
   "author": {
     "name": "shirumesu"
@@ -10,7 +10,12 @@
   "homepage": "https://github.com/shirumesu/gei",
   "repository": "https://github.com/shirumesu/gei",
   "license": "MIT",
-  "keywords": ["agent", "skills", "workflow", "claude-code"],
+  "keywords": [
+    "agent",
+    "skills",
+    "workflow",
+    "claude-code"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json"
 }

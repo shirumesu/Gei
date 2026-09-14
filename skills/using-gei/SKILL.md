@@ -16,4 +16,6 @@ Choose by the final objective; supporting reads and searches do not change the r
 
 Honor named Skills. Load the selected Skill, then only conditional references needed for this task. If none fits, continue normally.
 
+A scoped Spec maintenance hint also routes to Memo for the bounded worklist, not a whole-store audit.
+
 Use the injected project background and topic routes without loading Memo just to read. When a task establishes useful background, an accepted tradeoff, a verified reusable pitfall, stale knowledge, or a necessary handoff, apply Memo and land the external update before the final reply. Maintenance is authorized without separate confirmation, subject to host permissions. Do not merely propose to remember; do not manufacture a note for routine work.

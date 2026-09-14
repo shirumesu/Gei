@@ -22,4 +22,4 @@ Keep the recognizable symptom, applicable environment, verified cause or remaini
 
 Use one [task record](../templates/task.md) only for accepted work that needs cross-session recovery. Capture goal, accepted decisions, open assumptions, current state, next action, and verification pointers. Do not copy the conversation.
 
-Update the same record when accepted scope or recovery state changes. At completion, merge only earned lasting knowledge into its owner and remove the active route. Delete the task record when its content adds no recovery or reasoning value; otherwise keep it clearly completed and outside active routes. No four-file change package or internal changelog is required.
+Update the same record when accepted scope or recovery state changes. At completion, merge only earned lasting knowledge into its owner, then delete the handoff and its route in the same batch. Preserve still-useful reasoning in its topic/note owner, not a completed task inventory. Uncertain completion needs review, not age-based deletion; see [maintenance](maintenance.md). No four-file change package or internal changelog is required.

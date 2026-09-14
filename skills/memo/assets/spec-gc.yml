@@ -1,0 +1,38 @@
+# Copy to .github/workflows/spec-gc.yml in the private knowledge repository.
+# Scheduled runs remain previews until repository variable GEI_SPEC_GC_APPLY is true.
+name: Spec transient cleanup
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '13 3 * * 1'
+permissions:
+  contents: write
+concurrency:
+  group: spec-transient-cleanup
+  cancel-in-progress: false
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    env:
+      GEI_SPEC_HOME: ${{ runner.temp }}/geispec-empty
+      GEI_SPEC_STATE: ${{ runner.temp }}/geispec-state
+      GEI_GITHUB_TOKEN: ${{ github.token }}
+      GEI_SPEC_GC_APPLY: ${{ vars.GEI_SPEC_GC_APPLY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: shirumesu/Gei
+          ref: v0.10.2
+          path: gei-runtime
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Bind this private knowledge repository without local imports
+        run: node gei-runtime/bin/gei.mjs spec connect github --repo "$GITHUB_REPOSITORY" --apply
+      - name: Preview or apply declared transient destruction
+        shell: bash
+        run: |
+          args=(--scope all)
+          if [ "$GEI_SPEC_GC_APPLY" = "true" ]; then args+=(--apply); fi
+          node gei-runtime/skills/memo/scripts/spec/gc-run.mjs "${args[@]}"

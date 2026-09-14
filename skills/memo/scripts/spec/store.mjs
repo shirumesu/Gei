@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
+import { lifecycle, inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -11,10 +12,11 @@ const changed = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].f
 // Git checkouts may convert LF to CRLF; only migration treats those bytes as equivalent.
 const sameImportContent = (a, b) => typeof b === "string" && a.replaceAll("\r\n", "\n") === b.replaceAll("\r\n", "\n");
 export class SpecStore {
-  constructor({ env = process.env, github, ...options } = {}) {
+  constructor({ env = process.env, github, clock = Date.now, ...options } = {}) {
     Object.assign(this, locations(env));
     this.github = github || new GitHub({ env, ...options });
     this.configFile = path.join(this.state, "config.json");
+    this.clock = clock;
   }
   config() {
     const config = { ...DEFAULTS, ...readJson(this.configFile, {}) };
@@ -128,6 +130,64 @@ export class SpecStore {
   async setEnabled(enabled) {
     return this.run(config => { writeJson(this.configFile, { ...config, enabled }); return { enabled, mode: config.mode }; }, { enabled: false });
   }
+  environment() {
+    const file = path.join(this.state, "environment.json");
+    let value = readJson(file);
+    if (!value) { value = { id: randomUUID() }; writeJson(file, value); }
+    return value.id;
+  }
+  maintenanceFile(config, prefix) { return path.join(this.state, "maintenance", hash(this.target(config) + ":" + prefix) + ".json"); }
+  maintenanceHint(prefix) {
+    const config = this.config();
+    if (!config.enabled) return "";
+    const previous = readJson(this.maintenanceFile(config, prefix));
+    if (previous && this.clock() - previous.at < 7 * 86400000) return "";
+    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix} for a bounded batch. Age alone never authorizes deletion.`;
+  }
+  async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
+    scopePrefix(path_prefix);
+    if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(max_results) || max_results < 1 || max_results > 100 || (offset && !revision)) fail("ARGUMENT", "Use a revision for pagination and a batch of 1–100.");
+    if (checkout_root && !/^projects\/[^/]+\/$/u.test(path_prefix)) fail("ARGUMENT", "Source checks need one explicit project scope and its checkout_root.");
+    return this.run(async config => {
+      const snapshot = await this.snapshot(config, revision);
+      await this.hydrate(config, snapshot, this.names(snapshot));
+      const environment = this.environment();
+      const report = inventory(snapshot.files, path_prefix, { now: this.clock(), environment, checkoutRoot: checkout_root });
+      const results = [];
+      let bytes = 0;
+      for (const item of report.results.slice(offset, offset + max_results)) {
+        const size = Buffer.byteLength(JSON.stringify(item));
+        if (results.length && bytes + size > 48000) break;
+        results.push(item); bytes += size;
+      }
+      const counts = {};
+      for (const item of report.results) for (const reason of item.reasons) counts[reason] = (counts[reason] || 0) + 1;
+      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock() });
+      return { revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
+        environment, path_prefix, documents: report.documents, candidates: report.results.length, cooling: report.cooling,
+        gc_eligible: report.results.filter(item => item.action === "gc_eligible").length, counts, results,
+        remaining: Math.max(0, report.results.length - offset - results.length),
+        next_offset: offset + results.length < report.results.length ? offset + results.length : undefined };
+    });
+  }
+  async gc({ path_prefix, base_revision, plan_id, apply = false } = {}) {
+    scopePrefix(path_prefix);
+    const plan = await this.run(async config => {
+      const snapshot = await this.latest(config, { refresh: apply });
+      if (apply && (!base_revision || this.oid(config, base_revision) !== snapshot.oid)) fail("REVISION_CONFLICT", "Preview GC and apply its current base_revision; nothing was deleted.", { applied: false });
+      await this.hydrate(config, snapshot, this.names(snapshot));
+      const result = gcPlan(snapshot.files, path_prefix, { now: this.clock(), environment: this.environment() });
+      const planId = hash(JSON.stringify([path_prefix, result.changes]));
+      if (apply && plan_id !== planId) fail("PLAN_CHANGED", "Preview cleanup again; its deletion or navigation set changed.", { applied: false });
+      return { preview: !apply, revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
+        path_prefix, plan_id: planId, deleted: result.deleted, navigation: result.navigation, blocked: result.blocked,
+        edits: Object.entries(result.changes).map(([name, content]) => content === null ? { op: "delete", path: name } : { op: "replace", path: name, old_text: snapshot.files[name], new_text: content }) };
+    });
+    const { edits, ...visible } = plan;
+    if (!apply || !edits.length) return { ...visible, applied: false };
+    const result = await this.edit({ base_revision: plan.revision, summary: "Remove explicitly expired transient knowledge", edits });
+    return { ...visible, ...result, preview: false };
+  }
   async read({ paths, revision, start_line = 1, start_column = 1, max_lines = 200, line_numbers = false } = {}) {
     if (!Array.isArray(paths) || !paths.length || paths.length > 20) fail("ARGUMENT", "Read between 1 and 20 paths in one call.");
     paths.forEach(documentPath);
@@ -161,7 +221,8 @@ export class SpecStore {
             if (end < chars.length) break;
           }
           const truncated = nextLine <= lines.length;
-          return { path: name, exists: true, content: selected.join("\n"), start_line, total_lines: lines.length,
+          const knowledge = lifecycle(text, { now: this.clock(), environment: this.environment() });
+          return { path: name, exists: true, content: selected.join("\n"), knowledge: { metadata: knowledge.metadata, reasons: knowledge.reasons }, start_line, total_lines: lines.length,
             ...(line_numbers ? { line_numbers: true } : {}),
             start_column, truncated, next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
         }) };
@@ -197,9 +258,9 @@ export class SpecStore {
         results: results.slice(0, max_results), truncated: results.length > max_results };
     });
   }
-  async edit({ base_revision, summary, edits } = {}) {
+  async edit({ base_revision, summary, edits = [], reviews = [], checkout_root } = {}) {
     if (typeof summary !== "string" || !summary.trim() || summary.length > 200 || /[\r\n]/u.test(summary)) fail("ARGUMENT", "Provide a concise, single-line summary (1–200 characters).");
-    if (!Array.isArray(edits) || !edits.length || edits.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits.");
+    if (!Array.isArray(edits) || !Array.isArray(reviews) || !edits.length && !reviews.length || edits.length + reviews.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits/reviews.");
     for (const edit of edits) { documentPath(edit.path); if (!["replace", "replace_lines", "create", "delete"].includes(edit.op)) fail("ARGUMENT", "Edit op must be replace, replace_lines, create, or delete."); }
     return this.run(async config => {
       const expected = this.oid(config, base_revision);
@@ -210,7 +271,8 @@ export class SpecStore {
         fail("REVISION_CONFLICT", "Knowledge changed. Read the changed documents and reconcile before retrying. Nothing was applied.",
           { applied: false, current_revision: this.version(config, current.oid), changed_paths: base ? changed(versions(base), versions(current)) : undefined });
       }
-      await this.hydrate(config, current, [...new Set(edits.map(edit => edit.path))]);
+      const deleting = edits.some(edit => edit.op === "delete") || reviews.some(review => review.outcome === "delete");
+      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...edits.map(edit => edit.path), ...reviews.map(review => review.path)])]);
       const revision = this.version(config, current.oid);
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
@@ -236,15 +298,19 @@ export class SpecStore {
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
+      applyReviews(current.files, result, reviews, { now: this.clock(), environment: this.environment(), checkoutRoot: checkout_root });
+      if (deleting) assertDeletionLinks(current.files, result);
+      for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge documents must be at most 1 MiB.", { path: name });
       const changes = Object.fromEntries(changed(current.files, result).map(name => [name, result[name] ?? null]));
       const finalNames = new Set(this.names(current));
       for (const [name, content] of Object.entries(changes)) { if (content === null) finalNames.delete(name); else finalNames.add(name); }
       validateNames([...finalNames]);
       if (!Object.keys(changes).length) return { applied: false, unchanged: true, revision: base_revision, paths: [] };
       if (config.mode === "local") {
+        const backup = deleting ? this.backupDeletion(config, current.files, changes) : undefined;
         publish(this.home, this.state, changes);
         const next = await this.latest(config);
-        return { applied: true, source: "local", revision: this.version(config, next.oid), paths: Object.keys(changes) };
+        return { applied: true, source: "local", revision: this.version(config, next.oid), paths: Object.keys(changes), backup };
       }
       let commit;
       try { commit = await this.github.commit(config.github, expected, changes, summary); }
@@ -268,6 +334,36 @@ export class SpecStore {
       writeJson(this.headFile(config), { oid: commit.oid, checkedAt: new Date().toISOString() });
       return { applied: true, source: "github", revision: this.version(config, commit.oid), paths: Object.keys(changes), url: commit.url };
     });
+  }
+  backupDeletion(config, before, changes) {
+    const root = path.join(this.state, "deletions");
+    fs.mkdirSync(root, { recursive: true });
+    for (const file of fs.readdirSync(root)) {
+      if (!/^\d+-[a-f0-9-]+\.json$/u.test(file)) continue;
+      if (Number(file.split("-")[0]) < this.clock() - 30 * 86400000) fs.rmSync(path.join(root, file));
+    }
+    const id = `${this.clock()}-${randomUUID()}`;
+    writeJson(path.join(root, id + ".json"), { at: this.clock(), target: this.target(config),
+      before: Object.fromEntries(Object.keys(changes).map(name => [name, before[name] ?? null])), after: changes });
+    return id;
+  }
+  async restore({ backup, apply = false } = {}) {
+    const plan = await this.run(async config => {
+      if (config.mode !== "local") fail("CONFIG", "Use the selected GitHub repository's commit history for remote recovery.");
+      const root = path.join(this.state, "deletions");
+      if (!backup) return { backups: fs.existsSync(root) ? fs.readdirSync(root).filter(file => /^\d+-[a-f0-9-]+\.json$/u.test(file) && Number(file.split("-")[0]) >= this.clock() - 30 * 86400000).map(file => file.slice(0, -5)) : [] };
+      if (!/^\d+-[a-f0-9-]+$/u.test(backup)) fail("ARGUMENT", "Use a listed backup identifier.");
+      const saved = readJson(path.join(root, backup + ".json"));
+      if (!saved || saved.target !== this.target(config) || saved.at < this.clock() - 30 * 86400000) fail("BACKUP", "Backup is unavailable for this binding or has expired.");
+      const current = await this.latest(config);
+      const conflicts = Object.keys(saved.after).filter(name => (current.files[name] ?? null) !== saved.after[name]);
+      if (apply && conflicts.length) fail("REVISION_CONFLICT", "Recovery would overwrite later changes; reconcile them first.", { paths: conflicts });
+      return { preview: !apply, backup, revision: this.version(config, current.oid), paths: Object.keys(saved.before), conflicts,
+        edits: Object.entries(saved.before).flatMap(([name, content]) => content === null ? current.files[name] === undefined ? [] : [{ op: "delete", path: name }] : current.files[name] === undefined ? [{ op: "create", path: name, content }] : [{ op: "replace", path: name, old_text: current.files[name], new_text: content }]) };
+    });
+    const { edits, ...visible } = plan;
+    if (!apply || !edits?.length) return visible;
+    return { ...visible, ...await this.edit({ base_revision: plan.revision, summary: "Restore a deleted knowledge batch", edits }) };
   }
   async refresh() {
     return this.run(async config => { const snapshot = await this.latest(config, { refresh: true });
