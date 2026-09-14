@@ -33,8 +33,17 @@ export function documentPath(value) {
   }
   return value;
 }
+export const isDocument = value => /^(projects\/[^/]+\/|context\/).+\.md$/u.test(value);
+export const metadataPath = name => `metadata/${documentPath(name)}.json`;
+export function storagePath(value) {
+  if (typeof value === "string" && value.startsWith("metadata/") && value.endsWith(".md.json")) {
+    documentPath(value.slice(9, -5));
+    return value;
+  }
+  return documentPath(value);
+}
 export function safeFile(root, relative) {
-  documentPath(relative);
+  storagePath(relative);
   let current = root;
   const parts = relative.split("/");
   for (const [index, part] of parts.entries()) {
@@ -55,21 +64,21 @@ export function scan(root) {
     for (const item of fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
       if (item.isSymbolicLink()) fail("INVALID_PATH", "Knowledge cannot contain symbolic links.", { path: prefix + item.name });
       if (item.isDirectory()) walk(path.join(dir, item.name), prefix + item.name + "/");
-      else if (item.isFile() && item.name.endsWith(".md")) {
-        const name = documentPath(prefix + item.name);
+      else if (item.isFile() && (prefix.startsWith("metadata/") ? item.name.endsWith(".json") : item.name.endsWith(".md"))) {
+        const name = storagePath(prefix + item.name);
         const file = safeFile(root, name);
         if (fs.statSync(file).size > 1024 * 1024) fail("TOO_LARGE", "Knowledge documents must be at most 1 MiB.", { path: name });
         files[name] = fs.readFileSync(file, "utf8");
       }
     }
   }
-  for (const prefix of ["projects", "context"]) walk(path.join(root, prefix), prefix + "/");
+  for (const prefix of ["projects", "context", "metadata"]) walk(path.join(root, prefix), prefix + "/");
   return files;
 }
 export const revisionOf = files => hash(JSON.stringify(Object.entries(files).sort(([a], [b]) => a.localeCompare(b))));
 
 export function validateNames(names) {
-  const portable = names.map(name => documentPath(name).normalize("NFKC").toLowerCase()).sort();
+  const portable = names.map(name => storagePath(name).normalize("NFKC").toLowerCase()).sort();
   if (new Set(portable).size !== portable.length) fail("INVALID_PATH", "Document paths must remain distinct on case-insensitive filesystems.", { applied: false });
   const paths = new Set(portable);
   for (const name of portable) {

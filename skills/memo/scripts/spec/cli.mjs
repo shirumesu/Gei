@@ -19,6 +19,8 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
   check --scope PREFIX          Bounded maintenance worklist; --all covers both roots
   gc --scope PREFIX             Preview explicit transient cleanup; --apply executes
                                 with --base-revision REV --plan-id ID from the preview
+  migrate-metadata [--scope PREFIX | --all] [--apply --base-revision REV]
+                                 Move embedded state to root metadata/; preview by default
   restore [--backup ID]          List/preview local deletion recovery; --apply restores
   check/gc display a readable worklist; --json returns structured output.
   check/gc also accept JSON via --input FILE (same schema as MCP).
@@ -49,6 +51,7 @@ try {
   else if (command === "refresh") result = await store.refresh();
   else if (command === "connect" && positional[0] === "github") result = await store.connect(options);
   else if (command === "use" && positional[0] === "local") result = await store.useLocal(options);
+  else if (command === "migrate-metadata") result = await store.migrateMetadata({ path_prefix: options.scope || "all", base_revision: options.base_revision, apply: Boolean(options.apply) });
   else if (command === "restore") result = await store.restore(options);
   else if (["check", "gc"].includes(command)) {
     const input = options.input ? JSON.parse(fs.readFileSync(options.input, "utf8")) : { path_prefix: options.all ? "all" : options.scope,

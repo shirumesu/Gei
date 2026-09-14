@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
-import { parseDocument } from "../skills/memo/scripts/spec/maintenance.mjs";
+import { parseDocument } from "../skills/memo/scripts/spec/metadata.mjs";
 
 export const PROJECT_INDEX_BYTES = 3072;
 export const SHARED_INDEX_BYTES = 1024;

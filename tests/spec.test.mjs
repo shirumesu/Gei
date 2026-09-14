@@ -5,11 +5,11 @@ import os from "node:os";
 import path from "node:path";
 import { spawn, execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { documentView } from "../skills/memo/scripts/spec/document.mjs";
-import { parseDocument, bodyHash } from "../skills/memo/scripts/spec/maintenance.mjs";
+import { bodyHash, parseDocument, contentHash, metadataFor } from "../skills/memo/scripts/spec/metadata.mjs";
+import { lifecycle } from "../skills/memo/scripts/spec/maintenance.mjs";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
 import { GitHub } from "../skills/memo/scripts/spec/github.mjs";
-import { hash, readJson, writeJson } from "../skills/memo/scripts/spec/io.mjs";
+import { hash, readJson, writeJson, metadataPath, scan } from "../skills/memo/scripts/spec/io.mjs";
 import { tools } from "../skills/memo/scripts/spec/tools.mjs";
 
 const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,7 +28,8 @@ function fixture(t, extra = {}) {
   return { root, env, store };
 }
 const stored = (env, relative) => fs.readFileSync(path.join(env.GEI_SPEC_HOME, relative), "utf8");
-const disk = (env, relative) => documentView(stored(env, relative));
+const disk = stored;
+const stateOnDisk = (env, relative) => JSON.parse(stored(env, metadataPath(relative)));
 async function seed(store, files = { [name]: "# Example\nOld rule.\n" }) {
   const read = await store.read({ paths: Object.keys(files) });
   return store.edit({ base_revision: read.revision, summary: "Create knowledge", edits: Object.entries(files).map(([name, content]) => ({ op: "create", path: name, content })) });
@@ -103,16 +104,21 @@ test("local CLI creates and atomically edits Markdown without credentials or Git
   const saved = JSON.parse(result.stdout);
   await store.edit({ base_revision: saved.revision, summary: "Update rule", edits: [{ op: "replace", path: name, old_text: "Rule:", new_text: "条件:" }] });
   assert.equal(disk(env, name), "# 中文\r\n条件: \"C:\\notes\"\r\n");
-  assert.deepEqual(fs.readdirSync(env.GEI_SPEC_HOME), ["projects"]);
+  assert.deepEqual(fs.readdirSync(env.GEI_SPEC_HOME), ["metadata", "projects"]);
 });
 
-test("short revisions survive restart, accept previous references, and never select another binding", async t => {
+test("Markdown revisions survive restart and reject previous coordinate contracts and other bindings", async t => {
   const { env, store } = fixture(t);
   const saved = await seed(store);
   assert.match(saved.revision, /^r_[a-f0-9]{16}$/u);
   const restarted = new SpecStore({ env });
   assert.equal((await restarted.read({ paths: [name], revision: saved.revision })).files[0].content, disk(env, name));
-  const legacy = `${store.target(store.config())}:${store.oid(store.config(), saved.revision)}`;
+  const oid = store.oid(store.config(), saved.revision);
+  const oldReference = `r_${hash(`${store.target(store.config())}:${oid}`).slice(0, 16)}`;
+  writeJson(path.join(env.GEI_SPEC_STATE, "revisions", oldReference + ".json"), { target: store.target(store.config()), oid });
+  await assert.rejects(store.edit({ base_revision: oldReference, summary: "Old virtual coordinates", edits: [{ op: "replace_lines", path: name, start_line: 1, end_line: 1, new_text: "Wrong" }] }), { code: "REVISION" });
+  await assert.rejects(store.read({ paths: [name], revision: `${store.target(store.config())}:${oid}` }), { code: "REVISION" });
+  const legacy = `${store.target(store.config())}:markdown:${store.oid(store.config(), saved.revision)}`;
   const read = await restarted.read({ paths: [name], revision: legacy });
   assert.equal(read.revision, saved.revision);
   await assert.rejects(store.read({ paths: [name], revision: "r_0000000000000000" }), { code: "REVISION" });
@@ -374,7 +380,7 @@ test("GitHub preview, import, exact edit, and snapshot reads use the actual adap
   const { store, api, env } = remoteFixture(t, { "context/INDEX.md": "Shared" });
   const local = await seed(store);
   const preview = await store.connect({ repo: "fixture/knowledge" });
-  assert.deepEqual(preview.upload_paths, [name]); assert.equal((await store.status()).mode, "local");
+  assert.deepEqual(preview.upload_paths.sort(), [name, metadataPath(name)].sort()); assert.equal((await store.status()).mode, "local");
   await store.connect({ repo: "fixture/knowledge", apply: true });
   assert.equal(api.commits, 1);
   await assert.rejects(store.edit({ base_revision: local.revision, summary: "Old binding", edits: [{ op: "delete", path: name }] }), { code: "REVISION" });
@@ -439,7 +445,7 @@ test("connection uses API access rather than user push metadata for integration 
   assert.equal(saved.applied, true);
   api.rejectWrites = true;
   await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Denied write", edits: [{ op: "replace", path: name, old_text: "Updated", new_text: "Denied" }] }), { code: "SUBMISSION_UNCONFIRMED" });
-  assert.equal(documentView(api.revisions.get(api.head)[name]), "# Updated\n");
+  assert.equal(api.revisions.get(api.head)[name], "# Updated\n");
   const denied = remoteFixture(t);
   await seed(denied.store);
   denied.api.permissions = { push: false };
@@ -457,12 +463,12 @@ test("connection accepts checkout newline conversion without rewriting either co
   await seed(store, { [added]: "New.\r\n" });
   fs.writeFileSync(path.join(env.GEI_SPEC_HOME, name), local);
   const preview = await store.connect({ repo: "fixture/knowledge" });
-  assert.deepEqual(preview.upload_paths, [added]);
+  assert.deepEqual(preview.upload_paths.sort(), [added, metadataPath(added)].sort());
   assert.equal((await store.status()).mode, "local");
   await store.connect({ repo: "fixture/knowledge", apply: true });
   assert.equal(api.commits, 1);
   assert.equal(api.revisions.get(api.head)[name], remote);
-  assert.equal(documentView(api.revisions.get(api.head)[added]), "New.\r\n");
+  assert.equal(api.revisions.get(api.head)[added], "New.\r\n");
   assert.equal(disk(env, name), local);
   const read = await store.read({ paths: [name] });
   assert.equal(read.files[0].content, remote);
@@ -533,6 +539,7 @@ test("MCP starts from copied host configurations, validates schema, and survives
     assert.equal(JSON.parse(saved.stdout).result.structuredContent.applied, true);
     assert.equal(disk(env, name), "MCP saved");
     fs.rmSync(path.join(env.GEI_SPEC_HOME, name));
+    fs.rmSync(path.join(env.GEI_SPEC_HOME, metadataPath(name)));
   }
 });
 
@@ -598,7 +605,7 @@ test("maintenance reviews preserve Markdown and do not turn inactivity into dele
   const read = await store.read({ paths: [topic] });
   assert.match(read.files[0].content, /^---\ntitle: Design\n---\n/u);
   assert.ok(read.files[0].content.endsWith("# Design\nA rare, durable constraint.\n"));
-  assert.equal(parseDocument(stored(env, topic)).metadata.verified_at, new Date(now).toISOString());
+  assert.equal(stateOnDisk(env, topic).verified_at, new Date(now).toISOString());
   now += 100 * 86400000;
   const check = await store.check({ path_prefix: "projects/example/" });
   assert.ok(check.results.find(item => item.path === topic).reasons.includes("review_due"));
@@ -620,8 +627,8 @@ test("maintenance deferral cools an unresolved item without renewing evidence", 
   const saved = await seed(store, { [task]: "# Release\nCommit exists; deployment unknown.\n" });
   await store.edit({ base_revision: saved.revision, summary: "Deployment needs evidence", reviews: [{ path: task, outcome: "defer", basis: "Deployment target unavailable" }] });
   const read = await store.read({ paths: [task] });
-  assert.equal(parseDocument(stored(env, task)).metadata.kind, "handoff");
-  assert.equal(parseDocument(stored(env, task)).metadata.verified_at, undefined);
+  assert.equal(stateOnDisk(env, task).kind, "handoff");
+  assert.equal(stateOnDisk(env, task).verified_at, undefined);
   assert.equal((await store.check({ path_prefix: "all" })).cooling, 1);
   now += 31 * 86400000;
   assert.equal((await store.check({ path_prefix: "all" })).candidates, 1);
@@ -752,7 +759,7 @@ test("remote GC commits one batch, handles a lost reply, and refuses offline app
   const result = await store.gc({ path_prefix: "all", apply: true, base_revision: preview.revision, plan_id: preview.plan_id });
   assert.equal(result.applied, true); assert.equal(result.verified_after_retry, true);
   assert.equal(api.commits, before + 1);
-  assert.equal(documentView(api.revisions.get(api.head)[name]), "# Example\n");
+  assert.equal(api.revisions.get(api.head)[name], "# Example\n");
   assert.equal(api.revisions.get(api.head)[transient], undefined);
 });
 
@@ -834,7 +841,7 @@ test("GC preserves link items carrying inline-code meaning or nested explanation
   assert.equal(preview.blocked.length, 2);
 });
 
-test("visible coordinates agree across legacy, managed, mixed and malformed frontmatter", async t => {
+test("stored coordinates survive edits and migration across legacy and mixed frontmatter", async t => {
   const cases = [
     ["legacy", "# Title\nNeedle\nTail\n", "# Title\nNeedle\nTail\n", 2],
     ["other", "---\ntitle: Kept\n---\n# Title\nNeedle\nTail\n", "---\ntitle: Kept\n---\n# Title\nNeedle\nTail\n", 5],
@@ -847,30 +854,31 @@ test("visible coordinates agree across legacy, managed, mixed and malformed fron
     fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, file)), { recursive: true });
     fs.writeFileSync(path.join(env.GEI_SPEC_HOME, file), raw);
     const read = await store.read({ paths: [file] });
-    assert.equal(read.files[0].content, visible, label);
+    assert.equal(read.files[0].content, raw, label);
     assert.equal(read.files[0].knowledge, undefined);
     assert.equal(stored(env, file), raw, "read does not migrate the document");
-    const matches = await store.search({ path_prefix: "projects/example/", query: "needle", revision: read.revision });
-    assert.equal(matches.results.length, 1); assert.equal(matches.results[0].line, line);
-    assert.equal((await store.read({ paths: [file], revision: read.revision, start_line: line, max_lines: 1, line_numbers: true })).files[0].content, `${line}: Needle`);
+    const matches = await store.search({ path_prefix: "projects/example/", query: "Needle", revision: read.revision });
+    const actualLine = raw.split("\n").findIndex(row => row.replace(/\r$/u, "") === "Needle") + 1;
+    assert.ok(matches.results.some(item => item.line === actualLine));
+    assert.equal((await store.read({ paths: [file], revision: read.revision, start_line: actualLine, max_lines: 1, line_numbers: true })).files[0].content, `${actualLine}: Needle`);
     await assert.rejects(store.edit({ base_revision: read.revision, summary: "Find recovery context", edits: [{ op: "replace", path: file, old_text: "Needle absent", new_text: "Changed" }] }), error => {
-      assert.ok(!error.details.context.includes("gei:"));
-      assert.ok(error.details.context.includes(`${line}: Needle`));
+      assert.ok(error.details.context.includes(`${actualLine}: Needle`));
       return error.code === "NO_MATCH";
     });
-    const updated = await store.edit({ base_revision: read.revision, summary: "Replace visible line", edits: [{ op: "replace_lines", path: file, start_line: line, end_line: line, new_text: "Changed" }] });
+    const updated = await store.edit({ base_revision: read.revision, summary: "Replace visible line", edits: [{ op: "replace_lines", path: file, start_line: actualLine, end_line: actualLine, new_text: "Changed" }] });
     assert.equal((await store.read({ paths: [file] })).files[0].content, visible.replace("Needle", "Changed"));
-    if (raw.includes('gei:')) assert.ok(stored(env, file).includes('gei: {"invalid":"hidden needle evidence"}'));
+    if (raw.includes("gei:")) { assert.ok(!stored(env, file).includes("gei:")); assert.ok(stateOnDisk(env, file).legacy_fields); }
     const next = await store.edit({ base_revision: updated.revision, summary: "Replace complete view", edits: [{ op: "replace", path: file, old_text: visible.replace("Needle", "Changed"), new_text: visible.replace("Needle", "Final") }] });
     assert.equal((await store.read({ paths: [file], revision: next.revision })).files[0].content, visible.replace("Needle", "Final"));
-    assert.equal((await store.read({ paths: [file], revision: read.revision })).files[0].content, visible);
+    assert.equal((await store.read({ paths: [file], revision: read.revision })).files[0].content, raw);
   }
 });
 
 test("large internal evidence cannot consume content pages or appear in search and errors", async t => {
   const { store, env } = fixture(t);
   fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, name)), { recursive: true });
-  fs.writeFileSync(path.join(env.GEI_SPEC_HOME, name), `---\ngei: ${JSON.stringify({ hidden: "secret-marker " + "x".repeat(60000) })}\n---\n# Title\nSecond\nThird\n`);
+  fs.writeFileSync(path.join(env.GEI_SPEC_HOME, name), "# Title\nSecond\nThird\n");
+  writeJson(path.join(env.GEI_SPEC_HOME, metadataPath(name)), { hidden: "secret-marker " + "x".repeat(60000) });
   const read = await store.read({ paths: [name], max_lines: 2 });
   assert.equal(read.files[0].content, "# Title\nSecond");
   assert.equal(read.files[0].next_line, 3);
@@ -890,17 +898,17 @@ test("ordinary edits preserve verification while explicit whole-document review 
   let now = Date.parse("2026-01-01T00:00:00Z");
   const { store, env } = fixture(t, { clock: () => now });
   let saved = await seed(store, { [name]: "---\ntitle: Initial\n---\n# Title\nFirst fact.\nSecond fact.\n" });
-  let state = parseDocument(stored(env, name)).metadata;
+  let state = stateOnDisk(env, name);
   assert.equal(state.verified_at, undefined); assert.equal(state.review_after, undefined);
   saved = await store.edit({ base_revision: saved.revision, summary: "Verify document", reviews: [{ path: name, outcome: "verify", basis: "Both facts and applicability verified from current requirements" }] });
-  const baseline = parseDocument(stored(env, name)).metadata;
+  const baseline = stateOnDisk(env, name);
   now += 86400000;
   saved = await store.edit({ base_revision: saved.revision, summary: "Correct first fact", edits: [{ op: "replace", path: name, old_text: "First fact.", new_text: "First corrected fact." }] });
-  state = parseDocument(stored(env, name)).metadata;
+  state = stateOnDisk(env, name);
   assert.deepEqual(state, baseline);
   assert.ok((await store.check({ path_prefix: "all" })).results[0].reasons.includes("content_changed"));
   saved = await store.edit({ base_revision: saved.revision, summary: "Verify all facts after correction", reviews: [{ path: name, outcome: "verify", basis: "Both facts verified; source references are beside each claim" }] });
-  assert.equal(parseDocument(stored(env, name)).metadata.verified_at, new Date(now).toISOString());
+  assert.equal(stateOnDisk(env, name).verified_at, new Date(now).toISOString());
   await store.edit({ base_revision: saved.revision, summary: "Change applicability header", edits: [{ op: "replace_lines", path: name, start_line: 2, end_line: 2, new_text: "title: Changed" }] });
   assert.ok((await store.check({ path_prefix: "all" })).results[0].reasons.includes("content_changed"));
 });
@@ -915,7 +923,7 @@ test("old lifecycle state remains readable and defer preserves its original veri
   assert.deepEqual(check.results[0].reasons, ["review_due"]);
   assert.equal(check.results[0].basis, "Original source");
   await store.edit({ base_revision: check.revision, summary: "Need target evidence", reviews: [{ path: name, outcome: "defer", basis: "Target environment is unavailable" }] });
-  const state = parseDocument(stored(env, name)).metadata;
+  const state = stateOnDisk(env, name);
   assert.equal(state.version, 1); assert.equal(state.verified_hash, meta.verified_hash); assert.equal(state.verified_at, meta.verified_at);
   assert.equal((await store.check({ path_prefix: "all" })).cooling, 1);
 });
@@ -944,12 +952,12 @@ test("verification preserves meaningful BOM frontmatter and partial corrections 
   let saved = await seed(store, { [name]: original });
   assert.equal((await store.read({ paths: [name] })).files[0].content, original);
   saved = await store.edit({ base_revision: saved.revision, summary: "Verify context", reviews: [{ path: name, outcome: "verify", basis: "Both claims checked" }] });
-  const baseline = parseDocument(stored(env, name)).metadata;
+  const baseline = stateOnDisk(env, name);
   assert.equal((await store.read({ paths: [name] })).files[0].content, original);
   assert.equal((await store.check({ path_prefix: "all" })).candidates, 0);
   await store.edit({ base_revision: saved.revision, summary: "Correct first claim and defer the rest", edits: [{ op: "replace_lines", path: name, start_line: 5, end_line: 5, new_text: "First corrected." }], reviews: [{ path: name, outcome: "defer", basis: "Second claim needs evidence from its target environment" }] });
   assert.equal((await store.read({ paths: [name] })).files[0].content, original.replace("First.", "First corrected."));
-  const state = parseDocument(stored(env, name)).metadata;
+  const state = stateOnDisk(env, name);
   assert.equal(state.verified_at, baseline.verified_at); assert.equal(state.verified_hash, baseline.verified_hash);
   assert.equal((await store.check({ path_prefix: "all" })).cooling, 1);
 });
@@ -959,7 +967,7 @@ test("GC uses visible reference coordinates and ignores historical metadata refe
   const target = "projects/example/probe.md", history = "projects/example/history.md";
   let saved = await seed(store, { [name]: '---\ntitle: Routes\n---\n# Routes\n- [Probe](probe.md)\n', [target]: '# Probe\n', [history]: '# History\nCurrent fact.\n' });
   saved = await store.edit({ base_revision: saved.revision, summary: "Verify old source note", reviews: [{ path: history, outcome: "verify", basis: `Previously used ${target}, now superseded by the source recorded in the body.` }, { path: target, outcome: "verify", kind: "transient", basis: "One-off probe complete", delete_after: "2020-01-01T00:00:00Z", deletion_reason: "Explicitly disposable" }] });
-  assert.equal(parseDocument(stored(env, target)).metadata.review_days, 30);
+  assert.equal(stateOnDisk(env, target).review_days, 30);
   const check = await store.check({ path_prefix: "all" });
   const item = check.results.find(item => item.path === target);
   assert.equal(item.incoming.length, 1); assert.equal(item.incoming[0].line, 5);
@@ -969,4 +977,194 @@ test("GC uses visible reference coordinates and ignores historical metadata refe
   assert.deepEqual(preview.deleted, [target]); assert.equal(preview.declarations[0].deletion_reason, "Explicitly disposable");
   await store.gc({ path_prefix: "all", base_revision: preview.revision, plan_id: preview.plan_id, apply: true });
   assert.equal((await store.read({ paths: [name] })).files[0].content, '---\ntitle: Routes\n---\n# Routes\n');
+});
+
+test("migration preserves verification, deferral and GC eligibility across both legacy hash formats", async t => {
+  const now = Date.parse("2026-04-01T00:00:00Z");
+  const { store, env } = fixture(t, { clock: () => now });
+  const environment = store.environment();
+  const originals = {}, expected = {}, baseline = {};
+  for (const version of [1, 2]) for (const mixed of [false, true]) for (const state of ["verified", "changed", "deferred", "transient"]) {
+    const file = `projects/example/v${version}-${mixed}-${state}.md`;
+    const body = "# Fact\r\nConditional knowledge.\r\n";
+    const meta = { version, kind: state === "transient" ? "transient" : "knowledge", created_at: "2026-01-01T00:00:00Z", review_days: 30,
+      verified_at: "2026-01-01T00:00:00Z", review_after: "2026-05-01T00:00:00Z", basis: "Original evidence" };
+    const raw = value => mixed ? `\uFEFF---\r\ntitle: Context\ngei: ${JSON.stringify(value)}\r\ntags: [one]\n---\r\n${body}` : `\uFEFF---\r\ngei: ${JSON.stringify(value)}\r\n---\r\n${body}`;
+    meta.verified_hash = state === "changed" ? bodyHash("Prior fact") : contentHash(raw(meta), meta);
+    if (state === "transient") Object.assign(meta, { delete_after: "2026-03-01T00:00:00Z", deletion_reason: "Disposable probe", deletion_hash: meta.verified_hash });
+    if (state === "deferred") {
+      meta.review_after = "2026-02-01T00:00:00Z";
+      meta.deferred_fingerprint = lifecycle(raw(meta), { now, environment, state: { metadata: meta } }).fingerprint;
+      meta.retry_after = "2026-05-01T00:00:00Z"; meta.attempt_reason = "Target evidence unavailable";
+    }
+    originals[file] = raw(meta);
+    expected[file] = mixed ? `\uFEFF---\r\ntitle: Context\ntags: [one]\n---\r\n${body}` : `\uFEFF${body}`;
+    baseline[file] = meta;
+  }
+  for (const [file, content] of Object.entries(originals)) {
+    fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, file)), { recursive: true });
+    fs.writeFileSync(path.join(env.GEI_SPEC_HOME, file), content);
+  }
+  const legacy = "context/unmanaged.md";
+  fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, legacy)), { recursive: true });
+  fs.writeFileSync(path.join(env.GEI_SPEC_HOME, legacy), "---\ntitle: Untouched\n---\n# Legacy\n");
+  const before = await store.check({ path_prefix: "all", max_results: 100 });
+  const gcBefore = await store.gc({ path_prefix: "all" });
+  const preview = await store.migrateMetadata();
+  assert.equal(preview.migrated.length, 16); assert.deepEqual(preview.blocked, []);
+  assert.equal(stored(env, Object.keys(originals)[0]), Object.values(originals)[0]);
+  const migrated = await store.migrateMetadata({ apply: true, base_revision: preview.revision });
+  assert.equal(migrated.applied, true);
+  const after = await store.check({ path_prefix: "all", max_results: 100 });
+  assert.equal(after.cooling, before.cooling); assert.equal(after.cooling, 4);
+  assert.deepEqual(after.results, before.results);
+  assert.deepEqual((await store.gc({ path_prefix: "all" })).deleted, gcBefore.deleted);
+  for (const file of Object.keys(originals)) {
+    assert.equal(stored(env, file), expected[file]);
+    const { migrated_hash, ...meta } = stateOnDisk(env, file);
+    assert.deepEqual(meta, baseline[file]); assert.ok(migrated_hash);
+    assert.equal((await store.read({ paths: [file] })).files[0].content, expected[file]);
+    assert.equal((await store.read({ paths: [file], revision: preview.revision })).files[0].content, originals[file]);
+  }
+  assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, metadataPath(legacy))), false);
+  assert.deepEqual((await store.migrateMetadata()).migrated, []);
+  assert.equal((await store.migrateMetadata({ apply: true, base_revision: migrated.revision })).unchanged, true);
+  const file = Object.keys(originals).find(file => file.includes("v1-true-verified"));
+  const edited = await store.edit({ base_revision: migrated.revision, summary: "Change applicability", edits: [{ op: "replace_lines", path: file, start_line: 2, end_line: 2, new_text: "title: New context" }] });
+  assert.ok((await store.check({ path_prefix: "all", max_results: 100 })).results.find(item => item.path === file).reasons.includes("content_changed"));
+  await store.edit({ base_revision: edited.revision, summary: "Recheck complete note", reviews: [{ path: file, outcome: "verify", basis: "All claims and new applicability checked" }] });
+  assert.equal(stateOnDisk(env, file).version, 3); assert.equal(stateOnDisk(env, file).migrated_hash, undefined);
+});
+
+test("remote migration is one commit, detects conflicts and preserves exact revision reads", async t => {
+  const meta = { version: 1, kind: "knowledge", created_at: "2026-01-01T00:00:00Z", review_days: 30, verified_at: "2026-01-01T00:00:00Z", verified_hash: bodyHash("# Fact\n") };
+  const raw = `---\ngei: ${JSON.stringify(meta)}\n---\n# Fact\n`;
+  const { store, api, env } = remoteFixture(t, { [name]: raw });
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  const before = await store.read({ paths: [name] });
+  assert.equal(before.files[0].content, raw); assert.equal(api.commits, 0);
+  const preview = await store.migrateMetadata();
+  assert.equal(api.commits, 0);
+  api.loseResponse = true;
+  const saved = await store.migrateMetadata({ apply: true, base_revision: preview.revision });
+  assert.equal(saved.verified_after_retry, true); assert.equal(api.commits, 1);
+  const files = api.revisions.get(api.head);
+  assert.equal(files[name], "# Fact\n"); assert.equal(JSON.parse(files[metadataPath(name)]).verified_at, meta.verified_at);
+  assert.equal((await store.read({ paths: [name] })).files[0].content, files[name]);
+  assert.equal((await store.read({ paths: [name], revision: before.revision })).files[0].content, raw);
+  await assert.rejects(store.migrateMetadata({ apply: true, base_revision: before.revision }), { code: "REVISION_CONFLICT" });
+  api.advance({ ...files, [name]: raw });
+  const blocked = await store.migrateMetadata(); assert.deepEqual(blocked.blocked, [name]);
+  await assert.rejects(store.migrateMetadata({ apply: true, base_revision: blocked.revision }), { code: "METADATA_CONFLICT" });
+  assert.equal(api.commits, 1);
+  api.offline = true;
+  await assert.rejects(store.migrateMetadata({ apply: true, base_revision: blocked.revision }), { code: "NETWORK" });
+  assert.equal(fs.existsSync(env.GEI_SPEC_HOME), false);
+});
+
+test("rename moves metadata without renewal, repairs routes atomically, and deletion restores both", async t => {
+  const { store, env } = fixture(t);
+  const old = "projects/example/old.md", next = "projects/example/topics/new.md";
+  let saved = await seed(store, { [old]: "# Decision\n", [name]: "# Example\n- [Decision](old.md)\n" });
+  saved = await store.edit({ base_revision: saved.revision, summary: "Verify decision", reviews: [{ path: old, outcome: "verify", basis: "Accepted requirement confirmed" }] });
+  const meta = stored(env, metadataPath(old));
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Move with missing route repair", edits: [{ op: "rename", path: old, to: next }] }), { code: "DEPENDENCY" });
+  assert.equal(stored(env, old), "# Decision\n");
+  saved = await store.edit({ base_revision: saved.revision, summary: "Move decision and its route", edits: [{ op: "rename", path: old, to: next }, { op: "replace", path: name, old_text: "(old.md)", new_text: "(topics/new.md)" }] });
+  assert.equal(stored(env, metadataPath(next)), meta);
+  assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, old)), false);
+  assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, metadataPath(old))), false);
+  const beforeDeletion = scan(env.GEI_SPEC_HOME);
+  const deletion = await store.edit({ base_revision: saved.revision, summary: "Retire decision and route", edits: [{ op: "delete", path: next }, { op: "replace", path: name, old_text: "- [Decision](topics/new.md)\n", new_text: "" }] });
+  assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, metadataPath(next))), false);
+  await store.restore({ backup: deletion.backup, apply: true });
+  assert.deepEqual(scan(env.GEI_SPEC_HOME), beforeDeletion);
+  const read = await store.read({ paths: [next] });
+  await assert.rejects(store.edit({ base_revision: read.revision, summary: "Reject mixed rename and range", edits: [{ op: "rename", path: next, to: old }, { op: "replace_lines", path: old, start_line: 1, end_line: 1, new_text: "# Changed" }] }), { code: "RANGE" });
+});
+
+test("ordinary legacy replacement retains state and stable GitHub edits keep metadata out of the body diff", async t => {
+  const meta = { version: 2, kind: "knowledge", created_at: "2026-01-01T00:00:00Z", review_days: 90, verified_at: "2026-01-01T00:00:00Z", verified_hash: bodyHash("# Fact\nOne.\n") };
+  const raw = `---\ngei: ${JSON.stringify(meta)}\n---\n# Fact\nOne.\n`;
+  const { store, api } = remoteFixture(t, { [name]: raw });
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  let saved = await store.read({ paths: [name] });
+  saved = await store.edit({ base_revision: saved.revision, summary: "Replace entire legacy file", edits: [{ op: "replace", path: name, old_text: raw, new_text: "# Fact\nTwo.\n" }] });
+  let files = api.revisions.get(api.head);
+  assert.equal(files[name], "# Fact\nTwo.\n"); assert.equal(JSON.parse(files[metadataPath(name)]).verified_at, meta.verified_at);
+  assert.ok((await store.check({ path_prefix: "all" })).results[0].reasons.includes("content_changed"));
+  const before = { ...files };
+  saved = await store.edit({ base_revision: saved.revision, summary: "Correct one line", edits: [{ op: "replace_lines", path: name, start_line: 2, end_line: 2, new_text: "Three." }] });
+  files = api.revisions.get(api.head);
+  assert.equal(files[metadataPath(name)], before[metadataPath(name)]);
+  const request = JSON.parse(api.calls.filter(call => call.url.endsWith("/graphql")).at(-1).options.body).variables.input;
+  assert.deepEqual(request.fileChanges.additions.map(item => item.path), [name]);
+  const markdown = files[name];
+  await store.edit({ base_revision: saved.revision, summary: "Verify all claims", reviews: [{ path: name, outcome: "verify", basis: "Current source confirms the complete note" }] });
+  assert.equal(api.revisions.get(api.head)[name], markdown);
+  const verification = JSON.parse(api.calls.filter(call => call.url.endsWith("/graphql")).at(-1).options.body).variables.input;
+  assert.deepEqual(verification.fileChanges.additions.map(item => item.path), [metadataPath(name)]);
+});
+
+test("metadata stays outside content tools, is revisioned, and survives export and recovery", async t => {
+  const { store, api, env } = remoteFixture(t);
+  await store.connect({ repo: "fixture/knowledge", apply: true });
+  let saved = await seed(store);
+  const raw = api.revisions.get(api.head)[name];
+  saved = await store.edit({ base_revision: saved.revision, summary: "Add maintenance evidence", reviews: [{ path: name, outcome: "verify", basis: "internal-only-marker" }] });
+  assert.equal((await store.read({ paths: [name] })).files[0].content, raw);
+  assert.deepEqual((await store.search({ query: "internal-only-marker" })).results, []);
+  assert.deepEqual((await store.search()).results, [{ path: name }]);
+  await assert.rejects(store.read({ paths: [metadataPath(name)] }), { code: "INVALID_PATH" });
+  const files = api.revisions.get(api.head);
+  api.advance({ ...files, [metadataPath(name)]: files[metadataPath(name)].replace("internal-only-marker", "Changed evidence") });
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Stale maintenance premise", edits: [{ op: "replace", path: name, old_text: "Old", new_text: "New" }] }), error => error.code === "REVISION_CONFLICT" && error.details.changed_paths.includes(name));
+  const expected = api.revisions.get(api.head);
+  await store.useLocal({ apply: true });
+  assert.deepEqual(scan(env.GEI_SPEC_HOME), expected);
+  writeJson(path.join(env.GEI_SPEC_STATE, "transaction.json"), { files: { [name]: "# Recovered\n", [metadataPath(name)]: expected[metadataPath(name)] } });
+  assert.equal((await store.read({ paths: [name] })).files[0].content, "# Recovered\n");
+  assert.equal(stored(env, metadataPath(name)), expected[metadataPath(name)]);
+});
+
+test("migration CLI preserves malformed state without exposing it to maintenance or renewing it", async t => {
+  const { store, env } = fixture(t);
+  fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, name)), { recursive: true });
+  const raw = "---\ngei: broken secret-marker\ngei: duplicate\n---\n# Title\n";
+  fs.writeFileSync(path.join(env.GEI_SPEC_HOME, name), raw);
+  const preview = await run([cli, "migrate-metadata", "--all"], env);
+  assert.equal(preview.code, 0, preview.stderr);
+  const plan = JSON.parse(preview.stdout); assert.deepEqual(plan.migrated, [name]);
+  assert.equal(stored(env, name), raw);
+  const result = await run([cli, "migrate-metadata", "--all", "--apply", "--base-revision", plan.revision], env);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(stored(env, name), "# Title\n");
+  assert.deepEqual(stateOnDisk(env, name).legacy_fields, ["gei: broken secret-marker", "gei: duplicate"]);
+  const report = await store.check({ path_prefix: "all" });
+  assert.deepEqual(report.results[0].reasons, ["invalid_metadata"]);
+  assert.ok(!JSON.stringify(report).includes("secret-marker"));
+  assert.deepEqual((await store.search({ query: "secret-marker" })).results, []);
+  assert.deepEqual((await store.gc({ path_prefix: "all" })).deleted, []);
+});
+
+test("ordered legacy moves retain the original baseline while recreated paths start unverified", async t => {
+  const { store, env } = fixture(t);
+  const next = "projects/example/moved.md";
+  const body = "# Original\nAccepted fact.\n";
+  const meta = { version: 1, kind: "knowledge", created_at: "2026-01-01T00:00:00Z", review_days: 90, verified_at: "2026-01-01T00:00:00Z", verified_hash: bodyHash(body) };
+  fs.mkdirSync(path.dirname(path.join(env.GEI_SPEC_HOME, name)), { recursive: true });
+  fs.writeFileSync(path.join(env.GEI_SPEC_HOME, name), `---\ngei: ${JSON.stringify(meta)}\n---\n${body}`);
+  const read = await store.read({ paths: [name] });
+  const moved = await store.edit({ base_revision: read.revision, summary: "Move a legacy note and reuse its old path", edits: [
+    { op: "rename", path: name, to: next }, { op: "replace", path: next, old_text: "Accepted fact.", new_text: "Corrected fact." },
+    { op: "create", path: name, content: "# New purpose\n" },
+  ] });
+  assert.equal(stateOnDisk(env, name).verified_at, undefined);
+  assert.equal(stateOnDisk(env, next).verified_hash, meta.verified_hash);
+  assert.equal(stateOnDisk(env, next).verified_at, meta.verified_at);
+  assert.equal(stored(env, next), "# Original\nCorrected fact.\n");
+  const record = stored(env, metadataPath(next));
+  await store.edit({ base_revision: moved.revision, summary: "Move the original note back", edits: [{ op: "delete", path: name }, { op: "rename", path: next, to: name }] });
+  assert.equal(stored(env, metadataPath(name)), record);
+  assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, metadataPath(next))), false);
 });

@@ -31,7 +31,7 @@ export function rangeReplacements(files, edits, revision) {
     const text = files[name];
     const invalid = (edit, message) => fail("RANGE", message, { applied: false, edit_index: edit.index, path: name, ...editHelp(text, edit, revision) });
     if (typeof text !== "string") invalid(ranges[0], "Read an existing document before replacing lines.");
-    if (edits.some(edit => edit.path === name && edit.op !== "replace_lines")) invalid(ranges[0], "Do not mix line ranges with other operations on the same document in one batch.");
+    if (edits.some(edit => (edit.path === name || edit.to === name) && edit.op !== "replace_lines")) invalid(ranges[0], "Do not mix line ranges with other operations on the same document in one batch.");
     const lines = text.split("\n");
     const starts = [0];
     for (let i = 0; i < lines.length - 1; i++) starts.push(starts[i] + lines[i].length + 1);
