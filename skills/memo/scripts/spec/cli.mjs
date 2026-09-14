@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs";
+import { formatMaintenance } from "./presentation.mjs";
 import { SpecStore } from "./store.mjs";
 import { callTool } from "./tools.mjs";
 
@@ -19,6 +20,7 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
   gc --scope PREFIX             Preview explicit transient cleanup; --apply executes
                                 with --base-revision REV --plan-id ID from the preview
   restore [--backup ID]          List/preview local deletion recovery; --apply restores
+  check/gc display a readable worklist; --json returns structured output.
   check/gc also accept JSON via --input FILE (same schema as MCP).
   check: --limit N --offset N --revision REV --checkout-root DIR
   login                          Explain GitHub authentication
@@ -35,7 +37,7 @@ try {
   const options = {};
   const positional = [];
   for (let i = 0; i < args.length; i++) {
-    if (["--apply", "--create", "--all"].includes(args[i])) options[args[i].slice(2)] = true;
+    if (["--apply", "--create", "--all", "--json"].includes(args[i])) options[args[i].slice(2)] = true;
     else if (["--repo", "--branch", "--input", "--cached-revision", "--scope", "--base-revision", "--plan-id", "--revision", "--limit", "--offset", "--checkout-root", "--backup"].includes(args[i]) && args[i + 1] && !args[i + 1].startsWith("--")) options[args[i].slice(2).replaceAll("-", "_")] = args[++i];
     else if (args[i].startsWith("--")) throw new Error(`Unknown or incomplete option: ${args[i]}`);
     else positional.push(args[i]);
@@ -61,7 +63,7 @@ try {
     const input = options.input ? fs.readFileSync(options.input, "utf8") : fs.readFileSync(0, "utf8");
     result = await callTool(store, `spec_${command}`, JSON.parse(input));
   } else throw new Error("Unknown command. Use --help.");
-  process.stdout.write(JSON.stringify(result, null, 2) + "\n");
+  process.stdout.write((["check", "gc"].includes(command) && !options.json ? formatMaintenance(`spec_${command}`, result) : JSON.stringify(result, null, 2)) + "\n");
 } catch (error) {
   process.stderr.write(JSON.stringify({ code: error.code || "ERROR", message: error.message, ...error.details }) + "\n");
   process.exitCode = 1;

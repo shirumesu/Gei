@@ -17,12 +17,13 @@ try {
   assert.deepEqual((await client.listTools()).tools.map(tool => tool.name).sort(),
     ["spec_status", "spec_read", "spec_search", "spec_edit", "spec_check", "spec_gc"].sort());
   const name = "projects/sdk-test/INDEX.md";
+  const content = async () => (await client.callTool({ name: "spec_read", arguments: { paths: [name] } })).structuredContent.files[0].content;
   const read = await client.callTool({ name: "spec_read", arguments: { paths: [name] } });
   assert.equal(read.isError, undefined);
   const result = await client.callTool({ name: "spec_edit", arguments: { base_revision: read.structuredContent.revision,
     summary: "Verify SDK interoperability", edits: [{ op: "create", path: name, content: "# SDK fixture\n" }] } });
   assert.equal(result.structuredContent.applied, true);
-  assert.equal(fs.readFileSync(path.join(root, "knowledge", name), "utf8"), "# SDK fixture\n");
+  assert.equal(await content(), "# SDK fixture\n");
   const error = await client.callTool({ name: "spec_edit", arguments: { base_revision: result.structuredContent.revision, summary: "Missing field",
     edits: [{ op: "replace", path: name, old_text: "SDK" }] } });
   assert.equal(error.isError, true);
@@ -43,7 +44,7 @@ try {
   assert.ok(rangeBytes < exactBytes * 0.6);
   const updated = await client.callTool({ name: "spec_edit", arguments: rangeInput });
   assert.equal(updated.isError, undefined);
-  assert.equal(fs.readFileSync(path.join(root, "knowledge", name), "utf8"), original.replaceAll("enabled", "disabled"));
+  assert.equal(await content(), original.replaceAll("enabled", "disabled"));
   const stale = await client.callTool({ name: "spec_edit", arguments: rangeInput });
   assert.equal(stale.structuredContent.code, "REVISION_CONFLICT");
   const mismatch = await client.callTool({ name: "spec_edit", arguments: { base_revision: updated.structuredContent.revision,
@@ -53,13 +54,14 @@ try {
   assert.match(mismatch.structuredContent.context, /2: Record 0:/);
   const checked = await client.callTool({ name: "spec_check", arguments: { path_prefix: "projects/sdk-test/" } });
   assert.equal(checked.isError, undefined);
+  assert.match(checked.content[0].text, /^Maintenance check:/u);
+  assert.ok(!numbered.structuredContent.files[0].content.includes("gei:"));
   assert.equal(checked.structuredContent.candidates, 1);
   const transient = "projects/sdk-test/probe.md";
   const declared = await client.callTool({ name: "spec_edit", arguments: {
     base_revision: checked.structuredContent.revision, summary: "Declare completed disposable probe",
     edits: [{ op: "create", path: transient, content: "# Temporary probe\n" }],
-    reviews: [{ path: transient, outcome: "update", kind: "transient", reason: "Completed disposable probe",
-      evidence: ["Isolated SDK fixture"], delete_after: "2020-01-01T00:00:00Z", deletion_reason: "Probe is complete" }],
+    reviews: [{ path: transient, outcome: "verify", kind: "transient", basis: "Completed disposable probe", delete_after: "2020-01-01T00:00:00Z", deletion_reason: "Probe is complete" }],
   } });
   assert.equal(declared.isError, undefined);
   const preview = await client.callTool({ name: "spec_gc", arguments: { path_prefix: "projects/sdk-test/" } });
@@ -72,7 +74,7 @@ try {
     base_revision: preview.structuredContent.revision, plan_id: preview.structuredContent.plan_id } });
   assert.equal(removed.structuredContent.applied, true);
   assert.equal(fs.existsSync(path.join(root, "knowledge", transient)), false);
-  assert.equal(fs.readFileSync(path.join(root, "knowledge", name), "utf8"), original.replaceAll("enabled", "disabled"));
+  assert.equal(await content(), original.replaceAll("enabled", "disabled"));
   console.log(`PASS official MCP SDK: discovery, short references, numbered read, exact/range edits, stale rejection, recovery hints, maintenance reviews and preview-bound GC. Same 30-record edit input: exact ${exactBytes} bytes; range ${rangeBytes} bytes (not a token or model-quality benchmark).`);
 } finally {
   await client.close();

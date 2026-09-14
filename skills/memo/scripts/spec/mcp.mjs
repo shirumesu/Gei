@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import readline from "node:readline";
+import { formatMaintenance } from "./presentation.mjs";
 import { SpecStore } from "./store.mjs";
 import { callTool, tools } from "./tools.mjs";
 
@@ -23,7 +24,7 @@ async function handle(message) {
     case "tools/call":
       try {
         const result = await callTool(store, message.params?.name, message.params?.arguments);
-        reply({ content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result });
+        reply({ content: [{ type: "text", text: ["spec_check", "spec_gc"].includes(message.params.name) ? formatMaintenance(message.params.name, result) : JSON.stringify(result) }], structuredContent: result });
       } catch (error) {
         const result = { code: error.code || "INTERNAL", message: error.message, ...error.details };
         reply({ isError: true, content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result });

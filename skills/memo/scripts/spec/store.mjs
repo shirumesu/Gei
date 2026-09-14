@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { lifecycle, inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
+import { documentView, restoreDocument } from "./document.mjs";
+import { initializeDocument, inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -180,8 +181,8 @@ export class SpecStore {
       const planId = hash(JSON.stringify([path_prefix, result.changes]));
       if (apply && plan_id !== planId) fail("PLAN_CHANGED", "Preview cleanup again; its deletion or navigation set changed.", { applied: false });
       return { preview: !apply, revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
-        path_prefix, plan_id: planId, deleted: result.deleted, navigation: result.navigation, blocked: result.blocked,
-        edits: Object.entries(result.changes).map(([name, content]) => content === null ? { op: "delete", path: name } : { op: "replace", path: name, old_text: snapshot.files[name], new_text: content }) };
+        path_prefix, plan_id: planId, deleted: result.deleted, declarations: result.declarations, navigation: result.navigation, blocked: result.blocked,
+        edits: Object.entries(result.changes).map(([name, content]) => content === null ? { op: "delete", path: name } : { op: "replace", path: name, old_text: documentView(snapshot.files[name]), new_text: documentView(content) }) };
     });
     const { edits, ...visible } = plan;
     if (!apply || !edits.length) return { ...visible, applied: false };
@@ -200,7 +201,7 @@ export class SpecStore {
         files: paths.map(name => {
           const text = snapshot.files[name];
           if (text === undefined) return { path: name, exists: false };
-          const lines = text.split("\n");
+          const lines = documentView(text).split("\n");
           const selected = [];
           let remaining = Math.floor(48000 / paths.length);
           let nextLine = start_line, nextColumn = start_column;
@@ -221,8 +222,7 @@ export class SpecStore {
             if (end < chars.length) break;
           }
           const truncated = nextLine <= lines.length;
-          const knowledge = lifecycle(text, { now: this.clock(), environment: this.environment() });
-          return { path: name, exists: true, content: selected.join("\n"), knowledge: { metadata: knowledge.metadata, reasons: knowledge.reasons }, start_line, total_lines: lines.length,
+          return { path: name, exists: true, content: selected.join("\n"), start_line, total_lines: lines.length,
             ...(line_numbers ? { line_numbers: true } : {}),
             start_column, truncated, next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
         }) };
@@ -239,7 +239,7 @@ export class SpecStore {
         if (!query) results.push({ path: name });
         else {
           await this.hydrate(config, snapshot, [name]);
-          for (const [index, line] of snapshot.files[name].split("\n").entries()) {
+          for (const [index, line] of documentView(snapshot.files[name]).split("\n").entries()) {
             const match = line.toLowerCase().indexOf(query.toLowerCase());
             if (match >= 0) {
               const chars = Array.from(line);
@@ -274,8 +274,9 @@ export class SpecStore {
       const deleting = edits.some(edit => edit.op === "delete") || reviews.some(review => review.outcome === "delete");
       await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...edits.map(edit => edit.path), ...reviews.map(review => review.path)])]);
       const revision = this.version(config, current.oid);
-      const ranges = rangeReplacements(current.files, edits, revision);
-      const result = { ...current.files };
+      const visible = Object.fromEntries(Object.entries(current.files).map(([name, content]) => [name, documentView(content)]));
+      const ranges = rangeReplacements(visible, edits, revision);
+      const result = { ...visible };
       for (const [index, edit] of edits.entries()) {
         const exists = own(result, edit.path);
         const error = (code, message, extra = {}) => fail(code, message, { applied: false, edit_index: index, path: edit.path, ...extra });
@@ -292,11 +293,15 @@ export class SpecStore {
             if (typeof edit.old_text !== "string" || !edit.old_text || typeof edit.new_text !== "string") error("ARGUMENT", "replace requires nonempty old_text and a string new_text.");
             let matches = 0;
             for (let at = result[edit.path].indexOf(edit.old_text); at >= 0; at = result[edit.path].indexOf(edit.old_text, at + 1)) matches++;
-            if (matches !== 1) error(matches ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once. Use the base context below, or reread with line numbers and use replace_lines.", { matches, ...editHelp(current.files[edit.path], edit, revision) });
+            if (matches !== 1) error(matches ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once. Use the base context below, or reread with line numbers and use replace_lines.", { matches, ...editHelp(visible[edit.path], edit, revision) });
             result[edit.path] = result[edit.path].replace(edit.old_text, () => edit.new_text);
           }
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
+      }
+      for (const name of Object.keys(result)) {
+        result[name] = restoreDocument(current.files[name], result[name]);
+        if (result[name] !== current.files[name]) result[name] = initializeDocument(result[name], name, this.clock());
       }
       applyReviews(current.files, result, reviews, { now: this.clock(), environment: this.environment(), checkoutRoot: checkout_root });
       if (deleting) assertDeletionLinks(current.files, result);
@@ -348,7 +353,7 @@ export class SpecStore {
     return id;
   }
   async restore({ backup, apply = false } = {}) {
-    const plan = await this.run(async config => {
+    return this.run(async config => {
       if (config.mode !== "local") fail("CONFIG", "Use the selected GitHub repository's commit history for remote recovery.");
       const root = path.join(this.state, "deletions");
       if (!backup) return { backups: fs.existsSync(root) ? fs.readdirSync(root).filter(file => /^\d+-[a-f0-9-]+\.json$/u.test(file) && Number(file.split("-")[0]) >= this.clock() - 30 * 86400000).map(file => file.slice(0, -5)) : [] };
@@ -358,12 +363,19 @@ export class SpecStore {
       const current = await this.latest(config);
       const conflicts = Object.keys(saved.after).filter(name => (current.files[name] ?? null) !== saved.after[name]);
       if (apply && conflicts.length) fail("REVISION_CONFLICT", "Recovery would overwrite later changes; reconcile them first.", { paths: conflicts });
-      return { preview: !apply, backup, revision: this.version(config, current.oid), paths: Object.keys(saved.before), conflicts,
-        edits: Object.entries(saved.before).flatMap(([name, content]) => content === null ? current.files[name] === undefined ? [] : [{ op: "delete", path: name }] : current.files[name] === undefined ? [{ op: "create", path: name, content }] : [{ op: "replace", path: name, old_text: current.files[name], new_text: content }]) };
+      const visible = { preview: !apply, backup, revision: this.version(config, current.oid), paths: Object.keys(saved.before), conflicts };
+      if (!apply) return visible;
+      const restored = { ...current.files };
+      for (const [name, content] of Object.entries(saved.before)) {
+        if (content === null) delete restored[name]; else restored[name] = content;
+      }
+      validateNames(Object.keys(restored));
+      assertDeletionLinks(current.files, restored);
+      // Recovery restores the exact preimages, including their lifecycle state.
+      publish(this.home, this.state, saved.before);
+      const next = await this.latest(config);
+      return { ...visible, applied: true, source: "local", revision: this.version(config, next.oid) };
     });
-    const { edits, ...visible } = plan;
-    if (!apply || !edits?.length) return visible;
-    return { ...visible, ...await this.edit({ base_revision: plan.revision, summary: "Restore a deleted knowledge batch", edits }) };
   }
   async refresh() {
     return this.run(async config => { const snapshot = await this.latest(config, { refresh: true });

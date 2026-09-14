@@ -29,9 +29,9 @@ def main() -> None:
                 archive.extractall(destination)
             result = subprocess.run(["node", str(destination / entry), "status"], env=env, check=True, capture_output=True, text=True)
             assert json.loads(result.stdout)["mode"] == "local"
-            check = subprocess.run(["node", str(destination / entry), "check", "--all", "--limit", "1"], env=env, check=True, capture_output=True, text=True)
+            check = subprocess.run(["node", str(destination / entry), "check", "--all", "--limit", "1", "--json"], env=env, check=True, capture_output=True, text=True)
             assert "candidates" in json.loads(check.stdout)
-            gc = subprocess.run(["node", str(destination / entry), "gc", "--all"], env=env, check=True, capture_output=True, text=True)
+            gc = subprocess.run(["node", str(destination / entry), "gc", "--all", "--json"], env=env, check=True, capture_output=True, text=True)
             assert json.loads(gc.stdout)["applied"] is False
             memo_root = destination / ("Gei/memo" if filename == "Gei-skills.zip" else "gei/skills/memo")
             assert (memo_root / "assets/spec-gc.yml").is_file()
