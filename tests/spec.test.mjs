@@ -435,7 +435,7 @@ test("connection uses API access rather than user push metadata for integration 
   const saved = await store.edit({ base_revision: read.revision, summary: "Integration write", edits: [{ op: "replace", path: name, old_text: "Existing", new_text: "Updated" }] });
   assert.equal(saved.applied, true);
   api.rejectWrites = true;
-  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Denied write", edits: [{ op: "replace", path: name, old_text: "Updated", new_text: "Denied" }] }), { code: "GITHUB" });
+  await assert.rejects(store.edit({ base_revision: saved.revision, summary: "Denied write", edits: [{ op: "replace", path: name, old_text: "Updated", new_text: "Denied" }] }), { code: "SUBMISSION_UNCONFIRMED" });
   assert.equal(api.revisions.get(api.head)[name], "# Updated\n");
   const denied = remoteFixture(t);
   await seed(denied.store);

@@ -14,20 +14,23 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     env:
-      GEI_SPEC_HOME: ${{ runner.temp }}/geispec-empty
-      GEI_SPEC_STATE: ${{ runner.temp }}/geispec-state
       GEI_GITHUB_TOKEN: ${{ github.token }}
       GEI_SPEC_GC_APPLY: ${{ vars.GEI_SPEC_GC_APPLY }}
     steps:
       - uses: actions/checkout@v4
         with:
           repository: shirumesu/Gei
-          ref: v0.10.3
+          ref: f3414751d24b15b48482a6707d4919bedede4011
           path: gei-runtime
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Configure isolated Spec state
+        shell: bash
+        run: |
+          echo "GEI_SPEC_HOME=$RUNNER_TEMP/geispec-empty" >> "$GITHUB_ENV"
+          echo "GEI_SPEC_STATE=$RUNNER_TEMP/geispec-state" >> "$GITHUB_ENV"
       - name: Bind this private knowledge repository without local imports
         run: node gei-runtime/bin/gei.mjs spec connect github --repo "$GITHUB_REPOSITORY" --apply
       - name: Preview or apply declared transient destruction
