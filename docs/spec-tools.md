@@ -21,6 +21,14 @@ The `rename` edit moves the complete document, including its lifecycle state. Mi
 
 The schema lives in `skills/memo/scripts/spec/tools.mjs`. Read results identify source, snapshot, line range, and truncation. Edit results return changed paths and the persisted revision. Errors distinguish missing/ambiguous matches, stale revisions, unavailable credentials/network, and unconfirmed submissions. No hidden model performs summarization or semantic merging.
 
+## Model-facing guidance
+
+Tool descriptions explain selection and result interpretation; parameter descriptions own formats, defaults and dependencies. This follows the [OpenAI function-calling guidance](https://developers.openai.com/api/docs/guides/function-calling#best-practices-for-defining-functions) and the [Codex tool examples](https://developers.openai.com/cookbook/examples/gpt-5/codex_prompting_guide). Keep examples short and targeted to observed misuse rather than duplicating full schemas in startup instructions. Tool discovery must retain the selected tool's full declaration: a shortened catalog description cannot establish its calling convention.
+
+`spec_read` uses a `paths` array for both one and multiple documents. The requested window applies to every path, while continuation coordinates belong to individual returned files. Search results are literal-match snippets, not complete documents. Edit operations and maintenance reviews share a combined limit of 100 items. GC application copies the preview's `revision` into `base_revision` and reuses its `plan_id` and scope. Descriptions spell out these existing contracts without adding aliases, changing defaults, or changing result shapes.
+
+Key output semantics stay in tool descriptions rather than a separate output schema whose visibility depends on the host. Parameter errors retain their codes and rejection behavior while identifying the expected type, allowed range or a corrective input shape. Source-side improvements cannot prevent a caller from discarding descriptions or a host from truncating results; inspect actual loaded declarations and measure model behavior before claiming improved reliability.
+
 ## Evaluation
 
 Deterministic checks exercise persistence, exact Unicode/CRLF changes, multi-document moves, invalid later operations, two-process conflicts, changed premises, immutable reads, bounded search, crash recovery, copied plugin launches, backend transitions, and uncertain GitHub outcomes. An opt-in integration test uses a temporary branch and verifies the default branch remains unchanged.

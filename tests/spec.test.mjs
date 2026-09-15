@@ -530,7 +530,7 @@ test("MCP starts from copied host configurations, validates schema, and survives
     assert.equal(runResult.code, 0, runResult.stderr);
     const responses = runResult.stdout.trim().split("\n").map(line => JSON.parse(line));
     assert.equal(responses[0].result.protocolVersion, "2025-11-25");
-    assert.deepEqual(responses[1].result.tools.map(tool => tool.name), tools.map(tool => tool.name));
+    assert.deepEqual(responses[1].result.tools, tools);
     assert.equal(responses[2].result.structuredContent.files[0].exists, false);
     assert.equal(responses[3].result.isError, true);
     const revision = responses[2].result.structuredContent.revision;
@@ -542,6 +542,48 @@ test("MCP starts from copied host configurations, validates schema, and survives
     fs.rmSync(path.join(env.GEI_SPEC_HOME, name));
     assert.equal(fs.existsSync(path.join(env.GEI_SPEC_HOME, metadataPath(name))), false);
   }
+});
+
+test("MCP explains invalid arguments and supports batch reads followed by per-file continuation", async t => {
+  const { env, store } = fixture(t);
+  const second = "projects/example/topics/second.md";
+  await seed(store, { [name]: "First\nSecond\nThird", [second]: "Other\nTail" });
+  const invalid = [
+    { tool: "spec_read", args: { path: name }, message: /arguments\.paths.*array.*"paths" instead of "path".*\{"paths":\[/ },
+    { tool: "spec_read", args: { paths: name }, message: /arguments\.paths must be an array of string items.*\[\]/ },
+    { tool: "spec_read", args: { paths: [] }, message: /arguments\.paths.*1–20 items; received 0/ },
+    { tool: "spec_read", args: { paths: [name], start_line: 1.5 }, message: /arguments\.start_line must be an integer/ },
+    { tool: "spec_read", args: { paths: [name], max_lines: 1001 }, message: /arguments\.max_lines.*1 and 1000; received 1001/ },
+    { tool: "spec_search", args: { query: 7 }, message: /arguments\.query must be string/ },
+    { tool: "spec_status", args: { path: name }, message: /Unknown argument arguments\.path.*Supported fields: none/ },
+    { tool: "spec_edit", args: { base_revision: "unused", summary: "Invalid operation", edits: [{ path: name }] }, message: /arguments\.edits\[0\].*Set op to one of: replace, replace_lines, create, rename, delete/ },
+    { tool: "spec_edit", args: { base_revision: "unused", summary: "Missing replacement", edits: [{ op: "replace", path: name, new_text: "New" }] }, message: /arguments\.edits\[0\]\.old_text is required \(string\)/ },
+  ];
+  const requests = invalid.map(({ tool, args }, id) => ({ jsonrpc: "2.0", id, method: "tools/call", params: { name: tool, arguments: args } }));
+  requests.push({ jsonrpc: "2.0", id: invalid.length, method: "tools/list" },
+    { jsonrpc: "2.0", id: invalid.length + 1, method: "tools/call", params: { name: "spec_read", arguments: { paths: [name, second], max_lines: 1 } } });
+  const result = await run(["skills/memo/scripts/spec/mcp.mjs"], env, requests.map(request => JSON.stringify(request)).join("\n") + "\n");
+  assert.equal(result.code, 0, result.stderr);
+  const replies = result.stdout.trim().split("\n").map(line => JSON.parse(line).result);
+  invalid.forEach(({ message }, index) => {
+    assert.equal(replies[index].isError, true);
+    assert.equal(replies[index].structuredContent.code, "ARGUMENT");
+    assert.match(replies[index].structuredContent.message, message);
+    assert.deepEqual(JSON.parse(replies[index].content[0].text), replies[index].structuredContent);
+  });
+  const readSchema = replies[invalid.length].tools.find(tool => tool.name === "spec_read").inputSchema;
+  assert.match(readSchema.properties.paths.description, /\{"paths":\["projects\/example\/INDEX.md"\]\}/);
+  const batch = replies.at(-1).structuredContent;
+  assert.deepEqual(batch.files.map(file => [file.path, file.content, file.truncated]), [[name, "First", true], [second, "Other", true]]);
+  const followups = batch.files.map((file, id) => ({ jsonrpc: "2.0", id, method: "tools/call", params: { name: "spec_read", arguments: {
+    paths: [file.path], revision: batch.revision, start_line: file.next_line, start_column: file.next_column,
+  } } }));
+  const continued = await run(["skills/memo/scripts/spec/mcp.mjs"], env, followups.map(request => JSON.stringify(request)).join("\n") + "\n");
+  assert.equal(continued.code, 0, continued.stderr);
+  const pages = continued.stdout.trim().split("\n").map(line => JSON.parse(line).result.structuredContent);
+  assert.deepEqual(pages.map(page => [page.revision, page.files[0].content, page.files[0].truncated]),
+    [[batch.revision, "Second\nThird", false], [batch.revision, "Tail", false]]);
+  assert.equal(disk(env, name), "First\nSecond\nThird");
 });
 
 test("paths cannot escape the store and portable name collisions fail atomically", async t => {
