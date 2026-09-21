@@ -7,6 +7,8 @@ description: "Read-only review of implementation quality: functionality, interac
 
 Judge whether the implementation delivers a coherent product experience. Review without changing the target; prioritize the user's stated quality concerns.
 
+Read-only applies to the review target; separately authorized external knowledge maintenance follows Memo. An explicit user request for no writes also pauses that maintenance.
+
 ## Establish The Comparison
 
 Resolve the review scope and intended behavior from the request, requirements, and affected callers. For a diff, separate introduced issues from pre-existing ones; for a broad audit, inspect the requested existing surface too. Author summaries describe intent, not proof.
