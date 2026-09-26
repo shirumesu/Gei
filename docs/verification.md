@@ -5,6 +5,7 @@ Run from the source checkout:
 ```shell
 node .github/scripts/check_hooks.mjs
 node --test tests/spec*.test.mjs
+python .github/scripts/test_versioning.py
 python .github/scripts/check_packages.py
 python skills/create-skill/scripts/quick_validate.py skills/memo
 ```
@@ -22,6 +23,8 @@ Budgets measure UTF-8 bytes including headers and paths. Project/Shared index bo
 Claude Code currently turns Hook output strings exceeding 10,000 characters into file previews. All three caps stay below that threshold; this is not a token measurement or a claim about every host version's rendering. See the [official Hook output contract](https://code.claude.com/docs/en/hooks#json-output).
 
 These checks establish runtime contracts, not agent compliance or design quality. Earlier small agent comparisons found no completion advantage for Work on a simple CLI task; keep it a thin delivery convention. Multi-turn design quality, long-term autonomous maintenance, and live host rendering require real usage evidence. Historical evaluation transcripts and migration snapshots are not part of the active plugin package.
+
+Development versions such as `0.11.2-alpha.1` live in both plugin manifests; pending notes stay under `## Unreleased`. Synchronization preserves a prerelease whose base version is newer than the latest release heading. At release, move the pending notes under a dated version heading: the matching stable version then replaces the prerelease. Package checks require matching source and bundled manifests. Versioning checks exercise development synchronization, release promotion and separate release-note extraction. Changing a heading or pushing a branch does not create a tag or GitHub Release.
 
 ## Spec runtime
 

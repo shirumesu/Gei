@@ -10,15 +10,17 @@ import sys
 import tempfile
 from zipfile import ZipFile
 
-from sync_plugin_version import latest_changelog_version
+from sync_plugin_version import expected_manifest_version, latest_changelog_version
 from extract_latest_release_notes import extract_changelog_entry
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def main() -> None:
-    version = latest_changelog_version(ROOT / "CHANGELOG.md")
-    assert extract_changelog_entry(ROOT / "CHANGELOG.md", version).startswith(f"## v{version} -")
+    version = json.loads((ROOT / ".codex-plugin/plugin.json").read_text())["version"]
+    assert version == expected_manifest_version(ROOT / "CHANGELOG.md", version)
+    released = latest_changelog_version(ROOT / "CHANGELOG.md")
+    assert extract_changelog_entry(ROOT / "CHANGELOG.md", released).startswith(f"## v{released} -")
     for manifest in (".codex-plugin/plugin.json", ".claude-plugin/plugin.json"):
         assert json.loads((ROOT / manifest).read_text())["version"] == version
     with tempfile.TemporaryDirectory(prefix="gei-packages-") as temporary:

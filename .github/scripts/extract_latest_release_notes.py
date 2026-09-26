@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from sync_plugin_version import VERSION_HEADING_RE
 
-VERSION_HEADING_RE = re.compile(r"^##\s+(v?\d+\.\d+\.\d+(?:\.\d+)?)(?:\s+-\s+.*)?\s*$")
 CONVENTIONAL_RE = re.compile(
     r"^(?P<type>[A-Za-z]+)(?:\([^)]+\))?(?P<breaking>!)?\s*[:：]\s*(?P<subject>.+)$"
 )

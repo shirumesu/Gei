@@ -6,7 +6,8 @@ import re
 from pathlib import Path
 
 
-VERSION_HEADING_RE = re.compile(r"^##\s+v?(?P<version>\d+\.\d+\.\d+(?:\.\d+)?)(?:\s+-\s+.*)?\s*$")
+VERSION_PATTERN = r"\d+\.\d+\.\d+(?:\.\d+)?(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?"
+VERSION_HEADING_RE = re.compile(rf"^##\s+v?(?P<version>{VERSION_PATTERN})(?:\s+-\s+.*)?\s*$")
 
 
 def latest_changelog_version(path: Path) -> str:
@@ -17,9 +18,19 @@ def latest_changelog_version(path: Path) -> str:
     raise ValueError(f"No version heading found in {path}")
 
 
+def expected_manifest_version(changelog_path: Path, current: str | None) -> str:
+    released = latest_changelog_version(changelog_path)
+    if current and re.fullmatch(VERSION_PATTERN, current) and "-" in current:
+        current_base = tuple(map(int, current.split("-", 1)[0].split(".")))
+        released_base = tuple(map(int, released.split("-", 1)[0].split(".")))
+        if current_base > released_base:
+            return current
+    return released
+
+
 def sync_version(changelog_path: Path, manifest_path: Path) -> bool:
-    version = latest_changelog_version(changelog_path)
     data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    version = expected_manifest_version(changelog_path, data.get("version"))
     if data.get("version") == version:
         return False
 
@@ -32,7 +43,7 @@ def sync_version(changelog_path: Path, manifest_path: Path) -> bool:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Sync JSON manifest versions from the latest changelog release."
+        description="Sync JSON manifests from the latest changelog release, preserving newer development prereleases."
     )
     parser.add_argument("changelog", help="Path to CHANGELOG.md")
     parser.add_argument(
