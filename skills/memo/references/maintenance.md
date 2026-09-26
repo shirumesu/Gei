@@ -1,23 +1,23 @@
 # Knowledge Maintenance
 
-Use a maintenance hint, an explicit cleanup request, or a concrete stale claim as the trigger. `spec_check` returns reasons, evidence routes, incoming references, and a revision. Work on the returned bounded scope; paginate for an explicit wider audit, not on every ordinary task. Read candidate bodies and the relevant evidence before deciding. Tool schemas own arguments and lifecycle defaults.
+Use a maintenance hint, an explicit cleanup request, or a concrete stale claim as the trigger. `spec_check` provides a bounded worklist of deterministic signals and rotating review samples. A clean signal set does not establish semantic quality or live correctness. Read the returned bodies and relevant evidence; paginate for an explicit wider audit, not on every ordinary task. Tool schemas own arguments and lifecycle defaults.
 
-Ordinary creation and correction save knowledge without requiring a review. Complete a review when current evidence establishes the validity and applicability of the whole resulting document. Keep evidence near the claims it supports; a review can briefly refer to that evidence. A dated environment observation normally uses knowledge with a 30-day review interval, not a destruction deadline.
+First assess continued value: merge duplicates, remove cheaply recoverable implementation summaries and retire reasoning that no longer affects plausible work. Then verify the retained claims. Do not rerun a retired architecture merely to justify deleting its history. Ordinary creation and correction need no review transaction; complete a review only when current evidence establishes the whole resulting document's validity and applicability. Keep evidence near the claims it supports, not as accumulated verification logs.
 
 ## Decide The Outcome
 
-- **Verify:** establish that the whole document and its applicability still hold, including any corrections made in the same batch. Elapsed time or possible future usefulness alone does not establish verification.
+- **Verify:** establish that the retained document earns its place and its claims and applicability hold, including corrections in the same batch. A mechanical check or possible future usefulness alone is not verification.
 - **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A correction can stand on its own while other claims remain unreviewed. A source-file change is a prompt to investigate, not proof the note is false.
 - **Delete:** establish supersession, redundancy, or loss of recovery/reasoning value. Resolve substantive incoming dependencies and remove navigation in the same `spec_edit` batch. A link does not confer permanent retention, but its sentence cannot be discarded mechanically.
 - **Defer:** identify the missing evidence and submit `defer`. This records an attempt without renewing verification. Do not guess that an inaccessible checkout, another environment, or an old project no longer matters. A cooldown prevents repeated inconclusive checks.
 
-Dates, low read counts, and project inactivity are never sufficient reasons to delete ordinary knowledge. A decision's rationale can remain useful after the implementation changes. Native docs can replace cheaply recoverable code facts, but not an unrecorded user requirement.
+Dates, low read counts and project inactivity alone do not retire applicable constraints or accepted work. Missing rationale prose does not establish missing value; inspect evidence without inventing a reason. Preserve reasons that can still change a decision, including accepted targets absent from code. Existing code/tests/native docs can replace implementation summaries, not user requirements. “It might return someday” is insufficient to keep an otherwise retired architecture in active knowledge.
 
 ## Handoffs And Environment Observations
 
 A handoff exists while recovery is needed; do not maintain a second active/completed tracker. A final answer, Git commit, or quiet period does not prove completion. When the work is complete, cancelled, or replaced, first land any lasting knowledge, then delete the handoff and its route in that batch. If the outcome cannot be established, defer.
 
-Record the environment a claim describes, not the machine on which the note was written. Reinstallation or a different environment makes an observation unconfirmed here; it does not invalidate another machine's state. Keep platform/version conditions on reusable lessons. Never promote an old installation, deployment, or permission observation into a current global fact.
+Environment observations must pass the same admission test as other knowledge. Record the environment described, not the machine on which the note was written. A different environment does not invalidate a still-applicable lesson; a past installation or successful run alone does not earn a permanent record. Keep platform/version conditions on retained lessons.
 
 ## Mechanical Cleanup
 

@@ -1,12 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fail, hash, documentPath, metadataPath, isDocument } from "./io.mjs";
-import { metadataFor, writeMetadata, validateMetadata, contentHash, reviewAfter, referenceContent } from "./metadata.mjs";
+import { metadataFor, writeMetadata, validateMetadata, contentHash, reviewAfter, referenceContent, parseDocument } from "./metadata.mjs";
 
 const DAY = 86400000;
 const intervals = { knowledge: 90, handoff: 14, transient: 30 };
 const own = (value, key) => Object.hasOwn(value, key);
 const date = value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u.test(value) && Number.isFinite(Date.parse(value));
+function excerpt(value, limit) {
+  const characters = Array.from(value);
+  return { text: characters.slice(0, limit).join(""), truncated: characters.length > limit };
+}
 
 export function scopePrefix(value) {
   if (typeof value !== "string" || (value !== "all" && value !== "projects/" && !/^(?:projects\/[^/]+\/|context\/)/u.test(value))) fail("ARGUMENT", "Provide path_prefix: projects/<project>/, projects/, context/, or all.");
@@ -14,18 +18,23 @@ export function scopePrefix(value) {
   return name => value === "all" || name.startsWith(value);
 }
 function sourceHash(root, name) {
-  if (!root) return { unavailable: true };
-  if (typeof name !== "string" || path.isAbsolute(name) || name.includes("\\") || name.split("/").some(part => !part || part === ".." || part === ".")) return { unavailable: true };
+  if (!root) return { unavailable: true, status: "not_checked" };
+  if (typeof name !== "string" || path.isAbsolute(name) || name.includes("\\") || name.split("/").some(part => !part || part === ".." || part === ".")) return { unavailable: true, status: "unavailable" };
+  let base;
+  try { base = fs.realpathSync(root); }
+  catch { return { unavailable: true, status: "unavailable" }; }
   try {
-    const base = fs.realpathSync(root), file = fs.realpathSync(path.join(base, name));
-    if (!file.startsWith(base + path.sep) || !fs.statSync(file).isFile()) return { unavailable: true };
+    const file = fs.realpathSync(path.join(base, name));
+    if (!file.startsWith(base + path.sep) || !fs.statSync(file).isFile()) return { unavailable: true, status: "unavailable" };
     return { hash: hash(fs.readFileSync(file)) };
-  } catch { return { unavailable: true }; }
+  } catch (error) { return { unavailable: true, status: ["ENOENT", "ENOTDIR"].includes(error.code) ? "missing" : "unavailable" }; }
 }
 export function lifecycle(content, { now = Date.now(), environment, checkoutRoot, state } = {}) {
   const parsed = state || { metadata: null }, meta = parsed.metadata;
   const reasons = [];
   const observedSources = [];
+  const sourceChanges = [];
+  const sourceCoverage = { references: 0, checked: 0, missing: 0, not_checked: 0, unavailable: 0 };
   if (parsed.error) reasons.push("invalid_metadata");
   else if (meta) {
     if (meta.verified_hash !== contentHash(content, meta)) reasons.push(meta.verified_at ? "content_changed" : "unverified");
@@ -34,14 +43,25 @@ export function lifecycle(content, { now = Date.now(), environment, checkoutRoot
     for (const source of meta.sources || []) {
       const actual = sourceHash(checkoutRoot, source.path);
       observedSources.push([source.path, actual.hash || null]);
-      if (actual.unavailable) { if (!reasons.includes("source_unavailable")) reasons.push("source_unavailable"); }
-      else if (actual.hash !== source.hash && !reasons.includes("source_changed")) reasons.push("source_changed");
+      sourceCoverage.references++;
+      if (actual.unavailable) {
+        sourceCoverage[actual.status]++;
+        sourceChanges.push({ path: source.path, status: actual.status });
+        if (!reasons.includes("source_unavailable")) reasons.push("source_unavailable");
+      } else {
+        sourceCoverage.checked++;
+        if (actual.hash !== source.hash) {
+          sourceChanges.push({ path: source.path, status: "changed" });
+          if (!reasons.includes("source_changed")) reasons.push("source_changed");
+        }
+      }
     }
     if (meta.delete_after && Date.parse(meta.delete_after) <= now) reasons.push(meta.deletion_hash === contentHash(content, meta) ? "destruction_due" : "destruction_content_changed");
   }
   const fingerprint = hash(JSON.stringify([contentHash(content, meta), reasons, observedSources, meta?.scope, environment]));
   const cooling = meta?.deferred_fingerprint === fingerprint && Date.parse(meta.retry_after) > now;
-  return { metadata: meta, reasons, fingerprint, cooling: Boolean(cooling), ...(parsed.error ? { error: parsed.error } : {}) };
+  return { metadata: meta, reasons, fingerprint, cooling: Boolean(cooling), source_changes: sourceChanges, source_coverage: sourceCoverage,
+    ...(parsed.error ? { error: parsed.error } : {}) };
 }
 function targetPath(owner, raw) {
   let target;
@@ -104,34 +124,108 @@ export function references(owner, content, knownTargets = []) {
   });
   return result;
 }
+function proseBlocks(content) {
+  const headerLines = parseDocument(content).header.split("\n").length - 1;
+  const result = [], paragraph = [];
+  let start = 0, fence = null, navigation = false, comment = false;
+  const flush = () => {
+    const text = paragraph.join(" ").replace(/\s+/gu, " ").trim();
+    if (Array.from(text).length >= 160) result.push({ text, line: start });
+    paragraph.length = 0;
+  };
+  content.split("\n").forEach((line, index) => {
+    if (index < headerLines) return;
+    const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/u.exec(line);
+    if (fence) {
+      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
+      return;
+    }
+    if (marker) { flush(); fence = marker[1]; return; }
+    if (line.includes("<!-- gei:navigation -->")) { flush(); navigation = true; }
+    if (navigation) {
+      if (line.includes("<!-- /gei:navigation -->")) navigation = false;
+      return;
+    }
+    if (comment || line.includes("<!--")) {
+      flush(); comment = !line.includes("-->"); return;
+    }
+    const onlyLinks = line.replace(/^\s*(?:[-*+]\s+|\d+[.)]\s+)?/u, "")
+      .replace(/!?\[[^\]]*\]\(\s*(?:<[^>]+>|[^\s)]+)(?:\s+["'][^\n]*?["'])?\s*\)/gu, "")
+      .replace(/\[[^\]]+\]\[[^\]]*\]/gu, "").trim();
+    if (!line.replace(/`+[^`]*`+/gu, "").trim() || /^(?: {4}|\t)|^ {0,3}#{1,6}(?:\s|$)|^\s*[-=]{3,}\s*$|^\s*\[[^\]]+\]:/u.test(line) || !onlyLinks) { flush(); return; }
+    if (!paragraph.length) start = index + 1;
+    paragraph.push(line.trim());
+  });
+  flush();
+  return result;
+}
+function duplicateProse(documents) {
+  const blocks = new Map(), byDocument = new Map();
+  for (const [name, content] of documents) {
+    for (const block of proseBlocks(content)) {
+      if (!blocks.has(block.text)) blocks.set(block.text, []);
+      blocks.get(block.text).push({ path: name, line: block.line });
+    }
+  }
+  for (const [text, occurrences] of blocks) {
+    if (new Set(occurrences.map(item => item.path)).size < 2) continue;
+    const sample = excerpt(text, 240);
+    for (const item of occurrences) {
+      const peers = occurrences.filter(peer => peer.path !== item.path);
+      if (!byDocument.has(item.path)) byDocument.set(item.path, []);
+      byDocument.get(item.path).push({ line: item.line, excerpt: sample.text, excerpt_truncated: sample.truncated,
+        peers: peers.slice(0, 5), peers_omitted: Math.max(0, peers.length - 5) });
+    }
+  }
+  for (const blocks of byDocument.values()) blocks.sort((a, b) => a.line - b.line);
+  return byDocument;
+}
 export function inventory(files, prefix, options = {}) {
   const selected = scopePrefix(prefix);
   const refs = Object.entries(files).filter(([name]) => isDocument(name)).flatMap(([name, content]) => references(name, content, Object.keys(files).filter(isDocument)));
   const all = Object.entries(files).filter(([name]) => isDocument(name) && selected(name)).sort(([a], [b]) => a.localeCompare(b));
-  const results = [];
+  const duplicates = duplicateProse(all);
+  const results = [], unsignaled = [];
+  const coverage = { documents: all.length, lifecycle_tracked: 0, plain_documents: 0, verification_baselines: 0,
+    source_baseline_documents: 0, source_references: 0, sources_checked: 0, sources_changed: 0, sources_missing: 0,
+    sources_not_checked: 0, sources_unavailable: 0, unsignaled_documents: 0,
+    not_assessed: ["semantic_validity", "retention_value", "live_behavior"] };
   let cooling = 0;
   for (const [name, content] of all) {
     const status = lifecycle(content, { ...options, state: metadataFor(files, name) });
+    coverage[status.metadata || status.error ? "lifecycle_tracked" : "plain_documents"]++;
+    if (status.metadata?.verified_at && status.metadata?.verified_hash) coverage.verification_baselines++;
+    if (status.source_coverage.references) coverage.source_baseline_documents++;
+    coverage.source_references += status.source_coverage.references;
+    for (const key of ["checked", "missing", "not_checked", "unavailable"]) coverage[`sources_${key}`] += status.source_coverage[key];
+    coverage.sources_changed += status.source_changes.filter(item => item.status === "changed").length;
     const incoming = refs.filter(item => item.target === name && item.path !== name);
     const broken = refs.filter(item => item.path === name && !own(files, item.target));
+    const repeated = duplicates.get(name) || [];
     const reasons = [...status.reasons];
     if (broken.length) reasons.push("broken_reference");
+    if (repeated.length) reasons.push("duplicate_content");
     const blockers = incoming.filter(item => !item.navigation);
     if (reasons.includes("destruction_due") && blockers.length) reasons.push("substantive_dependency");
     const eligible = reasons.includes("destruction_due") && !blockers.length && !/\/INDEX\.md$/u.test(name);
-    if (!reasons.length) continue;
+    if (!reasons.length) { unsignaled.push({ path: name }); continue; }
     if (status.cooling && !broken.length && !reasons.includes("destruction_due")) { cooling++; continue; }
+    const basis = excerpt(status.metadata?.basis || status.metadata?.evidence?.join("; ") || "", 1200);
+    const lastAttempt = status.metadata?.attempt_reason === undefined ? undefined : excerpt(status.metadata.attempt_reason, 1200);
     results.push({ path: name, reasons, action: eligible ? "gc_eligible" : "review",
-      basis: (status.metadata?.basis || status.metadata?.evidence?.join("; ") || "").slice(0, 1200), scope: status.metadata?.scope,
+      basis: basis.text, basis_truncated: basis.truncated, scope: status.metadata?.scope,
       kind: status.metadata?.kind, delete_after: status.metadata?.delete_after, deletion_reason: status.metadata?.deletion_reason,
-      last_attempt: status.metadata?.attempt_reason, retry_after: status.metadata?.retry_after,
+      last_attempt: lastAttempt?.text, last_attempt_truncated: lastAttempt?.truncated, retry_after: status.metadata?.retry_after,
       verified_at: status.metadata?.verified_at, review_after: reviewAfter(status.metadata),
       incoming: incoming.slice(0, 20), incoming_total: incoming.length, broken: broken.slice(0, 20), broken_total: broken.length,
+      source_changes: status.source_changes, source_coverage: status.source_coverage,
+      duplicates: repeated.slice(0, 3), duplicates_omitted: Math.max(0, repeated.length - 3),
       next: eligible ? "Preview GC; apply only within the authorized scope." : "Read the document and evidence; submit verify/delete/defer. Age is not a deletion reason." });
   }
   const rank = item => item.action === "gc_eligible" ? 0 : item.reasons.some(reason => ["broken_reference", "substantive_dependency", "source_changed", "invalid_metadata"].includes(reason)) ? 1 : 2;
   results.sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path));
-  return { documents: all.length, results, cooling, refs };
+  coverage.unsignaled_documents = unsignaled.length;
+  return { documents: all.length, results, cooling, refs, coverage, unsignaled };
 }
 export function gcPlan(files, prefix, options = {}) {
   const report = inventory(files, prefix, options);
@@ -156,7 +250,8 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
     documentPath(review.path);
     if (seen.has(review.path)) fail("ARGUMENT", "One review per document per batch.");
     seen.add(review.path);
-    if (!review.basis?.trim() || !["verify", "delete", "defer"].includes(review.outcome)) fail("ARGUMENT", "A review needs its outcome and a concrete basis: verification evidence, deletion rationale, or the evidence still missing.");
+    if (typeof review.basis !== "string" || !review.basis.trim() || !["verify", "delete", "defer"].includes(review.outcome)) fail("ARGUMENT", "A review needs its outcome and a concrete basis: verification evidence, deletion rationale, or the evidence still missing.");
+    if (Array.from(review.basis).length > 1200) fail("ARGUMENT", "Keep the review basis within 1200 characters; put detailed evidence in the owning document or source.");
     if (review.outcome === "delete") {
       if (!own(before, review.path)) fail("NOT_FOUND", "Cannot review-delete a missing document.");
       delete after[review.path]; delete after[metadataPath(review.path)]; continue;
@@ -170,13 +265,23 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
     const stamp = new Date(now).toISOString();
     const meta = { ...parsed.metadata, version: parsed.metadata?.version || 4, kind,
       review_days: review.review_days ?? (kind === parsed.metadata?.kind ? parsed.metadata.review_days : intervals[kind]) };
-    if (review.scope) meta.scope = review.scope;
     if (review.outcome === "defer") {
-      if (review.kind || review.scope || review.review_days || review.delete_after || review.clear_delete_after || review.sources) fail("REVIEW", "Defer cannot change retention, scope, or evidence baselines.");
+      if (["kind", "scope", "review_days", "delete_after", "clear_delete_after", "sources"].some(key => own(review, key))) fail("REVIEW", "Defer cannot change retention, scope, or evidence baselines.");
       meta.attempted_at = stamp; meta.attempt_reason = review.basis;
       meta.deferred_fingerprint = lifecycle(content, { now, environment, checkoutRoot, state: { metadata: meta } }).fingerprint;
       meta.retry_after = new Date(now + 30 * DAY).toISOString();
     } else {
+      if (own(review, "scope")) {
+        if (review.scope === null) delete meta.scope;
+        else {
+          const scope = review.scope;
+          if (!scope || typeof scope !== "object" || Array.isArray(scope) || !Object.keys(scope).length
+            || Object.entries(scope).some(([key, value]) => !["environment", "platform"].includes(key) || typeof value !== "string" || !value.trim())) {
+            fail("REVIEW", "Use nonempty environment/platform qualifiers, omit scope to preserve it, or pass null to clear it.", { path: review.path });
+          }
+          meta.scope = Object.fromEntries(Object.entries(scope).map(([key, value]) => [key, value.trim()]));
+        }
+      }
       meta.version = 4; delete meta.migrated_hash; delete meta.created_at; meta.verified_at = stamp; meta.verified_hash = contentHash(content, meta); meta.basis = review.basis;
       delete meta.evidence; delete meta.reason;
       delete meta.review_after;

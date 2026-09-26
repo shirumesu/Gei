@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, storagePath, metadataPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
+import { overview, documentOrder, lifecycleLines, windowBytes, sharedBudgets, readWindow } from "./retrieval.mjs";
 import { migrateDocument, preserveMetadata } from "./metadata.mjs";
 import { inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
 
@@ -145,7 +146,7 @@ export class SpecStore {
     if (!config.enabled) return "";
     const previous = readJson(this.maintenanceFile(config, prefix));
     if (previous && this.clock() - previous.at < 7 * 86400000) return "";
-    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix} for a bounded batch. Age alone never authorizes deletion.`;
+    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Assess continued value before verification; inspect reported coverage and the bounded review_sample even if candidates is zero. Missing evidence and age do not authorize deletion.`;
   }
   async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
     scopePrefix(path_prefix);
@@ -165,12 +166,27 @@ export class SpecStore {
       }
       const counts = {};
       for (const item of report.results) for (const reason of item.reasons) counts[reason] = (counts[reason] || 0) + 1;
-      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock() });
-      return { revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
+      const currentRevision = this.version(config, snapshot.oid);
+      const previous = readJson(this.maintenanceFile(config, path_prefix)) || {};
+      const unsignaled = report.unsignaled || [];
+      const sampleStart = (previous.next_sample_offset || 0) % Math.max(1, unsignaled.length);
+      const samplePaths = revision && previous.sample_revision === snapshot.oid
+        ? (previous.sample_paths || []).filter(name => unsignaled.some(item => item.path === name))
+        : Array.from({ length: Math.min(3, unsignaled.length) }, (_, index) => unsignaled[(sampleStart + index) % unsignaled.length].path);
+      const reviewSample = offset === 0 ? samplePaths.map(name => ({ path: name, action: "assess_value",
+        next: "Read for continued value, duplication and acceptance provenance. No mechanical signal is not verification; no edit is required if this knowledge still earns retention.",
+        read: { paths: [name], revision: currentRevision } })) : [];
+      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock(),
+        next_sample_offset: (sampleStart + samplePaths.length) % Math.max(1, unsignaled.length), sample_revision: snapshot.oid, sample_paths: samplePaths });
+      const nextOffset = offset + results.length < report.results.length ? offset + results.length : undefined;
+      return { revision: currentRevision, source: snapshot.source, stale: Boolean(snapshot.stale),
+        coverage: report.coverage,
         environment, path_prefix, documents: report.documents, candidates: report.results.length, cooling: report.cooling,
-        gc_eligible: report.results.filter(item => item.action === "gc_eligible").length, counts, results,
+        gc_eligible: report.results.filter(item => item.action === "gc_eligible").length, counts,
+        review_sample: reviewSample, sample_limit: 3, results,
         remaining: Math.max(0, report.results.length - offset - results.length),
-        next_offset: offset + results.length < report.results.length ? offset + results.length : undefined };
+        next_offset: nextOffset,
+        next_check: nextOffset === undefined ? undefined : { path_prefix, revision: currentRevision, offset: nextOffset, max_results, ...(checkout_root ? { checkout_root } : {}) } };
     });
   }
   async gc({ path_prefix, base_revision, plan_id, apply = false } = {}) {
@@ -199,65 +215,69 @@ export class SpecStore {
     return this.run(async config => {
       const snapshot = await this.snapshot(config, revision);
       await this.hydrate(config, snapshot, paths);
-      return { revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale), checked_at: snapshot.checkedAt,
-        files: paths.map(name => {
+      const pinned = this.version(config, snapshot.oid);
+      const options = { start_line, start_column, max_lines, line_numbers };
+      const needs = paths.map(name => {
+        const text = snapshot.files[name];
+        if (text === undefined) return 0;
+        const first = text.split("\n")[start_line - 1];
+        if (first !== undefined && start_column - 1 > Array.from(first).length) fail("ARGUMENT", "start_column is beyond the selected line.", { path: name });
+        return windowBytes(text, start_line, start_column, max_lines, line_numbers);
+      });
+      const budgets = sharedBudgets(needs);
+      return { revision: pinned, source: snapshot.source, stale: Boolean(snapshot.stale), checked_at: snapshot.checkedAt,
+        files: paths.map((name, index) => {
           const text = snapshot.files[name];
-          if (text === undefined) return { path: name, exists: false };
-          const lines = text.split("\n");
-          const selected = [];
-          let remaining = Math.floor(48000 / paths.length);
-          let nextLine = start_line, nextColumn = start_column;
-          for (let index = start_line - 1; index < Math.min(lines.length, start_line - 1 + max_lines); index++) {
-            const chars = Array.from(lines[index]);
-            const offset = index === start_line - 1 ? start_column - 1 : 0;
-            if (offset > chars.length) fail("ARGUMENT", "start_column is beyond the selected line.", { path: name });
-            const label = line_numbers ? `${index + 1}: ` : "";
-            let available = remaining - (selected.length ? 1 : 0) - Buffer.byteLength(label);
-            if (available < 0) break;
-            let end = offset;
-            while (end < chars.length && Buffer.byteLength(chars[end]) <= available) { available -= Buffer.byteLength(chars[end]); end++; }
-            if (end === offset && chars.length > offset) break;
-            const segment = chars.slice(offset, end).join("");
-            selected.push(label + (line_numbers ? segment.replace(/\r$/u, "") : segment)); remaining = available;
-            nextLine = end < chars.length ? index + 1 : index + 2;
-            nextColumn = end < chars.length ? end + 1 : 1;
-            if (end < chars.length) break;
-          }
-          const truncated = nextLine <= lines.length;
-          return { path: name, exists: true, content: selected.join("\n"), start_line, total_lines: lines.length,
-            ...(line_numbers ? { line_numbers: true } : {}),
-            start_column, truncated, next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
+          if (text === undefined) return { path: name, exists: false, overview: null };
+          const window = readWindow(text, options, budgets[index]);
+          const next_read = window.truncated ? { paths: [name], revision: pinned, start_line: window.next_line,
+            start_column: window.next_column, max_lines, line_numbers } : undefined;
+          return { path: name, exists: true, ...overview(text), next_read, ...window };
         }) };
     });
   }
-  async search({ query = "", path_prefix = "projects/", revision, max_results = 30 } = {}) {
+  async search({ query = "", path_prefix = "projects/", revision, max_results = 30, offset = 0, include_lifecycle = true } = {}) {
     if (typeof query !== "string" || typeof path_prefix !== "string" || !/^(projects\/|context\/)/u.test(path_prefix) || path_prefix.includes("..") || path_prefix.includes("\\")) fail("ARGUMENT", "Use a literal query and a projects/ or context/ path prefix.");
     if (!Number.isInteger(max_results) || max_results < 1 || max_results > 100) fail("ARGUMENT", "max_results must be between 1 and 100.");
+    if (!Number.isInteger(offset) || offset < 0 || (offset && !revision)) fail("ARGUMENT", "Use offset >= 0 and supply revision when continuing a search.");
+    if (typeof include_lifecycle !== "boolean") fail("ARGUMENT", "include_lifecycle must be a boolean.");
     return this.run(async config => {
       const snapshot = await this.snapshot(config, revision);
+      const pinned = this.version(config, snapshot.oid);
       const names = this.names(snapshot).filter(name => isDocument(name) && name.startsWith(path_prefix));
       const results = [];
-      for (const name of names) {
-        if (!query) results.push({ path: name });
-        else {
+      const order = query ? "path-line" : "indexes-topic-owners-documents-notes-path";
+      if (!query) {
+        names.sort((a, b) => documentOrder(a) - documentOrder(b) || (a < b ? -1 : a > b ? 1 : 0));
+        const selected = names.slice(offset, offset + max_results + 1);
+        await this.hydrate(config, snapshot, selected.slice(0, max_results));
+        for (const name of selected) results.push(results.length < max_results ? { path: name, ...overview(snapshot.files[name]) } : { path: name });
+      } else {
+        let seen = 0;
+        for (const name of names) {
           await this.hydrate(config, snapshot, [name]);
-          for (const [index, line] of snapshot.files[name].split("\n").entries()) {
+          const text = snapshot.files[name];
+          const excluded = include_lifecycle ? new Set() : lifecycleLines(text);
+          for (const [index, line] of text.split("\n").entries()) {
+            if (excluded.has(index)) continue;
             const match = line.toLowerCase().indexOf(query.toLowerCase());
-            if (match >= 0) {
-              const chars = Array.from(line);
-              const column = Array.from(line.slice(0, match)).length;
-              const start = Math.max(0, column - 100);
-              const end = Math.min(chars.length, Math.max(column + Array.from(query).length, start + 400));
-              results.push({ path: name, line: index + 1, text: chars.slice(start, Math.min(end, start + 800)).join(""),
-                match_column: column + 1, snippet_start_column: start + 1, snippet_truncated: start > 0 || end < chars.length || end > start + 800 });
-            }
+            if (match < 0 || seen++ < offset) continue;
+            const chars = Array.from(line);
+            const column = Array.from(line.slice(0, match)).length;
+            const start = Math.max(0, column - 100);
+            const end = Math.min(chars.length, Math.max(column + Array.from(query).length, start + 400));
+            results.push({ path: name, line: index + 1, text: chars.slice(start, Math.min(end, start + 800)).join(""),
+              match_column: column + 1, snippet_start_column: start + 1, snippet_truncated: start > 0 || end < chars.length || end > start + 800 });
             if (results.length > max_results) break;
           }
+          if (results.length > max_results) break;
         }
-        if (results.length > max_results) break;
       }
-      return { revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
-        results: results.slice(0, max_results), truncated: results.length > max_results };
+      const truncated = results.length > max_results;
+      const next_offset = truncated ? offset + max_results : undefined;
+      return { revision: pinned, source: snapshot.source, stale: Boolean(snapshot.stale), order, offset,
+        next_offset, next_search: truncated ? { query, path_prefix, revision: pinned, max_results, offset: next_offset, include_lifecycle } : undefined,
+        results: results.slice(0, max_results), truncated };
     });
   }
   async edit({ base_revision, summary, edits = [], reviews = [], checkout_root } = {}) {

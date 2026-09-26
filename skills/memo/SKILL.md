@@ -9,9 +9,9 @@ Own useful project knowledge outside the repository. Create, update, merge, move
 
 ## Act On Evidence
 
-Write when a task establishes missing project background or working agreements, an accepted consequential decision, a verified reusable pitfall, a changed knowledge claim/route, or a needed handoff. Update the existing owner first. Routine edits, raw logs, transcripts, generic advice, and code facts cheap to recover earn no note.
+For incidental memory, keep only information that can change a plausible future decision or avoid non-obvious repeated investigation, and is not already supplied by an existing authority. This includes continuing constraints, accepted decisions, reusable pitfalls and necessary handoffs. Update the existing owner first. Routine edits, test counts, raw logs, generic advice and code facts cheap to recover earn no note; no write is a successful outcome.
 
-Distinguish user-confirmed decisions, agent inferences, unimplemented targets, and observed behavior. An old implementation does not overrule an accepted requirement. Never promote one choice into a universal preference.
+User-requested documentation remains the deliverable; this admission gate is not a reason to withhold it. Distinguish user-confirmed decisions, agent inferences, unimplemented targets and observed behavior. Prior recording alone does not establish user acceptance, and current implementation does not overrule an accepted requirement. Keep explicit preferences at their stated scope; never promote one choice into a universal preference.
 
 ## Shape
 
@@ -19,7 +19,7 @@ Use `spec_read/search/edit` for knowledge access; these tools resolve the user's
 
 Use the Hook-provided external workspace. Session start allocates a minimal `INDEX.md` under `projects/<project-name>` even before useful knowledge exists; no identity manifest is needed. Enrich that index from evidence; create topic/note/task files only when they earn content. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
 
-- `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; keep it compact by moving topic explanations, detailed decisions, and troubleshooting into linked topic/note files as they emerge, before reaching the byte budget. Leave only a short retrieval cue for moved content; a small project may need only an index.
+- `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; remove redundant or retired material before splitting detail into linked topic/note files that earn selective reading. Leave only a short retrieval cue for moved content; a small project may need only an index.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.
 - `topics/<domain>/notes/<meaningful-name>.md`: scoped decision or pitfall, its reasons/evidence, and when to reconsider.
 - `tasks/<name>.md`: accepted work that must survive handoff; do not create a second task tracker.
@@ -29,7 +29,7 @@ Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve 
 
 ## Maintain From Evidence
 
-When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). A candidate is work to assess, not permission inferred from age to delete. Keep low-frequency knowledge and inactive projects while their conditions remain valid. Use `spec_edit` for corrections and any completed review outcome; finish confirmed deletions in that batch instead of leaving another cleanup task.
+When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). Assess continued value before re-verifying retained claims. Check results include signals and review samples, not a semantic or live verification verdict. Keep low-frequency constraints while applicable; age or inactivity alone does not retire them. Use `spec_edit` for corrections and completed reviews, including confirmed deletions and link repairs.
 
 Use knowledge by default. Reserve transient retention and a destruction date for records explicitly intended to be discarded, never to empty a review queue. Reading, importing, rewording, and reopening a project do not verify its knowledge. INDEX contains stable background and routes; environment observations and unfinished operations belong in scoped records.
 
@@ -45,4 +45,4 @@ Use only the relevant [index](templates/index.md), [topic](templates/topic.md), 
 
 ## Finish
 
-Before the final reply, land the earned update and repair its nearest incoming route. Check touched indexes for detail that belongs in topic/note files, verify touched links, and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.
+Before the final reply, land any qualifying update and repair its nearest incoming route. Remove duplication before splitting touched indexes, verify touched links, and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.

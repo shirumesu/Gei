@@ -33,7 +33,9 @@ export function validateMetadata(value) {
   if (value.delete_after && (value.kind !== "transient" || !value.deletion_reason?.trim() || !/^[a-f0-9]{64}$/u.test(value.deletion_hash || ""))) throw new Error("Destruction requires a transient record, reason, and content version");
   if (value.evidence !== undefined && (!Array.isArray(value.evidence) || value.evidence.some(item => typeof item !== "string"))) throw new Error("Invalid evidence");
   if (value.sources !== undefined && (!Array.isArray(value.sources) || value.sources.some(item => !item || typeof item.path !== "string" || !/^[a-f0-9]{64}$/u.test(item.hash || "")))) throw new Error("Invalid sources");
-  if (value.scope !== undefined && (!value.scope || typeof value.scope.environment !== "string")) throw new Error("Invalid scope");
+  if (value.scope !== undefined && (!value.scope || typeof value.scope !== "object" || Array.isArray(value.scope)
+    || !["environment", "platform"].some(key => own(value.scope, key))
+    || ["environment", "platform"].some(key => own(value.scope, key) && typeof value.scope[key] !== "string"))) throw new Error("Invalid scope");
 }
 
 export function withoutMetadata(content) {

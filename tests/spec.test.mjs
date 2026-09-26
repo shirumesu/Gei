@@ -1164,7 +1164,9 @@ test("metadata is visible through content tools, is revisioned, and survives exp
   saved = await store.edit({ base_revision: saved.revision, summary: "Add maintenance evidence", reviews: [{ path: name, outcome: "verify", basis: "internal-only-marker" }] });
   assert.equal(withoutMetadata((await store.read({ paths: [name] })).files[0].content), raw);
   assert.equal((await store.search({ query: "internal-only-marker" })).results.length, 1);
-  assert.deepEqual((await store.search()).results, [{ path: name }]);
+  const listing = (await store.search()).results;
+  assert.deepEqual(listing.map(item => item.path), [name]);
+  assert.equal(listing[0].overview.excerpt, "Old rule.");
   await assert.rejects(store.read({ paths: [metadataPath(name)] }), { code: "INVALID_PATH" });
   const files = api.revisions.get(api.head);
   api.advance({ ...files, [name]: files[name].replace("internal-only-marker", "Changed evidence") });
@@ -1244,8 +1246,8 @@ test("real Git diffs stay local for tail edits and explicit reviews", async t =>
 
 test("raw multiline metadata paginates normally while a tail read avoids the header", async t => {
   const { store, env } = fixture(t);
-  let saved = await seed(store);
-  saved = await store.edit({ base_revision: saved.revision, summary: "Store review evidence", reviews: [{ path: name, outcome: "verify", basis: "Evidence marker " + "语".repeat(20000) }] });
+  const legacy = withMetadata("# Example\nOld rule.\n", { version: 4, kind: "knowledge", review_days: 90, basis: "Evidence marker " + "语".repeat(20000) });
+  const saved = await seed(store, { [name]: legacy });
   const raw = stored(env, name);
   const first = await store.read({ paths: [name] });
   assert.equal(first.files[0].truncated, true);

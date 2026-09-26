@@ -1,6 +1,6 @@
 # Spec Access
 
-The tool schemas own ordinary read/search/edit arguments. Use knowledge-relative paths from the injected INDEX; repository selection belongs to user configuration, not model inference. A read/search revision pins a snapshot. The edit tool saves one ordered batch and reports whether it persisted locally or remotely. No separate commit or push is required in GitHub mode.
+The tool schemas own ordinary read/search/edit arguments. Use knowledge-relative paths from the injected INDEX; repository selection belongs to user configuration, not model inference. A read/search revision pins a snapshot. Listing previews are extracted navigation aids; read the body before evaluating its claims or editing it. Missing preview fields do not establish missing knowledge. The edit tool saves one ordered batch and reports whether it persisted locally or remotely. No separate commit or push is required in GitHub mode.
 
 Without MCP, run `node <memo>/scripts/spec/cli.mjs --help`. The `read`, `search`, and `edit` commands accept the same JSON arguments through stdin or `--input FILE`; shell quoting must preserve exact text. Settings commands include `status`, `enable`, `disable`, `connect github`, `use local`, and `refresh`. Plugin installs also expose `node <gei>/bin/gei.mjs spec ...`. Do not assume a global `gei` executable is on PATH.
 

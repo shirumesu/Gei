@@ -1,6 +1,6 @@
 # Decisions, Pitfalls, And Handoffs
 
-Record the reason a future agent would otherwise have to rediscover. Use one note for one coherent decision or pitfall. Keep the conclusion/status and applicability near the top, followed by only useful reasons, alternatives, reconsideration conditions, and evidence. The [note example](../templates/note.md) is optional scaffolding.
+Record a reason that can change plausible future work and is not already available from an authority worth linking. Prefer the existing topic; create a note only when one coherent decision or pitfall earns separate retrieval. Keep the conclusion and applicability near the top, followed by useful reasons and evidence. The [note example](../templates/note.md) is optional scaffolding, not a form to fill.
 
 ## Decision Transfer
 
@@ -12,11 +12,11 @@ For a future C/D choice after an A/B decision:
 - identify material differences that could reverse the result;
 - use the old reasoning as evidence, never as a permanent command to prefer C.
 
-One choice is not a universal user preference. Broaden scope only with evidence or an explicit user statement. Mark accepted-but-unimplemented work separately from verified implementation. Update implementation references in place; a reversed decision needs a clear supersession link or a compact explanation preserving still-useful rationale.
+One choice is not a universal user preference. Broaden scope only with evidence or an explicit user statement; preserve explicit preferences once at their stated scope. Do not promote a recorded proposal or inferred reason to user acceptance through repetition. If acceptance provenance is missing, mark it unverified, not rejected. Keep confirmed targets, observed defects and current behavior distinct, including accepted requirements absent from code. When a decision is reversed, retain only rationale that still affects a plausible choice; delete obsolete detail rather than keeping a second historical specification.
 
 ## Pitfalls
 
-Keep the recognizable symptom, applicable environment, verified cause or remaining uncertainty, effective response, and conditions that retire the lesson. A retry succeeding once is not a general fix. If a deterministic guard makes the lesson unnecessary, route to the guard or remove the note.
+Keep a pitfall only when its trigger remains plausible and a future agent needs a non-obvious cause or response not already covered by a reliable guard or native document. State the symptom, applicability and effective response concisely, with uncertainty where needed. A retry succeeding once is not a general fix. Once code/tests/patch documentation owns the necessary guidance, link that authority or remove the note; an incident's history need not survive its lesson.
 
 ## Handoff
 

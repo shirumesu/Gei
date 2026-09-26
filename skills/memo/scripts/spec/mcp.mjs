@@ -18,7 +18,7 @@ async function handle(message) {
     case "initialize":
       reply({ protocolVersion: versions.includes(message.params?.protocolVersion) ? message.params.protocolVersion : versions[0],
         capabilities: { tools: {} }, serverInfo: { name: "gei-spec", version: "1.0.0" },
-        instructions: "Use startup knowledge paths with spec_read/search/edit. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools." }); break;
+        instructions: "Use startup knowledge paths with spec_read/search/edit. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools. Read coverage and continuation fields before conclusions. When structuredContent is available, consume it once; content is the text compatibility representation, not additional evidence." }); break;
     case "ping": reply({}); break;
     case "tools/list": reply({ tools }); break;
     case "tools/call":
