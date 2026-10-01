@@ -27,13 +27,8 @@ Use the first matching method:
 The required skills are:
 
 ```text
-using-gei
 consider
 memo
-work
-code-review
-see
-create-skill
 ```
 
 ## Method: Codex Plugin
@@ -65,17 +60,11 @@ gei
   .codex-plugin/plugin.json
   .codex-plugin/spec.mcp.json
   bin/gei.mjs
-  skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
-  skills/work/SKILL.md
-  skills/code-review/SKILL.md
-  skills/see/SKILL.md
-  skills/create-skill/SKILL.md
   hooks/codex-hooks.json
   hooks/knowledge.mjs
-  hooks/inject_using_gei.mjs
   hooks/inject_context.mjs
   hooks/inject_shared.mjs
   skills/memo/templates/index.md
@@ -100,18 +89,12 @@ Gei
   bin/gei.mjs
   hooks/hooks.json
   hooks/knowledge.mjs
-  hooks/inject_using_gei.mjs
   hooks/inject_context.mjs
   hooks/inject_shared.mjs
   skills/memo/templates/index.md
-  skills/using-gei/SKILL.md
   skills/consider/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
-  skills/work/SKILL.md
-  skills/code-review/SKILL.md
-  skills/see/SKILL.md
-  skills/create-skill/SKILL.md
 ```
 
 Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start through `${CLAUDE_PLUGIN_ROOT}`, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, `spec_check`, and `spec_gc`, and respond to `spec_status`. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
@@ -147,14 +130,9 @@ unzip Gei-skills.zip -d <skills-dir>
 ```text
 <skills-dir>/
   Gei/
-    using-gei/SKILL.md
     consider/SKILL.md
     memo/SKILL.md
     memo/references/storage.md
-    work/SKILL.md
-    code-review/SKILL.md
-    see/SKILL.md
-    create-skill/SKILL.md
 ```
 
 If the host does not scan nested directories, ask before moving the skill directories directly under `<skills-dir>`.
@@ -178,14 +156,9 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 ```text
 <skills-dir>/
   Gei/
-    skills/using-gei/SKILL.md
     skills/consider/SKILL.md
     skills/memo/SKILL.md
     skills/memo/references/storage.md
-    skills/work/SKILL.md
-    skills/code-review/SKILL.md
-    skills/see/SKILL.md
-    skills/create-skill/SKILL.md
 ```
 
 If the host does not scan nested directories, ask before creating links or copying skill directories directly under `<skills-dir>`.

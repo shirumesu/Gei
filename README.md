@@ -10,17 +10,10 @@ Gei 为 Codex 和 Claude Code 提供小型任务 Skills，以及项目外部的�
 
 | Skill | 最终目标 |
 | --- | --- |
-| using-gei | 选择匹配任务的入口；触发有价值的自主知识更新 |
-| consider | 挖掘真实需求，主动提出竞争方案，以反例挑战并完善设计 |
-| work | 贯通入口、实现与消费者，以实际结果验证交付 |
+| consider | 在动手前独立判断是否值得做、怎么做以及选择会锁定什么：必要性、工作量、破坏面、替代方案、技术债、关键能力与事前验尸 |
 | memo | 维护外部项目背景、领域入口、决策经验与交接 |
-| code-review | 只读审查功能、交互、呈现、性能与风格一致性 |
-| see | 外部研究、事实核查和来源综合 |
-| create-skill | 创建、精简、审核和验证 Skills |
 
-普通读取不需要加载 Memo。清晰任务直接执行；复杂需求才进入 Consider。Skills 和它们的条件参考按需加载；Gei 的作用是提供明确的任务边界与项目知识约定。
-
-Consider 负责带着方案参与设计，并挑战自己的推荐；Code Review 以实际体验和有依据的一致性判断为主。Work 保持为薄的交付约定，其额外价值需要真实任务验证，参见[验证范围](docs/verification.md)。
+Gei 只保留模型不会自行做到的部分：外部项目知识，以及对抗"顺着用户想法补全"的方案评估。实现、审查、研究等通用流程交给模型本身与宿主内置能力；个人编码偏好放在用户级 AGENTS.md／CLAUDE.md。普通读取不需要加载 Memo。
 
 ## 外部项目知识
 
@@ -96,15 +89,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 也可以使用宿主的插件市场安装并启用 Gei。仅使用 [Skills 压缩包](https://github.com/shirumesu/gei/releases/latest) 的宿主可按需调用 Skills，但不会自动获得插件的 Hook 注入。安装过程不修改 AGENTS.md、CLAUDE.md 或其他无关配置。
 
-## 验证与发布历史
-
-```shell
-node .github/scripts/check_hooks.mjs
-node --test tests/spec.test.mjs
-python skills/create-skill/scripts/quick_validate.py skills/memo
-```
-
-请在源码仓库运行这些命令，运行时需要 Node.js 22 或更新版本；格式验证需要 PyYAML。CI 配置覆盖 Windows/Linux/macOS 的 Hook、存储/协议回归与全部 Skill 格式检查；测试不证明模型一定遵循指令或节省特定比例的 token。当前验证范围见[验证说明](docs/verification.md)。
+## 发布历史
 
 公开版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 

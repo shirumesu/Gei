@@ -74,6 +74,6 @@ Hooks inject INDEX bodies in both local and GitHub modes, within the same projec
 
 GitHub mode has no offline write queue and never falls back to a writable local master. A lost submission response is checked against the remote content before reporting verified success. If verification is also unavailable, `SUBMISSION_UNCONFIRMED` asks the caller to read the latest documents before retrying. Semantic contradictions remain the responsibility of Memo; neither a shared repository nor a clean text update establishes factual consistency.
 
-Disabling Spec stops knowledge Hooks and read/search/edit access. Status and settings remain available, and the router still selects other task Skills. An already-injected conversation cannot have its old messages removed; the new state takes effect on subsequent operations and Hook runs.
+Disabling Spec stops knowledge Hooks and read/search/edit access. Status and settings remain available, and Consider still works. An already-injected conversation cannot have its old messages removed; the new state takes effect on subsequent operations and Hook runs.
 
-See [tool design](spec-tools.md), [installation](install.md), and [verification](verification.md).
+See [tool design](spec-tools.md) and [installation](install.md).

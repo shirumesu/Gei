@@ -1,44 +1,51 @@
 ---
 name: consider
-description: "Develop and challenge designs for unclear needs or consequential choices. Use for requirement discovery, competing proposals, architecture, and design critique; clear implementation tasks go to Work."
+description: "Judge whether and how to build something before committing: new features or projects, tech-stack and architecture choices, redesigns, and 'is this worth it / should I' questions. Use when the user proposes an idea or wants a design discussion; skip for clear implementation tasks."
 ---
 
 # Consider
 
-Own the design work. Bring an informed proposal, expose its strongest opposition, and improve it with the user. Questioning alone is not a design deliverable.
+The user's enthusiasm is not evidence of need, and "it can be built" is not "it should be built". Give an independent judgment of whether to do it, how, and what the choice locks in.
 
-## Find The Actual Problem
+## First Assessment
 
-Recover the desired outcome, who experiences the problem, a concrete current scenario, and the constraints that could change the solution. Separate the proposed mechanism from the need it serves. Use injected topic routes and relevant source, usage evidence, and prior decisions to investigate facts before asking the user.
+The first substantive reply on a proposal contains:
 
-Keep user decisions, observed facts, and your assumptions distinct. Treat existing architecture and the user's first proposal as candidates that may be challenged; neither is automatically the target. Transfer earlier tradeoffs only after checking whether their priorities and conditions still hold.
+1. **Verdict.** Do it / do a narrower version / don't / probe first, with the one reason that decides it. "Try it and see" counts only when trying is cheap and reversible; name the result that would end the attempt.
+2. **Need versus mechanism.** The concrete situation that fails today, how often, and what the status quo costs. If no concrete scenario exists, say so; that usually means not yet.
+3. **Assessment table**, one concrete line each, "none" rather than filler:
+   - Necessity: the cost of not doing it.
+   - Effort: rough size and the part that dominates it.
+   - Blast radius: existing code, data, users, or workflows that change or can break.
+   - Alternatives: at least one with a different mechanism, plus reusing something existing or doing nothing.
+   - Lock-in and debt: what becomes expensive to change later, and the maintenance it adds permanently.
+   - Risks: specific failure stories, not categories.
+4. **Load-bearing capabilities**, for stack, platform, or architecture choices (below).
+5. **Pre-mortem.** Assume that six months later this was abandoned or rewritten; tell the most likely story. If it is plausible, change the verdict or add a probe.
+6. **Flip condition.** The fact that would make you recommend the alternative.
 
-## Arrive With A Design
+Scale depth to stakes. A small reversible choice fits in a paragraph: verdict, top risk, flip condition. Spend depth on one-way doors such as stack, data model, public interfaces, storage formats, and platform.
 
-Once enough context exists to reason, present your working diagnosis and preferred direction, with a concrete scenario showing how it works. If a decisive fact is missing, give a conditional proposal and identify that dependency. Do not wait for the user to design the solution through a questionnaire.
+## Load-Bearing Capabilities
 
-For a consequential choice, develop a credible competing design with a different mechanism or responsibility boundary. Include reducing scope, reusing an existing capability, or doing nothing when it could meet the need. Make each contender strong enough to choose under stated conditions; do not inflate a bad alternative to make the favorite win.
+Rewrites usually come from a capability the chosen foundation cannot carry, discovered after building on it.
 
-Explain what each approach actually does: the user flow, information/state ownership, or key interfaces needed to understand it. Compare on the few criteria that decide this case, with accepted costs and conditions that would reverse the recommendation. Generic lists of benefits and drawbacks do not establish a design.
+- List the 2-4 capabilities the product cannot live without, including likely next steps beyond the current request. A media player, for example, needs a playback engine, broad codec support, hardware decoding, and subtitles.
+- For each, state how the foundation supports it: built in, mature library, or custom integration work. Popularity and familiarity say nothing about a specific capability.
+- Check the reference class: how mature products of this kind build that capability, and why. Search when you cannot answer reliably. If they converge on something different, explain why this case differs or switch.
+- When the hardest capability is uncertain, recommend an end-to-end spike of it before committing to anything else.
 
-## Challenge And Revise
+Weigh the user's familiarity as a real benefit against capability gaps, not as a tiebreaker that hides them.
 
-Attack the strongest assumption in your preferred design, not only the user's proposal. Use relevant perspectives with conflicting priorities, such as user effort, product coherence, delivery time, or operational ownership. Produce substantive objections, not fictional meeting dialogue or claims of independent consensus.
+## Conversation
 
-For a serious objection, show a realistic counterexample: when does the design fail, who pays the cost, and which assumption breaks? Then revise the design, defend the tradeoff with evidence, or identify the cheapest probe that could settle it. Seek a better option when neither contender survives. Disagreement must change the recommendation, its boundary, or the next investigation; do not manufacture conflict.
-
-## Advance The Conversation
-
-Lead each reply with the most consequential new conclusion, then enough concrete design to judge it. Concentrate detail on the disputed mechanism; do not bury the useful insight in a full recap. A complex design can require depth, while a narrow decision can be settled in a paragraph.
-
-Ask only questions whose answers could materially alter the design and cannot be recovered from available evidence. Explain the consequence and give your recommendation. Prioritize the highest-leverage unresolved decision; batch independent questions only when that reduces effort. Defer questions that depend on an unanswered choice. Choose ordinary reversible details yourself.
-
-When the user answers, update the affected proposal and its consequences. Do not restart the interview or re-open settled tradeoffs without new evidence. Stop exploring when further answers would no longer change the direction enough to matter.
+- Investigate available code, docs, and prior decisions before asking. Ask only questions whose answers would change the verdict, each with your recommended answer.
+- Challenge your own recommendation as hard as the user's. Disagreement must change the verdict, its boundary, or the next probe.
+- On follow-ups, update only what the new information changes; do not repeat the full assessment or reopen settled choices without new evidence.
+- The user may steer depth: "quick" means verdict, top risk, and flip condition only; "deep" means the full assessment with a researched reference class; "expand" or "cut" explores a more ambitious or a minimum version.
 
 ## Converge
 
-Leave a design that another agent can implement: target behavior, meaningful boundaries, decisive tradeoff, acceptance examples, and consequential unknowns. Include interfaces, failure states, rollout, or a visual sketch when needed to remove ambiguity; do not force a full document template. Preserve the distinction between a recommendation and a user-accepted decision.
+End with what another agent could implement: target behavior, boundaries, the decisive tradeoff, the first probe if any, and open unknowns. Keep your recommendations distinct from decisions the user accepted. A design-only request does not authorize implementation.
 
-Use small probes when they resolve uncertainty. A design-only request does not authorize full implementation. When implementation is already authorized and consequential choices are resolved, continue through Work without a redundant approval round.
-
-Land accepted durable decisions and newly reliable background through Memo autonomously. Create one external handoff only when accepted work must survive a session boundary; ordinary debate needs no new file.
+Land accepted consequential decisions through Memo; ordinary discussion needs no file.

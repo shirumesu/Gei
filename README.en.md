@@ -10,17 +10,10 @@ Gei provides small task Skills for Codex and Claude Code, plus project knowledge
 
 | Skill | Final objective |
 | --- | --- |
-| using-gei | Select the task entry and trigger earned autonomous knowledge updates |
-| consider | Discover needs, propose competing designs, and improve them through concrete challenges |
-| work | Connect entry points, implementation, and consumers; verify the delivered outcome |
+| consider | Independently judge whether and how to build something and what the choice locks in: necessity, effort, blast radius, alternatives, debt, load-bearing capabilities, and a pre-mortem |
 | memo | Maintain external background, domain routes, decisions, lessons, and handoffs |
-| code-review | Read-only review of functionality, interaction, presentation, performance, and consistency |
-| see | External research, fact-checking, and source synthesis |
-| create-skill | Create, simplify, review, and validate Skills |
 
-Ordinary context reads need no Memo load. Clear tasks go straight to execution; ambiguous consequential work uses Consider. Skills and conditional references load on demand. Gei supplies task boundaries and project knowledge conventions.
-
-Consider contributes designs and challenges its own recommendation; Code Review prioritizes actual experience and grounded consistency judgments. Work stays a thin delivery convention whose added value needs real-task evidence; see the [verification scope](docs/verification.md).
+Gei keeps only what models do not do on their own: external project knowledge, and proposal evaluation that resists simply extending the user's idea. Implementation, review, and research are left to the model and host built-ins; personal coding preferences belong in user-level AGENTS.md/CLAUDE.md. Ordinary context reads need no Memo load.
 
 ## External Project Knowledge
 
@@ -96,15 +89,7 @@ Fetch and follow instructions from https://raw.githubusercontent.com/shirumesu/g
 
 Alternatively install and enable Gei through the host's plugin marketplace. Hosts using only the [Skills archive](https://github.com/shirumesu/gei/releases/latest) can invoke Skills but do not receive plugin Hook injection automatically. Installation does not alter AGENTS.md, CLAUDE.md, or unrelated settings.
 
-## Verification And Releases
-
-```shell
-node .github/scripts/check_hooks.mjs
-node --test tests/spec.test.mjs
-python skills/create-skill/scripts/quick_validate.py skills/memo
-```
-
-Run these commands from a source checkout with Node.js 22 or newer. Format validation requires PyYAML. CI is configured for Hook, storage/protocol regressions, and all Skill format checks on Windows/Linux/macOS. Tests do not prove model compliance or a particular token saving. See the current [verification scope](docs/verification.md).
+## Release History
 
 Public release history lives in [CHANGELOG.md](CHANGELOG.md).
 

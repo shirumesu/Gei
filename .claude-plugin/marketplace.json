@@ -4,12 +4,12 @@
     "name": "shirumesu",
     "url": "https://github.com/shirumesu"
   },
-  "description": "Gei：任务 Skills、自动分配的外部 workspace，以及按领域获取和自主维护的项目知识。",
+  "description": "Gei：自动分配的外部 workspace、按领域获取和自主维护的项目知识，以及动手前的方案评估。",
   "plugins": [
     {
       "name": "gei",
       "source": "./",
-      "description": "Gei：任务 Skills、自动分配的外部 workspace，以及按领域获取和自主维护的项目知识。",
+      "description": "Gei：自动分配的外部 workspace、按领域获取和自主维护的项目知识，以及动手前的方案评估。",
       "category": "productivity"
     }
   ]
