@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 0.12.0-alpha.2
+
+- Memo 新增写作指南 `references/writing.md`：借鉴 ASD-STE100 简化技术英语的写作规则（一句一事、主动语态、结论先行、一词一义、步骤用祈使句列表），中英文通用，不强制 STE 受控词典；附改写前后示例。
+
 ### 0.12.0-alpha.1
 
 - 移除 using-gei、work、code-review、see、create-skill 及启动 router Hook：这些通用流程已是模型常识或由宿主内置能力覆盖；Gei 只保留 Memo 与 Consider。
