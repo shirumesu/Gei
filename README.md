@@ -17,7 +17,7 @@ Gei 只保留模型不会自行做到的部分：外部项目知识，以及对�
 
 ## 外部项目知识
 
-默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。启动只分配按项目名组织的最小 `INDEX.md`，无需身份元数据；其余内容只在获得实际知识时创建：
+默认存储在 `~/.agents/geispec`，可用 `GEI_SPEC_HOME` 覆盖。知识按项目名组织，无需身份元数据；启动只读取，不创建文件。首次获得值得保留的知识时，才通过 `spec_edit` 创建 `INDEX.md` 及其他内容：
 
 ```text
 projects/<project-name>/
@@ -47,15 +47,15 @@ context/
 
 普通修改不强制写笔记或内部 Changelog，也不触发全库审计。外部知识优先链接已有权威资料，只补充会改变理解或决策的内容。维护规则见 [Memo](skills/memo/SKILL.md)。
 
-每篇知识仍是一份 Markdown。可选的 `gei` frontmatter 由程序通过结构化复核维护，普通编辑不刷新核验状态，读取与搜索保留完整原文和真实行号；没有 metadata 的文档可以保持纯文本。
+每篇知识仍是一份 Markdown。可选的单行 `gei` frontmatter 由程序通过结构化复核维护，普通编辑不能修改它，也不刷新核验状态；读取与搜索默认跳过它并给出一行生命周期摘要，行号始终是文件真实行号；没有 metadata 的文档可以保持纯文本。
 
 `spec_check` 一次返回有限的维护清单，AI 按证据保留、更新、删除或延期；项目低频使用和复核到期都不会自动删除知识。`spec_gc` 只清理明确约定销毁日期的临时记录，默认预览，同时检查引用。没有归档搜索层。元数据、删除恢复和可选定时运行见[知识维护](docs/maintenance.md)。
 
 ## Hooks 与读取预算
 
-三条独立 SessionStart Hook 分别负责任务路由、workspace 分配与项目入口、共享经验入口。仅 workspace Hook 写入缺少的最小索引；重复启动保留已有文件。各 Hook 可独立运行，不依赖执行顺序；不会加载领域正文、笔记或历史。用户无需自行维护 AGENTS.md。
+两条独立 SessionStart Hook 分别负责项目入口和共享经验入口，均为只读；项目尚无 INDEX 时只提示首次写入时再创建，临时目录不会留下空项目。各 Hook 可独立运行，不依赖执行顺序；不会加载领域正文、笔记或历史。用户无需自行维护 AGENTS.md。
 
-路由完整输出上限 2 KiB，workspace 完整输出上限 4 KiB，共享入口完整输出上限 1.5 KiB。Project/Shared INDEX 正文分别最多 3/1 KiB，路径占用也计入整体预算。以 UTF-8 字节计量，超限保留完整行并提示读取源索引；不会通过拆分 Hook 注入整库资料。
+workspace 完整输出上限 4 KiB，共享入口完整输出上限 1.5 KiB。Project/Shared INDEX 正文分别最多 3/1 KiB，路径占用也计入整体预算。以 UTF-8 字节计量，超限保留完整行并提示读取源索引；不会通过拆分 Hook 注入整库资料。
 
 普通 Git 项目及其子目录、linked worktree 使用主仓库目录名；独立 Git 元数据或 bare 仓库使用 common Git 目录名；嵌套仓库和非 Git 目录各自取名。名称规范化为小写等可移植形式，完整规则见 [存储约定](skills/memo/references/storage.md)。同名项目有意共享知识；无关项目应使用不同名称。移动路径无需配置，改名则需同步调整知识目录及引用。
 
@@ -77,7 +77,7 @@ node <gei>/bin/gei.mjs spec use local
 
 升级旧路径哈希存储前，先按 [迁移规则](skills/memo/references/migrate.md) 合并到命名目录并修复链接。Hook 发现旧副本会报告迁移需求，保留原文档，不静默新建空知识或选取其中一端。
 
-已有旧五件套且缺少 INDEX 时，分配的索引保留旧资料链接。Agent 按[迁移规则](skills/memo/references/migrate.md)核对并整理后，清除活跃知识区的旧文件与占位目录；需要的迁移快照放在活跃存储之外。
+已有旧五件套且缺少 INDEX 时，Hook 列出旧资料路径，不自动建立索引。Agent 按[迁移规则](skills/memo/references/migrate.md)核对并整理后，清除活跃知识区的旧文件与占位目录；需要的迁移快照放在活跃存储之外。
 
 ## 安装
 

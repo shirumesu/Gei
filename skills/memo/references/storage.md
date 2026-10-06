@@ -2,7 +2,7 @@
 
 Use `~/.agents/geispec`, overridden by `GEI_SPEC_HOME`. All Gei knowledge stays outside the source repository; do not add AGENTS.md, local spec folders, or ignore rules for it.
 
-The workspace Hook supplies the resolved checkout and knowledge directory, creating only a missing `INDEX.md` on session start. This allocation does not invent project knowledge. Enrich the index autonomously when the task establishes reliable purpose or agreements. Create topic/note/task directories only with real content. Shared Context has its own read-only Hook.
+The workspace Hook supplies the resolved checkout and project index, and never writes. Create a missing `INDEX.md` only together with the first durable knowledge for the project. Enrich the index autonomously when the task establishes reliable purpose or agreements. Create topic/note/task directories only with real content. Shared Context has its own read-only Hook.
 
 Knowledge lives in `projects/<project-name>`. The name comes from the main repository root for ordinary Git repositories and linked worktrees, the common Git directory for separate metadata or bare repositories, and the exact directory for non-Git workspaces. Nested repositories resolve their own names. Filesystem links resolve to their targets. Names use Unicode NFKC, lowercase, whitespace converted to hyphens, remaining characters outside Unicode letters/numbers/dot/underscore/hyphen replaced with hyphens, and leading/trailing punctuation trimmed; an empty result becomes `project`.
 

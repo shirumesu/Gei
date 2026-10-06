@@ -20,7 +20,7 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
   gc --scope PREFIX             Preview explicit transient cleanup; --apply executes
                                 with --base-revision REV --plan-id ID from the preview
   migrate-metadata [--scope PREFIX | --all] [--apply --base-revision REV]
-                                 Embed separate records in Markdown; preview by default
+                                 Convert old lifecycle records to compact format 5; preview by default
   restore [--backup ID]          List/preview local deletion recovery; --apply restores
   check/gc display a readable worklist; --json returns structured output.
   check/gc also accept JSON via --input FILE (same schema as MCP).

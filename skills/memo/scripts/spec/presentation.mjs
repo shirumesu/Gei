@@ -1,5 +1,6 @@
 const descriptions = {
   invalid_metadata: "Lifecycle state needs rebuilding through an evidence-based verification",
+  legacy_metadata: "Old lifecycle record format; convert it with migrate-metadata",
   unverified: "Document has not been verified",
   content_changed: "Content changed since its last verification",
   review_due: "Review is due; age does not establish invalidity",
@@ -28,7 +29,7 @@ function entry(item) {
   if (item.verified_at) lines.push(`  Last verified: ${item.verified_at}; review after: ${item.review_after}`);
   if (item.scope) lines.push(`  Applicability: ${[item.scope.environment, item.scope.platform].filter(Boolean).map(oneLine).join("; ") || "not specified"}`);
   if (item.delete_after) lines.push(`  Retention ends: ${item.delete_after}; ${oneLine(item.deletion_reason)}`);
-  if (item.last_attempt) lines.push(`  Unresolved: ${brief(item.last_attempt, item.last_attempt_truncated)}; retry after: ${item.retry_after}`);
+  if (item.last_attempt) lines.push(`  Unresolved: ${brief(item.last_attempt, item.last_attempt_truncated)}${item.retry_after ? `; retry after: ${item.retry_after}` : ""}`);
   for (const ref of item.incoming || []) lines.push(`  Incoming: ${ref.path}:${ref.line} (${ref.navigation ? "navigation" : "substantive"})`);
   if (item.incoming_total > item.incoming?.length) lines.push(`  Incoming references: ${item.incoming_total} total; remaining entries omitted.`);
   for (const ref of item.broken || []) lines.push(`  Missing: ${ref.target}, referenced at line ${ref.line}`);

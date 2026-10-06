@@ -17,7 +17,7 @@ Gei keeps only what models do not do on their own: external project knowledge, a
 
 ## External Project Knowledge
 
-Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Session start allocates only a minimal `INDEX.md` under the project name, without identity metadata. Other files and directories are created only as useful knowledge is earned:
+Storage defaults to `~/.agents/geispec`; override with `GEI_SPEC_HOME`. Knowledge is organized by project name without identity metadata. Session start only reads; the first durable `spec_edit` creates `INDEX.md` and any other files as useful knowledge is earned:
 
 ```text
 projects/<project-name>/
@@ -47,15 +47,15 @@ When work establishes reliable background, an accepted consequential decision, a
 
 Routine changes require neither a note nor an internal Changelog or whole-store audit. Link existing authorities and add only knowledge that changes understanding or decisions. See [Memo](skills/memo/SKILL.md).
 
-Each knowledge document remains one Markdown file. Optional `gei` frontmatter is maintained by the runtime through structured reviews; ordinary edits preserve its verification baseline. Read/search return the complete stored text and physical line numbers, and documents without metadata may remain plain Markdown.
+Each knowledge document remains one Markdown file. Optional one-line `gei` frontmatter is written only by structured reviews; ordinary edits cannot change it or renew verification. Read/search skip it by default and report a one-line lifecycle summary, always with physical line numbers, and documents without metadata may remain plain Markdown.
 
 `spec_check` returns a bounded maintenance worklist; the agent keeps, updates, deletes, or defers from evidence. Review dates and infrequent project use never delete ordinary knowledge. `spec_gc` only removes explicitly disposable transient records, previews by default, and checks dependencies. There is no archive search layer. See [knowledge maintenance](docs/maintenance.md) for metadata, recovery, and optional scheduling.
 
 ## Hooks And Reading Budgets
 
-Three independent SessionStart Hooks supply task routing, workspace allocation/project context, and shared conditions. Only the workspace Hook creates a missing minimal index; repeated startup preserves existing files. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
+Two independent read-only SessionStart Hooks supply project context and shared conditions. When a project has no INDEX, the Hook only says to create one on the first durable write, so scratch directories leave no empty projects. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
 
-Complete outputs are capped at 2 KiB for the router, 4 KiB for workspace context, and 1.5 KiB for shared conditions. Project/Shared INDEX bodies allow at most 3/1 KiB, with paths counted against the whole-output budget. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped sources. Splitting Hooks does not authorize injecting the whole knowledge store.
+Complete outputs are capped at 4 KiB for workspace context, and 1.5 KiB for shared conditions. Project/Shared INDEX bodies allow at most 3/1 KiB, with paths counted against the whole-output budget. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped sources. Splitting Hooks does not authorize injecting the whole knowledge store.
 
 Ordinary Git repositories, subdirectories, and linked worktrees use the main repository directory name. Separate Git metadata and bare repositories use the common Git directory name; nested repositories and non-Git directories resolve their own names. Names are normalized to lowercase and portable characters; see [storage](skills/memo/references/storage.md) for the complete rule. Equal names intentionally share knowledge. Give unrelated projects different names. Moving a checkout requires no configuration; renaming it requires updating the knowledge directory and incoming links.
 
@@ -77,7 +77,7 @@ Connect and switch commands preview first; add `--apply` to execute. Add `--crea
 
 Before upgrading a path-hash store, [migrate](skills/memo/references/migrate.md) its content into named directories and repair links. Hooks report matching legacy copies for migration, preserving their files rather than silently allocating empty knowledge or choosing one machine's version.
 
-When a legacy store has no INDEX, allocation links its old entry files from a minimal index. Agents follow [migration guidance](skills/memo/references/migrate.md), then remove obsolete files and placeholders from active knowledge. Keep any required migration snapshot outside the active store.
+When a legacy store has no INDEX, the Hook lists its old entry files without creating an index. Agents follow [migration guidance](skills/memo/references/migrate.md), then remove obsolete files and placeholders from active knowledge. Keep any required migration snapshot outside the active store.
 
 ## Installation
 

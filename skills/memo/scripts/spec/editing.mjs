@@ -1,10 +1,12 @@
 import { fail } from "./io.mjs";
+import { managedLines } from "./metadata.mjs";
 
 export function editHelp(text, edit, revision) {
   const lines = (text || "").split(/\r?\n/u);
   const anchor = edit.old_text?.split(/\r?\n/u).find(line => line.trim())?.trim();
   const match = anchor ? lines.findIndex(line => line.includes(anchor)) : -1;
-  const start = Math.max(1, Math.min(lines.length, (match >= 0 ? match + 1 : edit.start_line || 1)) - 2);
+  const first = Math.min(lines.length, managedLines(text || "").hidden + 1);
+  const start = Math.max(first, Math.min(lines.length, (match >= 0 ? match + 1 : edit.start_line || 1)) - 2);
   let context = "";
   for (let index = start - 1; index < Math.min(lines.length, start + 7); index++) {
     let line = `${index + 1}: `;
@@ -41,6 +43,11 @@ export function rangeReplacements(files, edits, revision) {
         invalid(edit, `Use an inclusive line range between 1 and ${lines.length}, and a string new_text.`);
       }
       if (index && edit.start_line <= ranges[index - 1].end_line) invalid(edit, "Line ranges in one document must not overlap.");
+      const managed = [...managedLines(text).lines].filter(line => line >= edit.start_line && line <= edit.end_line).sort((a, b) => a - b);
+      if (managed.length) {
+        const body = managedLines(text).hidden + 1;
+        invalid({ ...edit, start_line: Math.max(body, edit.start_line) }, `Lines ${managed.join(", ")} hold the Gei-managed lifecycle field. ${body > 1 ? `The document body starts at line ${body}; ` : ""}reread with line_numbers and choose a range outside it.`);
+      }
     }
     let result = text;
     for (const edit of ranges.reverse()) {

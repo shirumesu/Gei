@@ -14,7 +14,7 @@ Candidates include invalid metadata, changed or unverified content, review dates
 
 Ordinary `spec_edit` calls need only edits and a summary. Creation and correction preserve existing lifecycle state without initializing a new record or renewing whole-document verification. Documents without metadata remain ordinary Markdown; missing state alone does not create a maintenance candidate. Add optional `reviews` when an explicit semantic review has been completed. Each review has a path, outcome and concise `basis`:
 
-- `verify` confirms the entire resulting document against current evidence, with or without accompanying edits, after deciding that it still earns retention. It does not imply live execution when evidence is source inspection. The basis references owning evidence rather than copying logs; new review submissions are limited to 1200 Unicode characters while older records remain readable.
+- `verify` confirms the entire resulting document against current evidence, with or without accompanying edits, after deciding that it still earns retention. It does not imply live execution when evidence is source inspection. The basis references owning evidence rather than copying logs; new review submissions are limited to 300 Unicode characters.
 - `delete` gives the deletion rationale and removes that record; repair incoming references in the same batch.
 - `defer` identifies missing evidence without renewing verification. Any accompanying corrections are saved without verification; the same content/evidence condition cools for 30 days, while changed content or sources can reopen it.
 
@@ -39,39 +39,37 @@ Pass this through `spec edit --input FILE`, or use the same structured arguments
 
 Each document is one Markdown file. Optional lifecycle state lives in its own `gei` frontmatter field. The runtime owns that field through structured `reviews`; agents maintain substantive content and supply review outcomes and evidence, without manually calculating timestamps or hashes. Plain INDEX, topic and note files need no header until an actual review requires state.
 
-Read, search, exact edits, range edits, error contexts, and reference locations use the complete stored Markdown and its physical lines, including frontmatter. There is no hidden read mode, virtual document view, or line offset conversion. Reads remain bounded and can start at any physical line, so editing a tail section does not require reading the header. Startup INDEX injection still uses the body because it is a compact routing surface, not an editing view.
+All coordinates are physical lines of the stored Markdown; there is no virtual view or line offset conversion. `spec_read` skips the Gei-managed frontmatter by default, so a document with lifecycle state may start at line 4. Each file reports `body_start_line` and a one-line `lifecycle` summary (kind, verification and review dates, source count) instead of the raw field. Pass `start_line: 1` to read the field itself. `spec_search` skips managed lines unless `include_lifecycle: true`. Startup INDEX injection uses the body only.
 
-The managed field is a multiline JSON-as-YAML flow mapping, extending the previous single-line JSON format without adding a YAML dependency:
+Edits cannot touch the managed field. `replace_lines` ranges that include the field or the delimiters of a Gei-only header fail with a RANGE error that names the first body line. Exact `replace` never matches inside the field, so text that also appears in evidence does not cause ambiguous matches. `create` content must not contain a `gei` field. A final check rejects any batch that would still change the field. Only `reviews` write it.
+
+The managed field is one line of JSON, which is a YAML flow mapping:
 
 ```markdown
 ---
-gei: {
-    "version": 4,
-    "kind": "knowledge",
-    "review_days": 90,
-    "verified_at": "2026-09-14T08:00:00Z",
-    "verified_hash": "<runtime-generated SHA-256>",
-    "basis": "Current evidence recorded beside the claims"
-  }
+gei: {"version":5,"kind":"knowledge","review_days":90,"verified_at":"2026-10-06T08:00:00.000Z","verified_hash":"<16 hex>","basis":"Short evidence pointer","sources":{"hooks/knowledge.mjs":"<16 hex>"}}
 ---
 # A durable constraint
 
 The actual knowledge and its supporting evidence.
 ```
 
-Ordinary edits preserve the existing managed block byte for byte, including when a whole-document replacement omits it. A review updates only that block; the rest of the frontmatter, comments, BOM, body and newline bytes are not reformatted. Stable multiline serialization keeps individual field changes local in Git diff. New verification uses version 4 and hashes the content outside the managed field, including meaningful user frontmatter. Review deadlines are calculated from `verified_at` and `review_days`; new verification no longer stores `created_at` or redundant `review_after`. Prior version 1–3 baselines remain readable, and explicit verification adopts the current format. Historical evidence is not treated as a substantive document reference by GC; reference positions still use physical lines.
+Format 5 hashes use the first 16 hex characters of SHA-256; they detect change and are not a security boundary. Content hashes cover everything outside the managed field, including other frontmatter, with CRLF normalized. `sources` maps at most 8 checkout-relative paths to file hashes. New review `basis` is limited to 300 characters; point to evidence in the document or source instead of copying it. Review deadlines are calculated from `verified_at` and `review_days`.
 
 The existing `rename` operation carries the complete file without renewing state; repair incoming and relative links in the same batch. Deletion, GC, local recovery and GitHub commits likewise operate on the complete file. Semantic deletion and link repairs remain atomic. Plain documents still receive structural link checks, but absence of a review baseline does not establish that their knowledge is invalid.
 
-### Migration from separate metadata
+### Migration from 0.11 records
 
-Existing `metadata/<document-path>.json` records remain readable for compatibility and move into their document when it is written. Reads, checks, startup hooks and storage import/export never silently migrate content. For a whole-store migration, run `spec migrate-metadata --all` (or `--scope projects/example/`). The preview identifies the destination as Markdown and reports candidate and blocked paths. Apply with `spec migrate-metadata --all --apply --base-revision REV` from that preview. The Markdown update and old JSON removal form one transaction or GitHub commit. Repeating the operation is a no-op; documents already using embedded metadata retain their existing formatting until a review changes it.
+Only format 5 is active. Documents with older embedded records (versions 1–4) are reported as `legacy_metadata` by checks and cannot be reviewed until converted. Run `spec migrate-metadata --all` (or `--scope projects/example/`) to preview, then apply with `spec migrate-metadata --all --apply --base-revision REV`. Conversion runs in one transaction or GitHub commit:
 
-Migration preserves verification dates, review deadlines, destruction declarations and deferred conditions. Existing hash bridges remain only as long as needed to preserve deployed baselines; migration may add a bridge for old formats whose BOM/header hash input differs. A content change invalidates that bridge, and explicit verification removes it. Conflicting embedded/separate records, invalid JSON/state or orphan records block bulk migration without losing either copy. An evidence-based `verify` can rebuild invalid state; reading it does not make it verified or eligible for deletion.
+- A verification baseline that still matches the content is rebased onto the new hash (`baseline: preserved`). A baseline that no longer matches stays unmatched (`stale`), so the document still reports `content_changed`.
+- Verification dates, review intervals, basis text, scope, source baselines and destruction declarations are kept. Older bases longer than 300 characters are kept in full.
+- Deferral fingerprints cannot be carried over. The reason is kept, and deferred documents appear again in the next check.
+- Records that cannot be parsed are listed as blocked; verify them with evidence to rebuild their state.
 
-Upgrade writers and the scheduled GC runtime together before migrating a shared store, and restart long-lived MCP processes. Older writers may move embedded state back to separate files or misread multiline fields. Until that coordinated upgrade, the new runtime can read the existing separate records. The bundled Actions template targets the matching release tag; a development build that has not been published needs its tested runtime supplied to the scheduled job. Previously issued physical-Markdown revisions keep their coordinate contract; a migration changes the content revision and requires a fresh read before subsequent edits.
+Separate `metadata/<document-path>.json` records from 0.11.0 development builds are no longer read. Convert them with Gei 0.11.x before upgrading. Upgrade writers and the scheduled GC runtime together, and restart long-lived MCP processes; older writers cannot read format 5. A migration changes the revision, so read again before later edits.
 
-MCP check/GC text is a formatted worklist containing reasons, relevant evidence, environment conditions, retention declarations and reference locations. The CLI uses the same presentation by default; `--json` requests structured output for scripts. Neither maintenance representation includes internal content/defer fingerprints. This formatting does not hide the actual frontmatter in ordinary read/search results.
+MCP check/GC text is a formatted worklist containing reasons, relevant evidence, environment conditions, retention declarations and reference locations. The CLI uses the same presentation by default; `--json` requests structured output for scripts. Neither maintenance representation includes internal content/defer fingerprints.
 
 Kinds are `knowledge` (default), `handoff` (default under tasks/), and `transient`. Default review intervals are 90, 14, and 30 days respectively, configurable from 1 to 365. Environment observations normally use knowledge with a 30-day review interval. Stable accepted requirements can use 365 days. These are review intervals, not deletion deadlines. Read/search/import, ordinary edits, and opening a project never renew verification. Transport/cache `stale` describes snapshot freshness, independently of knowledge validity.
 

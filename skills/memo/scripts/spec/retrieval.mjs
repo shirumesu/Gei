@@ -1,4 +1,4 @@
-import { parseDocument } from "./metadata.mjs";
+import { parseDocument, managedLines, reviewAfter } from "./metadata.mjs";
 
 export function overview(content) {
   const parsed = parseDocument(content);
@@ -43,14 +43,20 @@ export function documentOrder(name) {
   return name.includes("/notes/") ? 3 : 2;
 }
 
+// Zero-based physical lines managed by Gei, for searches that skip lifecycle state.
 export function lifecycleLines(content) {
-  const excluded = new Set();
-  for (const field of parseDocument(content).fields) {
-    const start = content.slice(0, field.start).split("\n").length - 1;
-    const count = field.text.split("\n").length - (field.text.endsWith("\n") ? 1 : 0);
-    for (let line = start; line < start + count; line++) excluded.add(line);
-  }
-  return excluded;
+  return new Set([...managedLines(content).lines].map(line => line - 1));
+}
+
+// A one-line view of lifecycle state, so readers need not see the raw field.
+export function lifecycleSummary(content) {
+  const parsed = parseDocument(content);
+  if (!parsed.fields.length) return undefined;
+  const hidden_lines = managedLines(content).hidden;
+  if (!parsed.metadata) return { hidden_lines, state: parsed.legacy ? "legacy: run migrate-metadata" : `invalid: ${parsed.error}` };
+  const meta = parsed.metadata;
+  return { hidden_lines, kind: meta.kind, verified_at: meta.verified_at || null, review_after: reviewAfter(meta) || null,
+    sources: Object.keys(meta.sources || {}).length, ...(meta.scope ? { scope: meta.scope } : {}), ...(meta.delete_after ? { delete_after: meta.delete_after } : {}) };
 }
 
 export function windowBytes(text, start_line, start_column, max_lines, line_numbers) {

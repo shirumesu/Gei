@@ -1,9 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fail, hash, documentPath, metadataPath, isDocument } from "./io.mjs";
-import { metadataFor, writeMetadata, validateMetadata, contentHash, reviewAfter, referenceContent, parseDocument } from "./metadata.mjs";
+import { fail, documentPath, isDocument } from "./io.mjs";
+import { withMetadata, validateMetadata, contentHash, digest16, reviewAfter, referenceContent, parseDocument } from "./metadata.mjs";
 
 const DAY = 86400000;
+export const BASIS_LIMIT = 300;
+export const SOURCE_LIMIT = 8;
 const intervals = { knowledge: 90, handoff: 14, transient: 30 };
 const own = (value, key) => Object.hasOwn(value, key);
 const date = value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u.test(value) && Number.isFinite(Date.parse(value));
@@ -26,7 +28,7 @@ function sourceHash(root, name) {
   try {
     const file = fs.realpathSync(path.join(base, name));
     if (!file.startsWith(base + path.sep) || !fs.statSync(file).isFile()) return { unavailable: true, status: "unavailable" };
-    return { hash: hash(fs.readFileSync(file)) };
+    return { hash: digest16(fs.readFileSync(file)) };
   } catch (error) { return { unavailable: true, status: ["ENOENT", "ENOTDIR"].includes(error.code) ? "missing" : "unavailable" }; }
 }
 export function lifecycle(content, { now = Date.now(), environment, checkoutRoot, state } = {}) {
@@ -35,12 +37,14 @@ export function lifecycle(content, { now = Date.now(), environment, checkoutRoot
   const observedSources = [];
   const sourceChanges = [];
   const sourceCoverage = { references: 0, checked: 0, missing: 0, not_checked: 0, unavailable: 0 };
-  if (parsed.error) reasons.push("invalid_metadata");
+  if (parsed.legacy) reasons.push("legacy_metadata");
+  else if (parsed.error) reasons.push("invalid_metadata");
   else if (meta) {
-    if (meta.verified_hash !== contentHash(content, meta)) reasons.push(meta.verified_at ? "content_changed" : "unverified");
+    if (meta.verified_hash !== contentHash(content)) reasons.push(meta.verified_at ? "content_changed" : "unverified");
     if (reviewAfter(meta) && Date.parse(reviewAfter(meta)) <= now) reasons.push("review_due");
     if (meta.scope?.environment && environment !== meta.scope.environment) reasons.push("environment_unconfirmed");
-    for (const source of meta.sources || []) {
+    for (const [sourcePath, sourceDigest] of Object.entries(meta.sources || {})) {
+      const source = { path: sourcePath, hash: sourceDigest };
       const actual = sourceHash(checkoutRoot, source.path);
       observedSources.push([source.path, actual.hash || null]);
       sourceCoverage.references++;
@@ -56,9 +60,9 @@ export function lifecycle(content, { now = Date.now(), environment, checkoutRoot
         }
       }
     }
-    if (meta.delete_after && Date.parse(meta.delete_after) <= now) reasons.push(meta.deletion_hash === contentHash(content, meta) ? "destruction_due" : "destruction_content_changed");
+    if (meta.delete_after && Date.parse(meta.delete_after) <= now) reasons.push(meta.deletion_hash === contentHash(content) ? "destruction_due" : "destruction_content_changed");
   }
-  const fingerprint = hash(JSON.stringify([contentHash(content, meta), reasons, observedSources, meta?.scope, environment]));
+  const fingerprint = digest16(JSON.stringify([contentHash(content), reasons, observedSources, meta?.scope, environment]));
   const cooling = meta?.deferred_fingerprint === fingerprint && Date.parse(meta.retry_after) > now;
   return { metadata: meta, reasons, fingerprint, cooling: Boolean(cooling), source_changes: sourceChanges, source_coverage: sourceCoverage,
     ...(parsed.error ? { error: parsed.error } : {}) };
@@ -192,7 +196,7 @@ export function inventory(files, prefix, options = {}) {
     not_assessed: ["semantic_validity", "retention_value", "live_behavior"] };
   let cooling = 0;
   for (const [name, content] of all) {
-    const status = lifecycle(content, { ...options, state: metadataFor(files, name) });
+    const status = lifecycle(content, { ...options, state: parseDocument(content) });
     coverage[status.metadata || status.error ? "lifecycle_tracked" : "plain_documents"]++;
     if (status.metadata?.verified_at && status.metadata?.verified_hash) coverage.verification_baselines++;
     if (status.source_coverage.references) coverage.source_baseline_documents++;
@@ -210,8 +214,8 @@ export function inventory(files, prefix, options = {}) {
     const eligible = reasons.includes("destruction_due") && !blockers.length && !/\/INDEX\.md$/u.test(name);
     if (!reasons.length) { unsignaled.push({ path: name }); continue; }
     if (status.cooling && !broken.length && !reasons.includes("destruction_due")) { cooling++; continue; }
-    const basis = excerpt(status.metadata?.basis || status.metadata?.evidence?.join("; ") || "", 1200);
-    const lastAttempt = status.metadata?.attempt_reason === undefined ? undefined : excerpt(status.metadata.attempt_reason, 1200);
+    const basis = excerpt(status.metadata?.basis || "", BASIS_LIMIT);
+    const lastAttempt = status.metadata?.attempt_reason === undefined ? undefined : excerpt(status.metadata.attempt_reason, BASIS_LIMIT);
     results.push({ path: name, reasons, action: eligible ? "gc_eligible" : "review",
       basis: basis.text, basis_truncated: basis.truncated, scope: status.metadata?.scope,
       kind: status.metadata?.kind, delete_after: status.metadata?.delete_after, deletion_reason: status.metadata?.deletion_reason,
@@ -220,7 +224,9 @@ export function inventory(files, prefix, options = {}) {
       incoming: incoming.slice(0, 20), incoming_total: incoming.length, broken: broken.slice(0, 20), broken_total: broken.length,
       source_changes: status.source_changes, source_coverage: status.source_coverage,
       duplicates: repeated.slice(0, 3), duplicates_omitted: Math.max(0, repeated.length - 3),
-      next: eligible ? "Preview GC; apply only within the authorized scope." : "Read the document and evidence; submit verify/delete/defer. Age is not a deletion reason." });
+      next: eligible ? "Preview GC; apply only within the authorized scope."
+        : reasons.includes("legacy_metadata") ? "Run migrate-metadata for this scope to convert the old lifecycle record; it keeps matching baselines."
+        : "Read the document and evidence; submit verify/delete/defer. Age is not a deletion reason." });
   }
   const rank = item => item.action === "gc_eligible" ? 0 : item.reasons.some(reason => ["broken_reference", "substantive_dependency", "source_changed", "invalid_metadata"].includes(reason)) ? 1 : 2;
   results.sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path));
@@ -251,19 +257,20 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
     if (seen.has(review.path)) fail("ARGUMENT", "One review per document per batch.");
     seen.add(review.path);
     if (typeof review.basis !== "string" || !review.basis.trim() || !["verify", "delete", "defer"].includes(review.outcome)) fail("ARGUMENT", "A review needs its outcome and a concrete basis: verification evidence, deletion rationale, or the evidence still missing.");
-    if (Array.from(review.basis).length > 1200) fail("ARGUMENT", "Keep the review basis within 1200 characters; put detailed evidence in the owning document or source.");
+    if (Array.from(review.basis).length > BASIS_LIMIT) fail("ARGUMENT", `Keep the review basis within ${BASIS_LIMIT} characters; put detailed evidence in the owning document or source.`);
     if (review.outcome === "delete") {
       if (!own(before, review.path)) fail("NOT_FOUND", "Cannot review-delete a missing document.");
-      delete after[review.path]; delete after[metadataPath(review.path)]; continue;
+      delete after[review.path]; continue;
     }
     const content = after[review.path];
     if (typeof content !== "string") fail("NOT_FOUND", "Review an existing document or create it in this batch.");
-    const parsed = metadataFor(after, review.path);
+    const parsed = parseDocument(content);
+    if (parsed.legacy) fail("METADATA", "This document has an old lifecycle record. Run migrate-metadata for its scope before reviewing.", { path: review.path });
     if (parsed.error && review.outcome !== "verify") fail("METADATA", "Lifecycle state is invalid. Verify the document with current evidence to rebuild it, or leave it unchanged.", { path: review.path });
     const kind = review.kind || parsed.metadata?.kind || (review.path.includes("/tasks/") ? "handoff" : "knowledge");
     if (!own(intervals, kind)) fail("ARGUMENT", "Use knowledge, handoff, or transient.");
     const stamp = new Date(now).toISOString();
-    const meta = { ...parsed.metadata, version: parsed.metadata?.version || 4, kind,
+    const meta = { ...parsed.metadata, version: 5, kind,
       review_days: review.review_days ?? (kind === parsed.metadata?.kind ? parsed.metadata.review_days : intervals[kind]) };
     if (review.outcome === "defer") {
       if (["kind", "scope", "review_days", "delete_after", "clear_delete_after", "sources"].some(key => own(review, key))) fail("REVIEW", "Defer cannot change retention, scope, or evidence baselines.");
@@ -282,24 +289,23 @@ export function applyReviews(before, after, reviews, { now = Date.now(), environ
           meta.scope = Object.fromEntries(Object.entries(scope).map(([key, value]) => [key, value.trim()]));
         }
       }
-      meta.version = 4; delete meta.migrated_hash; delete meta.created_at; meta.verified_at = stamp; meta.verified_hash = contentHash(content, meta); meta.basis = review.basis;
-      delete meta.evidence; delete meta.reason;
-      delete meta.review_after;
+      meta.verified_at = stamp; meta.verified_hash = contentHash(content); meta.basis = review.basis;
       delete meta.retry_after; delete meta.deferred_fingerprint; delete meta.attempt_reason; delete meta.attempted_at;
       if (review.sources) {
-        meta.sources = review.sources.map(name => {
+        meta.sources = Object.fromEntries(review.sources.map(name => {
           const value = sourceHash(checkoutRoot, name);
           if (value.unavailable) fail("EVIDENCE", "Cannot baseline a source without its checkout file.", { path: name });
-          return { path: name, hash: value.hash };
-        });
+          return [name, value.hash];
+        }));
+        if (!review.sources.length) delete meta.sources;
       }
       if (review.clear_delete_after || kind !== "transient") { delete meta.delete_after; delete meta.deletion_reason; delete meta.deletion_hash; }
       if (review.delete_after) {
         if (kind !== "transient" || /\/INDEX\.md$/u.test(review.path) || !date(review.delete_after) || !review.deletion_reason?.trim()) fail("RETENTION", "Only transient non-INDEX records may declare destruction, with a UTC date and reason.");
-        meta.delete_after = review.delete_after; meta.deletion_reason = review.deletion_reason; meta.deletion_hash = contentHash(content, meta);
+        meta.delete_after = review.delete_after; meta.deletion_reason = review.deletion_reason; meta.deletion_hash = contentHash(content);
       }
     }
     validateMetadata(meta);
-    writeMetadata(after, review.path, meta);
+    after[review.path] = withMetadata(content, meta);
   }
 }

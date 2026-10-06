@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -143,65 +142,11 @@ export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the sour
   return lines.join("\n") + suffix;
 }
 
-function publishMissing(filePath, content) {
-  if (fs.existsSync(filePath)) return;
-  const temporary = `${filePath}.${randomUUID()}.tmp`;
-  fs.writeFileSync(temporary, content, { flag: "wx" });
-  try {
-    // Publish complete bytes without replacing another session's file.
-    try { fs.linkSync(temporary, filePath); }
-    catch (error) { if (error.code !== "EEXIST") throw error; }
-  } finally { fs.unlinkSync(temporary); }
-}
-
-export function ensureWorkspace(startDir, options = {}) {
-  const project = resolveProject(startDir, options);
-  if (project.legacyRoots.length) {
-    throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories out of projects: ${project.legacyRoots.join(", ")}`);
-  }
-  fs.mkdirSync(project.specRoot, { recursive: true });
-  const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
-    .filter(name => fs.existsSync(path.join(project.specRoot, name)));
-  const index = [`# ${project.projectId}`, "",
-    "Agent workspace allocated. Add reliable background and topic routes as work establishes them."];
-  if (legacy.length) index.push("", "Legacy knowledge: use Memo migration before replacing these sources.",
-    ...legacy.map(name => `- [${name}](${name})`));
-  publishMissing(path.join(project.specRoot, "INDEX.md"), `${index.join("\n")}\n`);
-  return project;
-}
-
-function boundedIndex(header, indexPath, indexBudget, totalBudget) {
-  const content = readOptional(indexPath).replace(/<!--[\s\S]*?-->/gu, "").trim();
-  const prefix = `${header}\nIndex: ${indexPath}\n\n`;
-  const available = Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix));
-  return clipLines(prefix + clipLines(content || "Index is empty; maintain it through Memo when context is known.", available), totalBudget);
-}
-
-export function buildProjectContext(startDir, options = {}) {
-  const project = ensureWorkspace(startDir, options);
-  const header = ["Gei agent workspace", `Checkout: ${project.checkoutRoot}`,
-    `Knowledge: ${project.specRoot}`,
-    "INDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout; verify branch-specific claims."].join("\n");
-  return boundedIndex(header, path.join(project.specRoot, "INDEX.md"), PROJECT_INDEX_BYTES, CONTEXT_BYTES);
-}
-
-export function buildSharedContext({ geiSpecHome = getGeiSpecHome() } = {}) {
-  const root = path.join(geiSpecHome, "context");
-  const indexPath = path.join(root, "INDEX.md");
-  if (!fs.existsSync(indexPath)) {
-    return fs.existsSync(path.join(root, "MEMORY.md"))
-      ? clipLines(`Gei shared legacy knowledge: ${path.join(root, "MEMORY.md")}. Read only when relevant; migrate through Memo.`, SHARED_CONTEXT_BYTES)
-      : "";
-  }
-  return boundedIndex("Gei shared conditions: INDEX content is supplied below; follow matching lesson links directly without rereading INDEX. Check their applicability.",
-    indexPath, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
-}
-
 function toolContext(header, name, result, indexBudget, totalBudget) {
   const state = result.stale ? "offline cache" : result.source;
   const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n${result.maintenance ? result.maintenance + "\n" : ""}\n`;
   const content = parseDocument(result.content).body.replace(/<!--[\s\S]*?-->/gu, "").trim()
-    || "Index is unavailable or not yet created. Read this path with spec_read before creating knowledge.";
+    || result.missing || "Index is unavailable. Read this path with spec_read before creating knowledge.";
   return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
 }
 
@@ -211,13 +156,17 @@ export async function loadProjectContext(cwd) {
   const project = resolveProject(cwd);
   if (project.legacyRoots.length) throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories: ${project.legacyRoots.join(", ")}`);
   const name = `projects/${project.projectId}/INDEX.md`;
-  const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
-    .filter(file => fs.existsSync(path.join(project.specRoot, file)));
-  const initialContent = [`# ${project.projectId}`, "", "Agent workspace allocated. Add reliable background and topic routes as work establishes them.",
-    ...(legacy.length ? ["", "Legacy knowledge: use Memo migration before replacing these sources.", ...legacy.map(file => `- [${file}](${file})`)] : [])].join("\n") + "\n";
-  const result = await store.index(name, { allocate: true, initialContent });
-  const hint = store.maintenanceHint(`projects/${project.projectId}/`);
-  if (hint) result.maintenance = hint;
+  const result = await store.index(name);
+  // Knowledge is created by the first durable spec_edit, never by opening a session.
+  if (result.content) {
+    const hint = store.maintenanceHint(`projects/${project.projectId}/`);
+    if (hint) result.maintenance = hint;
+  } else {
+    const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
+      .filter(file => fs.existsSync(path.join(project.specRoot, file)));
+    result.missing = [`No knowledge for this project yet. When work earns durable knowledge, create ${name} with spec_edit in the same batch as its first topic or note; otherwise create nothing.`,
+      ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
+  }
   return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
 }
 

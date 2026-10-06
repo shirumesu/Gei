@@ -1,6 +1,6 @@
 # Migrate Existing Knowledge
 
-Migrate the current project's useful knowledge autonomously when upgrading or when a legacy route is encountered. For an existing legacy store without INDEX.md, workspace allocation links the old entry files from a new minimal index. Hooks never inject legacy bodies or judge their content.
+Migrate the current project's useful knowledge autonomously when upgrading or when a legacy route is encountered. For an existing legacy store without INDEX.md, the workspace Hook lists the old entry files; create the index during migration. Hooks never inject legacy bodies or judge their content.
 
 ## Path-Hash Stores
 
