@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v0.12.1 - 2026-10-22
+
 ### 会话后的后台 Memo
 
 - 新增默认开启的后台维护：UserPromptSubmit/Stop/SessionEnd Hook 只记录用户输入与每轮最终回复，并把任务交给脱离会话的 worker；Hook 不输出内容，不会让会话多续一轮。worker 在会话结束、空闲 15 分钟或内容足够长时，用宿主无头模式和本次会话的模型审阅整段会话，写入经得起检验的知识、用户纠正与工作偏好，并承接到期的维护检查。参考 mem0、OpenViking 的做法：不解析宿主 transcript，排队文件加后台 worker，下次 SessionStart 补跑中断或失败的任务，并显示一次后台写入摘要。
