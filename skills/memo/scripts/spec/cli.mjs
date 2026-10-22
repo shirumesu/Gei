@@ -10,6 +10,7 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
 
   status                         Show settings and cached connection status
   enable | disable               Enable/disable knowledge (other Skills stay available)
+  background on | off            Turn post-session Memo maintenance by plugin Hooks on/off
   connect github --repo OWNER/NAME [--branch NAME] [--create] [--apply]
                                  Preview binding/import; --apply performs the displayed action
   use local [--cached-revision REV] [--apply]
@@ -48,6 +49,7 @@ try {
   let result;
   if (command === "status") result = await store.status();
   else if (command === "enable" || command === "disable") result = await store.setEnabled(command === "enable");
+  else if (command === "background" && ["on", "off"].includes(positional[0])) result = await store.setBackground(positional[0] === "on");
   else if (command === "refresh") result = await store.refresh();
   else if (command === "connect" && positional[0] === "github") result = await store.connect(options);
   else if (command === "use" && positional[0] === "local") result = await store.useLocal(options);

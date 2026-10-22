@@ -28,6 +28,8 @@ The required skills are:
 
 ```text
 consider
+diagnose
+inspect
 memo
 ```
 
@@ -61,12 +63,17 @@ gei
   .codex-plugin/spec.mcp.json
   bin/gei.mjs
   skills/consider/SKILL.md
+  skills/diagnose/SKILL.md
+  skills/inspect/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
   hooks/codex-hooks.json
   hooks/knowledge.mjs
   hooks/inject_context.mjs
   hooks/inject_shared.mjs
+  hooks/memo.mjs
+  hooks/memo_hook.mjs
+  hooks/memo_worker.mjs
   skills/memo/templates/index.md
 ```
 
@@ -91,8 +98,13 @@ Gei
   hooks/knowledge.mjs
   hooks/inject_context.mjs
   hooks/inject_shared.mjs
+  hooks/memo.mjs
+  hooks/memo_hook.mjs
+  hooks/memo_worker.mjs
   skills/memo/templates/index.md
   skills/consider/SKILL.md
+  skills/diagnose/SKILL.md
+  skills/inspect/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
 ```
@@ -131,6 +143,8 @@ unzip Gei-skills.zip -d <skills-dir>
 <skills-dir>/
   Gei/
     consider/SKILL.md
+    diagnose/SKILL.md
+    inspect/SKILL.md
     memo/SKILL.md
     memo/references/storage.md
 ```
@@ -157,6 +171,8 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 <skills-dir>/
   Gei/
     skills/consider/SKILL.md
+    skills/diagnose/SKILL.md
+    skills/inspect/SKILL.md
     skills/memo/SKILL.md
     skills/memo/references/storage.md
 ```

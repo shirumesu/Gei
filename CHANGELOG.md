@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### 会话后的后台 Memo
+
+- 新增默认开启的后台维护：UserPromptSubmit/Stop/SessionEnd Hook 只记录用户输入与每轮最终回复，并把任务交给脱离会话的 worker；Hook 不输出内容，不会让会话多续一轮。worker 在会话结束、空闲 15 分钟或内容足够长时，用宿主无头模式和本次会话的模型审阅整段会话，写入经得起检验的知识、用户纠正与工作偏好，并承接到期的维护检查。参考 mem0、OpenViking 的做法：不解析宿主 transcript，排队文件加后台 worker，下次 SessionStart 补跑中断或失败的任务，并显示一次后台写入摘要。
+- 后台开启时，启动注入不再出现维护提示，会话内的 Agent 只在用户明确要求时写知识；`spec background off` 恢复会话内维护。
+- Codex 路径已按文档实现，但尚未在真实 Codex 上验证；更新插件后需在 `/hooks` 中重新审核新增 Hook。
+
+### Skills
+
+- Consider 对单向门决策、"深挖"请求或低把握结论启动一个全新上下文的子代理做第二意见，只采纳有证据且改变结论、边界或探针的发现。公共接口、数据模型或存储格式可改为"设计两次"：并行让 2–3 个子代理各给出截然不同的设计再比较。端到端 spike 明确为只回答一个问题的一次性原型，只把结论带回主线。
+- 新增 diagnose：修 bug 前先拿到一条已运行、能复现用户症状的命令，写出可验证的一句根因后才改代码；修复后同一命令须由失败变通过，并搜索同类写法逐一说明。连续三个假设被否定即停下交接。复现脚本放在测试套件之外，不新增或改写测试。参考 mattpocock/skills diagnosing-bugs 与 tw93/Waza hunt。
+- 新增 inspect（只由用户调用）：把用户原话和 diff 交给全新上下文的子代理，报告漏做或做错的需求、没要求却加的内容（含无人会改的新配置项）以及可删除的设计，主 Agent 逐条核对后再报告。找 bug 仍交给宿主的 `/code-review`、`/review`。参考 mattpocock/skills code-review 与 tw93/Waza check。
+
 ## v0.12.0 - 2026-10-06
 
 升级须知：生命周期 metadata 改为格式 5。升级后先对知识库执行一次 `spec migrate-metadata --all` 预览，再用其 revision 加 `--apply` 转换；写入端与定时 GC 需同时升级。0.11.0 开发版的独立 `metadata/*.json` 记录不再读取，需先用 0.11.x 合回文档。

@@ -15,6 +15,46 @@
             "statusMessage": "Loading Gei shared conditions",
             "timeout": 10,
             "command": "node \"${PLUGIN_ROOT}/hooks/inject_shared.mjs\""
+          },
+          {
+            "type": "command",
+            "statusMessage": "Queuing Gei Memo maintenance",
+            "timeout": 10,
+            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "timeout": 10,
+            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 3,
+            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
           }
         ]
       }

@@ -1,11 +1,15 @@
 ---
 name: memo
-description: Maintain external project background, topic routes, conditional lessons, and handoffs. Use when work earns a durable update or Spec reports maintenance candidates; ordinary context reading does not require this skill.
+description: Maintain external project background, topic routes, conditional lessons, and handoffs. Use when the user asks to record, correct, or remove knowledge, when work earns a durable update while background Memo is off, or when Spec reports maintenance candidates; ordinary context reading does not require this skill.
 ---
 
 # Memo
 
 Own useful project knowledge outside the repository. Create, update, merge, move, and remove it autonomously within the task; no separate user confirmation is needed. Honor host filesystem permissions and current user instructions. Do not merely offer to remember or defer a known correction.
+
+## Background Mode
+
+When the Hook reports Background Memo, a worker owns incidental capture and scheduled maintenance. It reviews the whole session record after the session ends or pauses, so it judges final outcomes rather than the latest turn. During the session, write only when the user explicitly asks to record, correct, or remove knowledge; land that request immediately because parallel sessions read it. The rest of this skill then guides the worker. Users switch the mode with the CLI `background on|off`.
 
 ## Act On Evidence
 
@@ -46,4 +50,4 @@ Use only the relevant [index](templates/index.md), [topic](templates/topic.md), 
 
 ## Finish
 
-Before the final reply, land any qualifying update and repair its nearest incoming route. Remove duplication before splitting touched indexes, verify touched links, and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.
+Without Background Memo, before the final reply, land any qualifying update and repair its nearest incoming route. Remove duplication before splitting touched indexes, verify touched links, and distinguish accepted targets from implemented facts. Mention meaningful writes briefly; keep no-write decisions silent. Do not append routine internal history or sweep unrelated topics.

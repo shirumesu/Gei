@@ -9,7 +9,7 @@ import { fieldText, managedLines, managedSpans } from "./metadata.mjs";
 import { convertLegacy } from "./legacy.mjs";
 import { inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
 
-const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
+const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
 const changed = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].filter(name => a[name] !== b[name]);
 // Git checkouts may convert LF to CRLF; only migration treats those bytes as equivalent.
@@ -126,13 +126,16 @@ export class SpecStore {
   }
   names(snapshot) { return snapshot.tree ? snapshot.tree.map(item => item.path).sort() : Object.keys(snapshot.files).sort(); }
   async status() {
-    return this.run(config => ({ enabled: config.enabled, mode: config.mode, localDirectory: this.home,
+    return this.run(config => ({ enabled: config.enabled, background: config.background, mode: config.mode, localDirectory: this.home,
       settingsFile: this.configFile, repository: config.github?.repo, branch: config.github?.branch,
       cacheSeconds: config.cacheSeconds, cache: readJson(this.headFile(config)),
       connection: readJson(path.join(this.state, "connection.json")) }), { enabled: false });
   }
   async setEnabled(enabled) {
     return this.run(config => { writeJson(this.configFile, { ...config, enabled }); return { enabled, mode: config.mode }; }, { enabled: false });
+  }
+  async setBackground(background) {
+    return this.run(config => { writeJson(this.configFile, { ...config, background }); return { background, enabled: config.enabled }; }, { enabled: false });
   }
   environment() {
     const file = path.join(this.state, "environment.json");

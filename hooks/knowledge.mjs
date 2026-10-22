@@ -150,21 +150,28 @@ function toolContext(header, name, result, indexBudget, totalBudget) {
   return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
 }
 
+const BACKGROUND = "Background Memo is on: after the session, a worker reviews its record for incidental knowledge and scheduled maintenance. Write knowledge during the session only when the user explicitly asks to record, correct, or remove it; do not offer to record anything.";
+const background = config => config.background !== false;
+
 export async function loadProjectContext(cwd) {
   const store = new SpecStore({ authTimeout: 500 });
-  if (!store.config().enabled) return "";
+  const config = store.config();
+  if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
   const project = resolveProject(cwd);
   if (project.legacyRoots.length) throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories: ${project.legacyRoots.join(", ")}`);
   const name = `projects/${project.projectId}/INDEX.md`;
   const result = await store.index(name);
-  // Knowledge is created by the first durable spec_edit, never by opening a session.
-  if (result.content) {
+  if (background(config)) result.maintenance = BACKGROUND;
+  else if (result.content) {
     const hint = store.maintenanceHint(`projects/${project.projectId}/`);
     if (hint) result.maintenance = hint;
-  } else {
+  }
+  // Knowledge is created by the first durable spec_edit, never by opening a session.
+  if (!result.content) {
     const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
       .filter(file => fs.existsSync(path.join(project.specRoot, file)));
-    result.missing = [`No knowledge for this project yet. When work earns durable knowledge, create ${name} with spec_edit in the same batch as its first topic or note; otherwise create nothing.`,
+    result.missing = [background(config) ? "No knowledge for this project yet."
+      : `No knowledge for this project yet. When work earns durable knowledge, create ${name} with spec_edit in the same batch as its first topic or note; otherwise create nothing.`,
       ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
   }
   return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
@@ -172,10 +179,11 @@ export async function loadProjectContext(cwd) {
 
 export async function loadSharedContext() {
   const store = new SpecStore({ authTimeout: 500 });
-  if (!store.config().enabled) return "";
+  const config = store.config();
+  if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
   const result = await store.index("context/INDEX.md");
   if (!result.content) return "";
-  const hint = store.maintenanceHint("context/");
+  const hint = !background(config) && store.maintenanceHint("context/");
   if (hint) result.maintenance = hint;
   return toolContext("Gei shared conditions: INDEX content is supplied below; follow matching lesson links directly without rereading INDEX. Check their applicability.", "context/INDEX.md", result, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
 }

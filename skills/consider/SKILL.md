@@ -26,6 +26,12 @@ The first substantive reply on a proposal contains:
 
 Scale depth to stakes. A small reversible choice fits in a paragraph: verdict, top risk, flip condition. Spend depth on one-way doors such as stack, data model, public interfaces, storage formats, and platform.
 
+## Second Opinion
+
+For a one-way door, a "deep" request, or a verdict you hold with low confidence, spawn one fresh subagent with the [second opinion brief](references/second-opinion.md) before you present the assessment. Use the host's own subagent tool and its default model. It sees the decision and your draft, not the conversation, so it is not anchored by the user's framing or your earlier replies. State which of its findings changed the verdict, boundary, or probe. Skip it for small reversible choices and when the host has no subagent tool.
+
+When the open question is the shape of a public interface, data model, or storage format, design it twice instead: spawn two or three fresh subagents in parallel, each told to design it a radically different way from the same constraints. Compare the designs on what callers must know, which likely changes stay inside one module, and where behavior can be checked; recommend one or a merge, and say what the losing designs taught.
+
 ## Load-Bearing Capabilities
 
 Rewrites usually come from a capability the chosen foundation cannot carry, discovered after building on it.
@@ -33,7 +39,7 @@ Rewrites usually come from a capability the chosen foundation cannot carry, disc
 - List the 2-4 capabilities the product cannot live without, including likely next steps beyond the current request. A media player, for example, needs a playback engine, broad codec support, hardware decoding, and subtitles.
 - For each, state how the foundation supports it: built in, mature library, or custom integration work. Popularity and familiarity say nothing about a specific capability.
 - Check the reference class: how mature products of this kind build that capability, and why. Search when you cannot answer reliably. If they converge on something different, explain why this case differs or switch.
-- When the hardest capability is uncertain, recommend an end-to-end spike of it before committing to anything else.
+- When the hardest capability is uncertain, recommend an end-to-end spike of it before committing to anything else. A spike is throwaway code that answers one named question: it starts with one command, lives on a scratch branch or in a clearly marked location, skips polish and persistence unless they are the question, and shows the state it tests. Only its verdict returns to the main line.
 
 Weigh the user's familiarity as a real benefit against capability gaps, not as a tiebreaker that hides them.
 

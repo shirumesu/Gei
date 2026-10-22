@@ -15,6 +15,46 @@
             "statusMessage": "Loading Gei shared conditions",
             "timeout": 10,
             "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_shared.mjs\""
+          },
+          {
+            "type": "command",
+            "statusMessage": "Queuing Gei Memo maintenance",
+            "timeout": 10,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/memo_hook.mjs\" claude"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "timeout": 10,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/memo_hook.mjs\" claude"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/memo_hook.mjs\" claude"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 5,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/memo_hook.mjs\" claude"
           }
         ]
       }

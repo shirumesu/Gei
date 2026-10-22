@@ -12,8 +12,10 @@ Gei provides small task Skills for Codex and Claude Code, plus project knowledge
 | --- | --- |
 | consider | Independently judge whether and how to build something and what the choice locks in: necessity, effort, blast radius, alternatives, debt, load-bearing capabilities, and a pre-mortem |
 | memo | Maintain external background, domain routes, decisions, lessons, and handoffs |
+| diagnose | Find the root cause before fixing a bug: get one command that reproduces the symptom, state the cause in one sentence, show the same command fail before and pass after the fix, and check for the same mistake elsewhere; adds no tests |
+| inspect | Have a fresh subagent check a change against the user's own words: missing or wrong requirements, unrequested additions, and removable design; user-invoked only |
 
-Gei keeps only what models do not do on their own: external project knowledge, and proposal evaluation that resists simply extending the user's idea. Implementation, review, and research are left to the model and host built-ins; personal coding preferences belong in user-level AGENTS.md/CLAUDE.md. Ordinary context reads need no Memo load.
+Gei keeps only what models do not do on their own or know but often skip: external project knowledge, proposal evaluation that resists simply extending the user's idea, reproduce-first debugging, and a request-fidelity review not shaped by the author's intent. Each asks for output that can be checked, not an attitude. Implementation, bug-finding review (`/code-review`, `/review`), and research are left to the model and host built-ins; personal coding preferences belong in user-level AGENTS.md/CLAUDE.md. Ordinary context reads need no Memo load.
 
 ## External Project Knowledge
 
@@ -53,7 +55,13 @@ Each knowledge document remains one Markdown file. Optional one-line `gei` front
 
 ## Hooks And Reading Budgets
 
-Two independent read-only SessionStart Hooks supply project context and shared conditions. When a project has no INDEX, the Hook only says to create one on the first durable write, so scratch directories leave no empty projects. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
+Two independent SessionStart Hooks supply project context and shared conditions without writing knowledge. When a project has no INDEX, the Hook only says to create one on the first durable write, so scratch directories leave no empty projects. Hooks do not depend on execution order. Topic bodies, notes, and history remain on demand; users need not author AGENTS.md.
+
+### Post-Session Maintenance
+
+On by default. During a session, Hooks only record each user prompt and the agent's final reply per turn (tens of milliseconds, no output, never an extra turn). When the session ends, stays idle for 15 minutes, or grows long, a Hook starts a detached worker. It runs the current host headless (`claude -p` / `codex exec`) with the session's model and reviews the whole session by the Memo standard: it judges final outcomes, records user corrections and working preferences, and completes due maintenance checks. The in-session agent writes knowledge only on explicit request. Unfinished work is retried at the next SessionStart, which also shows a one-line summary of background writes.
+
+The design follows the mem0 and OpenViking Claude Code/Codex plugins: record Hook input instead of parsing host transcripts, queue files plus a detached worker, and catch-up at startup. Run `spec background off` to return to in-session maintenance. Records and logs live under `memo/` in the Spec state directory and are deleted after processing; `hooks/memo_worker.mjs --status` shows the queue and `--session ID --dry-run` shows what would be sent.
 
 Complete outputs are capped at 4 KiB for workspace context, and 1.5 KiB for shared conditions. Project/Shared INDEX bodies allow at most 3/1 KiB, with paths counted against the whole-output budget. Limits measure UTF-8 bytes, preserve complete lines, and identify clipped sources. Splitting Hooks does not authorize injecting the whole knowledge store.
 
