@@ -15,6 +15,15 @@ When the Hook reports Background Memo, a worker owns incidental capture and sche
 
 For incidental memory, keep only information that can change a plausible future decision or avoid non-obvious repeated investigation, and is not already supplied by an existing authority. This includes continuing constraints, accepted decisions, reusable pitfalls and necessary handoffs. Update the existing owner first. Routine edits, test counts, raw logs, generic advice and code facts cheap to recover earn no note; no write is a successful outcome.
 
+Do not record these as knowledge status (they fail the admission gate):
+- git push or sync status (pushed or not)
+- ahead/behind `origin` or other branch-tracking status
+- Unreleased used as a living source-status field ("still Unreleased", "not released yet")
+- local checkout has X / remote lacks X (or the reverse) as a standing fact
+- whether an installed or plugin-cache copy has been upgraded
+
+Keep mechanism notes about release tooling (for example CHANGELOG Unreleased extraction traps) when they change how agents ship; that is tool behavior, not a "source is still Unreleased" status field.
+
 User-requested documentation remains the deliverable; this admission gate is not a reason to withhold it. Distinguish user-confirmed decisions, agent inferences, unimplemented targets and observed behavior. Prior recording alone does not establish user acceptance, and current implementation does not overrule an accepted requirement. Keep explicit preferences at their stated scope; never promote one choice into a universal preference.
 
 ## Shape
@@ -26,7 +35,7 @@ Use the Hook-provided external workspace. Knowledge lives under `projects/<proje
 - `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected; remove redundant or retired material before splitting detail into linked topic/note files that earn selective reading. Leave only a short retrieval cue for moved content; a small project may need only an index.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Split by responsibility only when lookup gets difficult.
 - `topics/<domain>/notes/<meaningful-name>.md`: scoped decision or pitfall, its reasons/evidence, and when to reconsider.
-- `tasks/<name>.md`: accepted work that must survive handoff; do not create a second task tracker.
+- `tasks/<name>.md`: accepted work that must survive handoff; do not create a second task tracker or keep a completed progress ledger. When lasting knowledge is merged, delete the task in the same `spec_edit` batch—never rewrite it to "completed" / "已完成" and leave it occupying space.
 - `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects.
 
 Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve repository-relative evidence against the current checkout, not the knowledge directory.
@@ -35,7 +44,7 @@ Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve 
 
 When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). Assess continued value before re-verifying retained claims. Check results include signals and review samples, not a semantic or live verification verdict. Keep low-frequency constraints while applicable; age or inactivity alone does not retire them. Use `spec_edit` for corrections and completed reviews, including confirmed deletions and link repairs.
 
-Use knowledge by default. Reserve transient retention and a destruction date for records explicitly intended to be discarded, never to empty a review queue. Reading, importing, rewording, and reopening a project do not verify its knowledge. INDEX contains stable background and routes; environment observations and unfinished operations belong in scoped records.
+Use knowledge by default. Reserve transient retention and a destruction date for records explicitly intended to be discarded, never to empty a review queue. Deferred items, competitor comparisons, and one-off research default to transient (or delete once the product decision lands); do not promote them to long-lived knowledge by default. Reading, importing, rewording, and reopening a project do not verify its knowledge. INDEX contains stable background and routes; environment observations and unfinished operations belong in scoped records.
 
 ## Read Only What This Write Needs
 
