@@ -5,10 +5,10 @@ Purpose: one sentence.
 Agreements: only confirmed recurring project-specific instructions.
 
 <!-- gei:index start -->
-- [Domain](topics/domain/README.md): One sentence naming what these facts cover.
+- [Domain](topics/domain/README.md): What these facts cover, and when to read them.
 
 ## tasks
 
-- [Task](tasks/task.md): One sentence naming the accepted work. (todo)
+- [Task](tasks/task.md): What this open work covers, and when to resume it. (todo)
 更多任务 3 个，见 [tasks/INDEX.md](tasks/INDEX.md)
 <!-- gei:index end -->

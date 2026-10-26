@@ -4,6 +4,7 @@
 
 ### Memo
 
+- 只记录会改变以后行为、并且代码、git、文档里找不到的内容。规则在 `skills/memo/SKILL.md`，细则在 `skills/memo/references/admission.md`。facts 记环境、账号归属、外部限制和踩过的坑。decisions 记情境、原因、如何应用和不做什么；否决项只留一行 `rejected X because Y`。runbooks 只记会重复且步骤不明显的操作。tasks 只留进行中和待办，带验收标准和状态；做完后先把结论收进 decisions 或 facts，再删除，不留 `status: done`，也不挪进 log。log 是草稿，每周整理后删除。不记录密钥、闲聊、PR 或提交里已经写清的内容、一次性验证结果、复述的常识。`description` 用一句话写文档覆盖什么、何时该读。后台 Memo 提示使用同一套跳过规则。`spec_edit` 的 delete 说明改为允许删掉已完成的 task。
 - 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。模板一级标题是占位符 `<标题>`；create 或 replace 留下它时返回 `PLACEHOLDER_TITLE`，不写入。
 
 ### 仓库
