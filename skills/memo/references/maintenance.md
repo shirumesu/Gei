@@ -8,6 +8,8 @@ Optional `sources` in YAML frontmatter lists checkout-relative files whose later
 
 Add missing frontmatter in the same batch. Requirements are in [Memo Shape](../SKILL.md). A document with invalid frontmatter is omitted from the catalog until a later edit makes it valid.
 
+An edit that saves a non-INDEX document must leave `type` and a one-line `description`, and `status` when `type` is `tasks`. Add those fields in the same batch when the document does not have them yet. `INDEX.md` is exempt. `sources` stays optional.
+
 ## Decide The Outcome
 
 - **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A source-file change means read the source; it is not a deletion order.

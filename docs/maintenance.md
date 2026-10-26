@@ -19,7 +19,7 @@ Meaning, retention, and live behavior are not assessed, and no signal authorizes
 
 ## Frontmatter
 
-`spec_edit` requires YAML frontmatter on every document except a path ending in `/INDEX.md`, including `tasks/INDEX.md`. `type` is `facts`, `decisions`, `runbooks`, `log`, or `tasks`. `description` is one non-empty line. A `tasks` document also requires `status`: `todo`, `doing`, `blocked`, or `done`. A `create`, `replace`, `replace_lines`, or `rename` that leaves a non-INDEX document without them fails with `FRONTMATTER` and writes nothing; add missing fields to older documents in the same batch. The fields are ordinary text, written with `create`, `replace`, or `replace_lines` (line 1 included).
+`spec_edit` requires YAML frontmatter on every document except a path ending in `/INDEX.md`, including `tasks/INDEX.md`. `type` is `facts`, `decisions`, `runbooks`, `log`, or `tasks`. `description` is one non-empty line. A `tasks` document also requires `status`: `todo`, `doing`, `blocked`, or `done`. A `create`, `replace`, `replace_lines`, or `rename` that leaves a non-INDEX document without them fails with `FRONTMATTER` and writes nothing; add missing fields to older documents in the same batch. The fields are ordinary text, written with `create`, `replace`, or `replace_lines` (line 1 included). A heading that is still `<标题>` fails with `PLACEHOLDER_TITLE` and writes nothing.
 
 `sources` is an optional YAML list in the frontmatter (not a JSON field or hash map). List checkout-relative files whose later commits should reopen the note, not every file that was read.
 
@@ -36,9 +36,9 @@ sources:
 The actual knowledge.
 ```
 
-A flow sequence (`sources: [hooks/knowledge.mjs]`) is also read. Other keys are left untouched. Reads and search include this header.
+A flow sequence (`sources: [hooks/knowledge.mjs]`) is also read. Keys other than `type`, `description`, `status`, and `sources` are left untouched. Reads start at line 1 and include this header. `body_start_line` is the first line after it. Search matches the full file. A trailing `#` comment on a scalar line is ignored when a space or tab precedes `#` and the `#` is outside quotes.
 
-Local mode makes no git commits, so an edit does not move the document's commit time until something commits it. Drift compares commit times, not mtimes.
+Local mode makes no git commits, so an edit does not move the document's commit time until something commits it. Drift compares commit times, not file modification times.
 
 ## Edits and recovery
 

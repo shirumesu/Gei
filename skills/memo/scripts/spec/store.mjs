@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard } from "./retrieval.mjs";
+import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard, TitlePlaceholder } from "./retrieval.mjs";
 import { Frontmatter } from "./metadata.mjs";
 import { ProjectIndex } from "./index.mjs";
 import { SpecCheck, SourceDrift } from "./maintenance.mjs";
@@ -294,38 +294,14 @@ export class SpecStore {
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
-      Frontmatter.assertChanged(result, changed(current.files, result).filter(name => result[name] !== undefined));
+      const surviving = changed(current.files, result).filter(name => result[name] !== undefined);
+      Frontmatter.assertChanged(result, surviving);
+      TitlePlaceholder.assertReplaced(result, surviving);
       const indexScopes = ProjectIndex.scopesTouched(current.files, result);
-      const updatedAt = await this.taskUpdatedAt(config, current.files, result, indexScopes);
-      ProjectIndex.apply(result, current.files, indexScopes, updatedAt);
+      ProjectIndex.apply(result, current.files, indexScopes);
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });
-  }
-  // Local order uses the knowledge file mtime. GitHub order uses the committer time
-  // of the last commit that touched the path. A task created or edited in this save
-  // counts as updated now, because those bytes are not on disk or in a commit yet.
-  async taskUpdatedAt(config, before, after, scopes) {
-    const now = this.clock();
-    const names = Object.keys(after).filter(name => scopes.some(scope => name.startsWith(scope)) && ProjectIndex.isTaskDocument(name, after[name]));
-    const times = new Map();
-    const remote = [];
-    for (const name of names) {
-      if (!Object.hasOwn(before, name) || before[name] !== after[name]) {
-        times.set(name, now);
-        continue;
-      }
-      if (config.mode === "local") {
-        try { times.set(name, fs.statSync(safeFile(this.home, name)).mtimeMs); }
-        catch { times.set(name, null); }
-      } else remote.push(name);
-    }
-    for (let index = 0; index < remote.length; index += 6) {
-      await Promise.all(remote.slice(index, index + 6).map(async name => {
-        times.set(name, await this.github.latestCommitterMs(config.github, name));
-      }));
-    }
-    return name => times.has(name) ? times.get(name) : null;
   }
   async commitChanges(config, current, result, summary, { deleting = false } = {}) {
     for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge and metadata files must be at most 1 MiB.", { path: name });

@@ -32,6 +32,23 @@ export class Frontmatter {
     return trimmed;
   }
 
+  // A trailing comment is ` #...` outside quotes. `C#` and `"PR #4060"` stay intact.
+  static stripLineComment(line) {
+    let quote = "";
+    let escaped = false;
+    const chars = Array.from(line);
+    for (let index = 0; index < chars.length; index++) {
+      const char = chars[index];
+      if (escaped) { escaped = false; continue; }
+      if (quote === '"' && char === "\\") { escaped = true; continue; }
+      if (quote) { if (char === quote) quote = ""; continue; }
+      if (char === '"' || char === "'") { quote = char; continue; }
+      if (char === "#" && index > 0 && /[ \t]/u.test(chars[index - 1])) return chars.slice(0, index).join("").replace(/[ \t]+$/u, "");
+    }
+    return line;
+  }
+
+
   // Scalar `type`, `description`, and `status` only. `sources` stays with SourceDrift.
   static scalars(content) {
     const parsed = this.split(content);
@@ -39,7 +56,8 @@ export class Frontmatter {
     const values = {};
     const repeated = [];
     const multiline = [];
-    for (const line of parsed.block.split(/\r?\n/u)) {
+    for (const source of parsed.block.split(/\r?\n/u)) {
+      const line = this.stripLineComment(source);
       if (/^[ \t]*#/u.test(line) || /^[ \t]*$/u.test(line)) continue;
       const key = /^([A-Za-z][\w-]*)\s*:\s*(.*)$/u.exec(line);
       if (!key || !watched.has(key[1])) continue;

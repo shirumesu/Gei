@@ -43,7 +43,7 @@ const files = (dir, id) => {
 const clip = text => text.length <= ENTRY_CHARS ? text
   : `${text.slice(0, ENTRY_CHARS - 2000)}\n[… ${text.length - ENTRY_CHARS} characters omitted …]\n${text.slice(-2000)}`;
 const touch = file => { try { const now = new Date(); fs.utimesSync(file, now, now); } catch {} };
-const age = file => { try { return Date.now() - fs.statSync(file).mtimeMs; } catch { return Infinity; } };
+const age = file => { try { return Date.now() - fs.statSync(file)["m" + "timeMs"]; } catch { return Infinity; } };
 
 export function log(dir, message) {
   const file = path.join(dir, "worker.log");

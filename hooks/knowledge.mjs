@@ -172,7 +172,7 @@ export async function loadProjectContext(cwd) {
     const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
       .filter(file => fs.existsSync(path.join(project.specRoot, file)));
     result.missing = [background(config) ? "No knowledge for this project yet."
-      : `No knowledge for this project yet. When work earns durable knowledge, spec_edit writes the document and creates ${name} from topic READMEs and recent tasks in that same save. Otherwise create nothing.`,
+      : `No knowledge for this project yet. When work earns durable knowledge, spec_edit writes the document and creates ${name} from topic READMEs and tasks in status order in that same save. That document needs YAML frontmatter with type and a one-line description, plus status when type is tasks. Otherwise create nothing.`,
       ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
   }
   return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);

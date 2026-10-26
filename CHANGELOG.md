@@ -4,7 +4,7 @@
 
 ### Memo
 
-- 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。
+- 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。模板一级标题是占位符 `<标题>`；create 或 replace 留下它时返回 `PLACEHOLDER_TITLE`，不写入。
 
 ### 仓库
 
@@ -12,7 +12,8 @@
 
 ### Spec
 
-- `spec_edit` 在同一次保存里重写项目 `INDEX.md` 和 `tasks/INDEX.md`（共享范围是 `context/INDEX.md` 和 `context/tasks/INDEX.md`）。项目 INDEX 只列 `topics/<domain>/README.md`，然后用 `## tasks` 列出最近更新的至多 5 条任务（`ProjectIndex.TASKS_IN_INDEX`），一行带 `status`。本地按知识文件 mtime，GitHub 按该文件最后一次提交的 committer 时间，不写 `updated` 字段。超出的任务留在不注入的 `tasks/INDEX.md`，INDEX 末行写 `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`。子笔记不进 INDEX；主题 README 没链接到的笔记，`spec_check` 报 `orphan_note`。`context/` 有主题 README 时同样只列主题，否则列 `context/notes/`。`status: done` 的任务保留并可搜索。标题取围栏和 HTML 注释之外的第一处 ATX H1（`# `），与 `spec_read` 相同，没有则用文件名 stem。`<!-- gei:index start -->` 与其后的 `<!-- gei:index end -->` 之间由工具覆盖，外面的手写标题、目的和约定保留。只有起始标记、或结束标记出现在起始标记之前时，生成块从起始标记一直到文件末尾，起始标记之前的正文保留。标题和 description 里的 `<!--` 会一直消到不能再开注释，反斜杠会转义，description 去掉 `[` 和 `]`，U+0085、U+2028、U+2029 折成空格。只有 `topics/<domain>/notes/` 时不新建项目 INDEX。`context/notes/` 里一篇合法笔记会创建 `context/INDEX.md`。没有可列文档时不新建空索引。注入预算不变：项目正文 3 KiB、共享正文 1 KiB，完整输出 4 KiB / 1.5 KiB，超预算时注入先从末尾裁 task，至少留 3 条（不足 3 条全留）；`更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)` 保留并计入预算，N 含被裁掉的 task。仍超再从末尾裁 topic，并在注入末尾加 `⚠️ INDEX 超出预算，已省略 N 个 topic。请提醒用户清理或合并 topic。`。`tasks/INDEX.md` 不注入。
+- `spec_edit` 同一次保存重写 `INDEX.md` 和 `tasks/INDEX.md`。项目 INDEX 只列主题 README，再用 `## tasks` 列出按状态排序的前 5 条任务（doing、blocked、todo、done，同状态按路径）。更多任务写 `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`。`tasks/INDEX.md` 列出全部任务且不注入。子笔记不进 INDEX；主题 README 没链接到的笔记报 `orphan_note`。`context/` 有主题 README 时只列主题，否则列 `context/notes/`。`status: done` 的任务保留。标题取围栏和 HTML 注释外的第一处 ATX H1，没有则用文件名。标记之间由工具覆盖。注入超预算时先从末尾裁 task（至少留 3 条），仍超再裁 topic，并加上省略 topic 的警告。
+- frontmatter 标量去掉行尾 `#` 注释：只去掉前面有空白、且不在引号内的 `#`。`description_missing` 改看 frontmatter 的 `description`，不再看正文第一段。
 - GitHub 模式下 `spec_check` 仍报告 `broken_reference`、`duplicate_content` 和 `source_unavailable`。知识文档没有本地工作区，所以没有 `source_changed`。
 - `spec_edit` 校验 frontmatter。除 `INDEX.md` 外，文档必须有 `type`（`facts`、`decisions`、`runbooks`、`log`、`tasks`）和一行 `description`；`type` 为 `tasks` 时必须有 `status`（`todo`、`doing`、`blocked`、`done`）。`sources` 仍可选。这些字段用普通 create、replace、replace_lines 写入，不再有托管行。create 在同一项目里按标题、description 和路径拒绝相似文档，并返回已有路径。不合规则整批不写入。
 - 移除机械清理和复查元数据。检查只保留坏链接、重复内容和 sources 漂移：frontmatter 里的可选 `sources` 列表按 git 提交时间比较，源路径不存在则报告 source_unavailable，源提交晚于文档则报告 source_changed。不再保存内容哈希，也不再提供复查参数。

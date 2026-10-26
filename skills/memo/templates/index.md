@@ -1,4 +1,5 @@
-# Project name
+<!-- Replace <标题> with the real title. Saving this placeholder returns PLACEHOLDER_TITLE. -->
+# <标题>
 
 Purpose: one sentence.
 Agreements: only confirmed recurring project-specific instructions.

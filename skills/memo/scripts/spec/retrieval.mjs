@@ -1,3 +1,4 @@
+import { fail } from "./io.mjs";
 import { Frontmatter } from "./metadata.mjs";
 
 export function overview(content) {
@@ -31,10 +32,12 @@ export function overview(content) {
   }
   const excerpt = paragraph.length ? paragraph.join(" ") : null;
   const shorten = (text, limit) => text === null ? null : Array.from(text).slice(0, limit).join("");
+  const described = Frontmatter.scalars(content).values.description;
   return { overview: { extraction: "document", title: shorten(title, 160), title_line,
     title_truncated: title !== null && Array.from(title).length > 160,
     excerpt: shorten(excerpt, 280), excerpt_line,
-    excerpt_truncated: excerpt !== null && Array.from(excerpt).length > 280, description_missing: excerpt === null }, body_start_line };
+    excerpt_truncated: excerpt !== null && Array.from(excerpt).length > 280,
+    description_missing: !(typeof described === "string" && described.trim() !== "") }, body_start_line };
 }
 
 export function documentOrder(name) {
@@ -174,5 +177,16 @@ export class DuplicateGuard {
     }
     matches.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
     return matches;
+  }
+}
+
+// Templates use this heading. The author replaces it; duplicate detection is unchanged.
+export class TitlePlaceholder {
+  static text = "<标题>";
+
+  static assertReplaced(files, paths) {
+    const pending = [...paths].filter(docPath => DuplicateGuard.title(files[docPath]) === this.text).sort();
+    if (!pending.length) return;
+    fail("PLACEHOLDER_TITLE", `Replace the heading placeholder <标题> with the real title before saving.\n${pending.join("\n")}`, { applied: false, paths: pending });
   }
 }

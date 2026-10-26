@@ -59,16 +59,6 @@ export class GitHub {
     if (blob.encoding !== "base64" || blob.size > 1024 * 1024) fail("TOO_LARGE", "Expected a Markdown blob of at most 1 MiB.");
     return Buffer.from(blob.content, "base64").toString("utf8");
   }
-  // Committer time of the newest commit that touches this path, in milliseconds.
-  // An empty history returns null. This is not stored on the document.
-  async latestCommitterMs(binding, filePath) {
-    if (!/^[\w.-]+\/[\w.-]+$/u.test(binding?.repo || "")) fail("CONFIG", "Repository must be owner/name.");
-    const query = new URLSearchParams({ sha: binding.branch, path: filePath, per_page: "1" });
-    const commits = await this.request(`/repos/${binding.repo}/commits?${query}`);
-    const date = Array.isArray(commits) ? commits[0]?.commit?.committer?.date : null;
-    const ms = Date.parse(date);
-    return Number.isFinite(ms) ? ms : null;
-  }
   async commit(binding, expected, changes, message) {
     const additions = Object.entries(changes).filter(([, value]) => value !== null).map(([name, value]) => ({ path: name, contents: Buffer.from(value).toString("base64") }));
     const deletions = Object.entries(changes).filter(([, value]) => value === null).map(([name]) => ({ path: name }));

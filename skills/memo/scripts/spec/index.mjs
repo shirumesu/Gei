@@ -28,10 +28,6 @@ export class ProjectIndex {
     return `${scope}tasks/INDEX.md`;
   }
 
-  static bodyBudget(indexPath) {
-    return indexPath === "context/INDEX.md" ? this.SHARED_BODY_BYTES : this.PROJECT_BODY_BYTES;
-  }
-
   // Same bytes the SessionStart hook injects: body after YAML frontmatter, comments removed.
   static injectedBody(content) {
     return Frontmatter.split(content || "").body.replace(/<!--[\s\S]*?-->/gu, "").trim();
@@ -208,7 +204,13 @@ export class ProjectIndex {
 
   // Context lists topic READMEs when it has one. Otherwise it lists context/notes/.
   // A project always lists topic READMEs only. Tasks are collected separately.
-  static catalog(files, scope, updatedAt = () => null) {
+  static taskRank(status) {
+    const order = ["doing", "blocked", "todo", "done"];
+    const index = order.indexOf(status);
+    return index < 0 ? order.length : index;
+  }
+
+  static catalog(files, scope) {
     const topics = [];
     const notes = [];
     const tasks = [];
@@ -220,7 +222,7 @@ export class ProjectIndex {
       if (!name.startsWith(scope)) continue;
       const meta = this.listable(name, files[name]);
       if (!meta) continue;
-      const entry = { path: name, ...meta, title: this.titleFor(name, files[name]), updated: updatedAt(name) };
+      const entry = { path: name, ...meta, title: this.titleFor(name, files[name]) };
       if (meta.type === "tasks") {
         tasks.push(entry);
         continue;
@@ -232,12 +234,7 @@ export class ProjectIndex {
     const byPath = (left, right) => left.path < right.path ? -1 : left.path > right.path ? 1 : 0;
     topics.sort(byPath);
     notes.sort((left, right) => order.get(left.type) - order.get(right.type) || byPath(left, right));
-    tasks.sort((left, right) => {
-      const leftTime = Number.isFinite(left.updated) ? left.updated : Number.NEGATIVE_INFINITY;
-      const rightTime = Number.isFinite(right.updated) ? right.updated : Number.NEGATIVE_INFINITY;
-      if (leftTime !== rightTime) return rightTime - leftTime;
-      return byPath(left, right);
-    });
+    tasks.sort((left, right) => this.taskRank(left.status) - this.taskRank(right.status) || byPath(left, right));
     return { topicsMode, topics, notes, tasks };
   }
 
@@ -324,11 +321,9 @@ export class ProjectIndex {
   }
 
   // `before` supplies the header when this batch deleted an index but documents remain.
-  // `updatedAt(path)` is milliseconds, or null when the file has no mtime or commit time.
-  // Larger values sort first. The caller uses mtime locally and committer time on GitHub.
-  static apply(files, before, scopes, updatedAt = () => null) {
+  static apply(files, before, scopes) {
     for (const scope of scopes) {
-      const catalog = this.catalog(files, scope, updatedAt);
+      const catalog = this.catalog(files, scope);
       const routed = catalog.topicsMode ? catalog.topics.length : catalog.notes.length;
       this.write(files, before, this.indexPath(scope), routed > 0 || catalog.tasks.length > 0, eol => this.scopeBlock(this.indexPath(scope), catalog, eol));
       this.write(files, before, this.tasksIndexPath(scope), catalog.tasks.length > 0, eol => this.tasksBlock(this.tasksIndexPath(scope), catalog.tasks, eol));
