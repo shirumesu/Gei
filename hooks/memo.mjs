@@ -236,8 +236,8 @@ The record lists each user prompt and the agent's final reply per turn. Intermed
 
 Apply the Memo skill below to the whole record, not to the latest turn:
 - Judge outcomes at the end of the record. A choice reversed later in the session is not a decision. A proposal the user did not accept is not accepted.
-- Corrections and friction: when the user corrected the agent's approach, rejected a result, or stated a working preference, decide its scope. Project-specific: the project INDEX working agreements or the owning topic. Applies across unrelated projects: context/ (shared knowledge injected at every session start). Never promote one choice into a universal preference.
-- If existing knowledge already covered a correction the user had to repeat, that knowledge failed: make it shorter, more prominent, or move it into the INDEX instead of adding a duplicate. When a check, lint, or script could prevent the repeated mistake, record that check as the recommended fix.
+- Corrections and friction: when the user corrected the agent's approach, rejected a result, or stated a working preference, decide its scope. Project-specific: the hand-written header of the project INDEX (purpose and agreements) or the owning document. The generated catalog is not edited by hand. Applies across unrelated projects: context/ (shared knowledge injected at every session start). Never promote one choice into a universal preference.
+- If existing knowledge already covered a correction the user had to repeat, that knowledge failed: make it shorter, more prominent, or move the agreement into the INDEX header instead of adding a duplicate. Change a document's description to change its catalog line. When a check, lint, or script could prevent the repeated mistake, record that check as the recommended fix.
 - The agent may have written knowledge during the session. Read the current documents before editing and do not duplicate or revert their changes.
 - Write in the language of the existing knowledge; for a new project use the session's main language.
 - No write is a normal and frequent outcome.

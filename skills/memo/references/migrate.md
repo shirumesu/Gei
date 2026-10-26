@@ -1,6 +1,6 @@
 # Migrate Existing Knowledge
 
-Migrate the current project's useful knowledge autonomously when upgrading or when a legacy route is encountered. For an existing legacy store without INDEX.md, the workspace Hook lists the old entry files; create the index during migration. Hooks never inject legacy bodies or judge their content.
+Migrate the current project's useful knowledge autonomously when upgrading or when a legacy route is encountered. For an existing legacy store without INDEX.md, the workspace Hook lists the old entry files. The first `spec_edit` that saves a valid document creates the index and its catalog. Hooks never inject legacy bodies or judge their content.
 
 ## Path-Hash Stores
 
@@ -13,7 +13,7 @@ Once the content and links are verified, remove obsolete `project.json` metadata
 ## Five-File And Group Stores
 
 1. Inspect the old Overview and Memory index, then only the Architecture, Impacts, decisions, task records, or Group material needed to recover unique useful knowledge. Preserve current user agreements.
-2. Write INDEX.md with concise background/agreements and topic routes. Fold overlapping architecture and impact claims into owning topics; move conditional decisions and pitfalls into their notes.
+2. Write the INDEX header with concise background and agreements, outside the generated markers. Give each kept document a `type` and a one-line `description` so the catalog lists it. Fold overlapping architecture and impact claims into owning topics; move conditional decisions and pitfalls into their notes. Do not hand-write the catalog lines.
 3. Check evidence, scope, and existing links. Keep meaningful cross-project knowledge through direct routes rather than rebuilding Groups. Convert shared MEMORY.md to context/INDEX.md and move useful shared notes to context/notes/; repair their routes.
 4. Mark active handoffs explicitly. Stop routine internal Changelog maintenance; transfer only history that explains a still-useful decision.
 5. Once each old source's unique content and incoming links are accounted for, remove obsolete files and empty scaffolding from active knowledge. Keep a verified migration snapshot outside the active store when needed; do not leave parallel old/current authorities. A project migration does not authorize rewriting unrelated projects. For an explicitly requested whole-store migration, establish the common layout first, migrate each project independently, then verify coverage and cross-project links before replacing old content.

@@ -6,6 +6,7 @@ import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
 import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard } from "./retrieval.mjs";
 import { Frontmatter } from "./metadata.mjs";
+import { ProjectIndex } from "./index.mjs";
 import { SpecCheck, SourceDrift } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
@@ -260,7 +261,9 @@ export class SpecStore {
       const touched = [...new Set(edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]))];
       const createScopes = [...new Set(edits.filter(edit => edit.op === "create").map(edit => DuplicateGuard.scope(edit.path)))];
       const corpus = createScopes.length ? this.names(current).filter(name => createScopes.some(prefix => name.startsWith(prefix))) : [];
-      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus])]);
+      const scopes = [...new Set(touched.map(name => ProjectIndex.scope(name)))];
+      const scopeNames = this.names(current).filter(name => scopes.some(prefix => name.startsWith(prefix)));
+      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus, ...scopeNames])]);
       const revision = this.version(config, current.oid);
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
@@ -292,6 +295,7 @@ export class SpecStore {
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
       Frontmatter.assertChanged(result, changed(current.files, result).filter(name => result[name] !== undefined));
+      ProjectIndex.apply(result, current.files, ProjectIndex.scopesTouched(current.files, result));
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });

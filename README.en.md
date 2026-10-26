@@ -114,6 +114,8 @@ context/
   notes/<lesson>.md
 ```
 
+`spec_edit` rewrites that project's `INDEX.md` in the same save, one line per document from its one-line `description`, grouped by `type`. A heading and agreements outside the generated block can still be written by hand.
+
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 
 See the [usage guide](docs/spec.md).

@@ -114,6 +114,8 @@ context/
   notes/<lesson>.md
 ```
 
+`spec_edit` 会在同一次保存里按各篇的一行 `description` 重写该项目的 `INDEX.md`，一篇一行，按 `type` 分组。生成块外面的标题和约定仍可手写。
+
 也可以改存到自己的 GitHub 私有仓库（告诉 Agent 绑定到哪个 repo 就好）。
 
 详见[使用说明](docs/spec.md)。

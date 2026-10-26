@@ -24,7 +24,7 @@ Keep user decisions, reported observations, source checks, runtime tests, and pr
 
 ## Land One Usable Store
 
-Merge shared guidance into topics and isolate conditional detail only where selective retrieval benefits. Split a topic that mixes environments or unrelated responsibilities. INDEX stays a short map; do not concatenate two indexes or keep duplicate machine trees as active authorities.
+Merge shared guidance into topics and isolate conditional detail only where selective retrieval benefits. Split a topic that mixes environments or unrelated responsibilities. Keep one hand-written INDEX header. Do not concatenate catalog blocks or keep duplicate machine trees as active authorities; the next `spec_edit` rebuilds the catalog from the documents that remain.
 
 Check that each input's useful content has a destination or an explicit supersession reason. Repair links after moving files, remove obsolete identity routes and filesystem debris, and check index budgets and unresolved conflict markers. Preserve referenced evidence where it still matters. Recheck live inputs before replacement so concurrent edits are not lost.
 

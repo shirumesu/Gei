@@ -5,6 +5,10 @@ const TYPES = ["facts", "decisions", "runbooks", "log", "tasks"];
 const STATUSES = ["todo", "doing", "blocked", "done"];
 
 export class Frontmatter {
+  static typeOrder() {
+    return TYPES.slice();
+  }
+
   static split(content) {
     const match = /^(?:\uFEFF)?---\r?\n([\s\S]*?)(?<=\n)---(?:\r?\n|$)/u.exec(content || "");
     if (!match) return { header: "", body: content || "", block: "" };
