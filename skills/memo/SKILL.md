@@ -42,9 +42,9 @@ Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve 
 
 ## Maintain From Evidence
 
-When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). Assess continued value before re-verifying retained claims. Check results include signals and review samples, not a semantic or live verification verdict. Keep low-frequency constraints while applicable; age or inactivity alone does not retire them. Use `spec_edit` for corrections and completed reviews, including confirmed deletions and link repairs.
+When a maintenance hint or request applies, use `spec_check` for a bounded batch in the relevant project or shared scope, then follow [maintenance](references/maintenance.md). Signals are broken links, repeated prose, and source drift. A clean signal set is not a semantic or live verdict. Keep low-frequency constraints while applicable; age or inactivity alone does not retire them. Use `spec_edit` for corrections, confirmed deletions, and link repairs.
 
-Use knowledge by default. Reserve transient retention and a destruction date for records explicitly intended to be discarded, never to empty a review queue. Deferred items, competitor comparisons, and one-off research default to transient (or delete once the product decision lands); do not promote them to long-lived knowledge by default. Reading, importing, rewording, and reopening a project do not verify its knowledge. INDEX contains stable background and routes; environment observations and unfinished operations belong in scoped records.
+Keep a note only while it can still change a later decision. Deferred comparisons, competitor snapshots, and one-off research are deleted once the product decision lands; do not keep them as durable knowledge, and do not assign a destruction date. Reading, importing, or rewording a document does not by itself earn retention. INDEX contains stable background and routes. Environment observations and unfinished operations stay in scoped records and are removed when they no longer apply.
 
 ## Read Only What This Write Needs
 

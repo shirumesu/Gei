@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import readline from "node:readline";
-import { formatMaintenance } from "./presentation.mjs";
+import { CheckText } from "./presentation.mjs";
 import { SpecStore } from "./store.mjs";
 import { callTool, tools } from "./tools.mjs";
 
@@ -18,13 +18,13 @@ async function handle(message) {
     case "initialize":
       reply({ protocolVersion: versions.includes(message.params?.protocolVersion) ? message.params.protocolVersion : versions[0],
         capabilities: { tools: {} }, serverInfo: { name: "gei-spec", version: "1.0.0" },
-        instructions: "Use startup knowledge paths with spec_read/search/edit. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools. Read coverage and continuation fields before conclusions. When structuredContent is available, consume it once; content is the text compatibility representation, not additional evidence." }); break;
+        instructions: "Use startup knowledge paths with spec_read/search/edit. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools. Read continuation fields before conclusions. When structuredContent is available, consume it once; content is the text compatibility representation, not additional evidence." }); break;
     case "ping": reply({}); break;
     case "tools/list": reply({ tools }); break;
     case "tools/call":
       try {
         const result = await callTool(store, message.params?.name, message.params?.arguments);
-        reply({ content: [{ type: "text", text: ["spec_check", "spec_gc"].includes(message.params.name) ? formatMaintenance(message.params.name, result) : JSON.stringify(result) }], structuredContent: result });
+        reply({ content: [{ type: "text", text: message.params.name === "spec_check" ? CheckText.format(result) : JSON.stringify(result) }], structuredContent: result });
       } catch (error) {
         const result = { code: error.code || "INTERNAL", message: error.message, ...error.details };
         reply({ isError: true, content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result });

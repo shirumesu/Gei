@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
-import { parseDocument } from "../skills/memo/scripts/spec/metadata.mjs";
+import { Frontmatter } from "../skills/memo/scripts/spec/metadata.mjs";
 
 export const PROJECT_INDEX_BYTES = 3072;
 export const SHARED_INDEX_BYTES = 1024;
@@ -145,7 +145,7 @@ export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the sour
 function toolContext(header, name, result, indexBudget, totalBudget) {
   const state = result.stale ? "offline cache" : result.source;
   const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n${result.maintenance ? result.maintenance + "\n" : ""}\n`;
-  const content = parseDocument(result.content).body.replace(/<!--[\s\S]*?-->/gu, "").trim()
+  const content = Frontmatter.split(result.content).body.replace(/<!--[\s\S]*?-->/gu, "").trim()
     || result.missing || "Index is unavailable. Read this path with spec_read before creating knowledge.";
   return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
 }

@@ -5,6 +5,7 @@
   "engines": { "node": ">=22" },
   "bin": { "gei": "bin/gei.mjs" },
   "scripts": {
+    "test": "node --test tests/*.test.mjs",
     "spec": "node bin/gei.mjs spec"
   }
 }
