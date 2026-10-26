@@ -147,7 +147,8 @@ function toolContext(header, name, result, indexBudget, totalBudget) {
   const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n${result.maintenance ? result.maintenance + "\n" : ""}\n`;
   const content = ProjectIndex.injectedBody(result.content)
     || result.missing || "Index is unavailable. Read this path with spec_read before creating knowledge.";
-  return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
+  const room = Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix));
+  return clipLines(prefix + ProjectIndex.fitInjection(content, room), totalBudget);
 }
 
 const BACKGROUND = "Background Memo is on: after the session, a worker reviews its record for incidental knowledge and scheduled maintenance. Write knowledge during the session only when the user explicitly asks to record, correct, or remove it; do not offer to record anything.";

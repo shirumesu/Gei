@@ -2,7 +2,8 @@
 // INDEX.md lists topic READMEs, then at most TASKS_IN_INDEX tasks.
 // tasks/INDEX.md lists every task and is not injected.
 // Text outside the markers is the hand-written header and is left in place.
-// Injection still clips the comment-stripped INDEX.md body at PROJECT_BODY_BYTES / SHARED_BODY_BYTES.
+// Injection fits the comment-stripped INDEX.md body to PROJECT_BODY_BYTES / SHARED_BODY_BYTES.
+// Over budget, task lines drop from the end down to MIN_INJECTED_TASKS, then topic lines drop from the end.
 import path from "node:path";
 import { Frontmatter } from "./metadata.mjs";
 import { DuplicateGuard } from "./retrieval.mjs";
@@ -13,6 +14,7 @@ export class ProjectIndex {
   static PROJECT_BODY_BYTES = 3072;
   static SHARED_BODY_BYTES = 1024;
   static TASKS_IN_INDEX = 5;
+  static MIN_INJECTED_TASKS = 3;
 
   static scope(docPath) {
     return DuplicateGuard.scope(docPath);
@@ -86,6 +88,96 @@ export class ProjectIndex {
 
   static moreTasksLine(hidden) {
     return `更多任务 ${hidden} 个，见 [tasks/INDEX.md](tasks/INDEX.md)`;
+  }
+
+  static injectionWarning(omittedTopics) {
+    return `⚠️ INDEX 超出预算，已省略 ${omittedTopics} 个 topic。请提醒用户清理或合并 topic。`;
+  }
+
+  static isTopicCatalogLine(line) {
+    const match = /^- \[[^\]]*\]\(([^)]+)\)/u.exec(line);
+    if (!match) return false;
+    const target = match[1].replace(/^<|>$/gu, "");
+    return /^topics\/[^/]+\/README\.md$/u.test(target);
+  }
+
+  // Complete lines from the start, with no suffix. Used only when the reserved tail still exceeds the budget.
+  static clipCompleteLines(content, maxBytes) {
+    if (maxBytes <= 0) return "";
+    if (Buffer.byteLength(content, "utf8") <= maxBytes) return content;
+    const lines = [];
+    let used = 0;
+    for (const line of String(content).split("\n")) {
+      const size = Buffer.byteLength(line, "utf8") + (lines.length ? 1 : 0);
+      if (used + size > maxBytes) break;
+      lines.push(line);
+      used += size;
+    }
+    return lines.join("\n");
+  }
+
+  // Fit a comment-stripped INDEX body. The stored catalog is unchanged.
+  // Task lines drop from the end until the body fits, and stop at 3 when at least 3 exist.
+  // The more-tasks line stays, counts toward the budget, and N includes tasks omitted here.
+  // Topic lines then drop from the end. Omitting any adds the warning as the last line.
+  static fitInjection(body, maxBytes) {
+    const text = String(body ?? "").replace(/\r\n/gu, "\n");
+    if (Buffer.byteLength(text, "utf8") <= maxBytes) return text;
+    const lines = text.split("\n");
+    const tasksAt = lines.findIndex(line => line === "## tasks");
+    const head = tasksAt < 0 ? lines.slice() : lines.slice(0, tasksAt);
+    const tail = tasksAt < 0 ? [] : lines.slice(tasksAt + 1);
+    let hidden = 0;
+    const taskBullets = [];
+    for (const line of tail) {
+      const more = /^更多任务 (\d+) 个，见 \[tasks\/INDEX\.md\]\(tasks\/INDEX\.md\)$/u.exec(line);
+      if (more) { hidden = Number(more[1]); continue; }
+      if (line.startsWith("- [")) taskBullets.push(line);
+    }
+    const topicAt = [];
+    head.forEach((line, index) => { if (this.isTopicCatalogLine(line)) topicAt.push(index); });
+    const floor = Math.min(this.MIN_INJECTED_TASKS, taskBullets.length);
+    const render = (taskCount, topicOmit) => {
+      const omit = new Set(topicAt.slice(Math.max(0, topicAt.length - topicOmit)));
+      const keptHead = head.filter((_, index) => !omit.has(index));
+      while (keptHead.length && keptHead.at(-1) === "") keptHead.pop();
+      const keptTasks = taskBullets.slice(0, taskCount);
+      const extra = hidden + taskBullets.length - taskCount;
+      const blocks = [];
+      if (keptHead.length) blocks.push(keptHead.join("\n"));
+      if (keptTasks.length || extra > 0) {
+        const taskBlock = ["## tasks", "", ...keptTasks];
+        if (extra > 0) taskBlock.push(this.moreTasksLine(extra));
+        blocks.push(taskBlock.join("\n"));
+      }
+      let out = blocks.join("\n\n");
+      if (topicOmit > 0) out = `${out}${out ? "\n" : ""}${this.injectionWarning(topicOmit)}`;
+      return out;
+    };
+    const fits = (taskCount, topicOmit) => Buffer.byteLength(render(taskCount, topicOmit), "utf8") <= maxBytes;
+    let taskCount = taskBullets.length;
+    while (taskCount > floor && !fits(taskCount, 0)) taskCount -= 1;
+    let topicOmit = 0;
+    while (topicOmit < topicAt.length && !fits(taskCount, topicOmit)) topicOmit += 1;
+    let out = render(taskCount, topicOmit);
+    if (Buffer.byteLength(out, "utf8") <= maxBytes) return out;
+    const warning = topicOmit > 0 ? this.injectionWarning(topicOmit) : "";
+    const extra = hidden + taskBullets.length - taskCount;
+    const reservedLines = [];
+    if (taskBullets.length || extra > 0) {
+      reservedLines.push("## tasks", "", ...taskBullets.slice(0, taskCount));
+      if (extra > 0) reservedLines.push(this.moreTasksLine(extra));
+    }
+    if (warning) reservedLines.push(warning);
+    const reserved = reservedLines.join("\n");
+    const separator = reserved ? 1 : 0;
+    const headBudget = maxBytes - Buffer.byteLength(reserved, "utf8") - separator;
+    const keptHead = head.filter((_, index) => !new Set(topicAt.slice(Math.max(0, topicAt.length - topicOmit))).has(index));
+    while (keptHead.length && keptHead.at(-1) === "") keptHead.pop();
+    const clippedHead = this.clipCompleteLines(keptHead.join("\n"), headBudget);
+    out = [clippedHead, reserved].filter(Boolean).join("\n");
+    if (Buffer.byteLength(out, "utf8") > maxBytes) out = this.clipCompleteLines(out, maxBytes);
+    return out;
   }
 
   // A topic note is any Markdown file under topics/<domain>/ except that domain's README and any INDEX.
