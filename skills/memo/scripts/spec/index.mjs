@@ -42,12 +42,19 @@ export class ProjectIndex {
     return tail;
   }
 
+  // One pass is not enough: replacing `<!--` with `<!-` turns `<!---` back into `<!--`.
+  static catalogText(value) {
+    let text = String(value).replace(/\\/gu, "\\\\");
+    while (text.includes("<!--")) text = text.replaceAll("<!--", "<!-");
+    return text.replace(/\s+/gu, " ").trim();
+  }
+
   static lineValue(value) {
-    return String(value).replace(/<!--/gu, "<!-").replace(/\s+/gu, " ").trim();
+    return this.catalogText(value);
   }
 
   static linkTitle(value) {
-    const cleaned = String(value).replace(/[\[\]]/gu, "").replace(/\s+/gu, " ").trim();
+    const cleaned = this.catalogText(String(value).replace(/[\[\]]/gu, ""));
     return cleaned || "document";
   }
 
@@ -116,7 +123,14 @@ export class ProjectIndex {
       if (head && !head.endsWith("\n")) head += eol;
       return head + block + tail;
     }
-    let head = previous.split(this.START).join("").split(this.END).join("");
+    // A start marker with no end marker after it is the generated region through EOF.
+    // Text before the start, including an end marker that appears only earlier, stays.
+    if (startAt >= 0) {
+      let head = previous.slice(0, startAt);
+      if (head && !head.endsWith("\n")) head += eol;
+      return head + block;
+    }
+    let head = previous.split(this.END).join("");
     if (head && !head.endsWith("\n")) head += eol;
     if (head.trim() && !head.endsWith(`${eol}${eol}`)) head += eol;
     return head + block;
