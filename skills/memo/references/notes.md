@@ -1,6 +1,6 @@
 # Decisions, Pitfalls, And Handoffs
 
-Record a reason that can change plausible future work and is not already available from an authority worth linking. Prefer the existing topic. Create a note only when one coherent decision, fact, or procedure earns separate retrieval. A note may use `type: decisions`, `facts`, or `runbooks`, and takes a one-line `description`. Use `log` when the shape is free. Keep the conclusion and applicability near the top, then useful reasons, when to reconsider, and evidence. The matching example is optional scaffolding, not a form to fill: [decisions](../templates/decisions.md), [facts](../templates/facts.md), [runbooks](../templates/runbooks.md), or [log](../templates/log.md).
+Record a reason that can change plausible future work and is not already available from an authority worth linking. Prefer the existing topic. Create a note only when one coherent decision, fact, or procedure earns separate retrieval. A note may use `type: decisions`, `facts`, or `runbooks`, and takes a one-line `description`. Use `log` for free-shape scratch. A log is temporary: weekly cleanup moves what lasts into `facts` or `decisions` and then deletes the log. Keep the conclusion and applicability near the top, then useful reasons, when to reconsider, and evidence. The matching example is optional scaffolding, not a form to fill: [decisions](../templates/decisions.md), [facts](../templates/facts.md), [runbooks](../templates/runbooks.md), or [log](../templates/log.md).
 
 ## Decision Transfer
 
