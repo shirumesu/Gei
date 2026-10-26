@@ -8,18 +8,18 @@ Optional `sources` in YAML frontmatter lists checkout-relative files whose later
 
 Add missing frontmatter in the same batch. Requirements are in [Memo Shape](../SKILL.md). A document with invalid frontmatter is omitted from the catalog until a later edit makes it valid.
 
-An edit that saves a non-INDEX document must leave `type` and a one-line `description`, and `status` when `type` is `tasks`. Add those fields in the same batch when the document does not have them yet. `INDEX.md` is exempt. `sources` stays optional.
+An edit that saves a non-INDEX document must leave `type` and a one-line `description` (what the document covers and when to read it), and `status` when `type` is `tasks`. Add those fields in the same batch when the document does not have them yet. `INDEX.md` is exempt. `sources` stays optional.
 
 ## Decide The Outcome
 
 - **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A source-file change means read the source; it is not a deletion order.
-- **Delete:** establish supersession, redundancy, or loss of recovery or reasoning value. Repair incoming links that remain outside the generated catalog, including a hand-written link in the INDEX header. A link does not confer permanent retention, but its sentence cannot be discarded mechanically. Typical noise with no residual decision value: admission-gate status (see [Memo](../SKILL.md)); competitor comparison matrix snapshots; a second "completed" / "已完成" ledger beside a task; deferred items and one-off research that no longer steer a live choice. A task with `status: done` stays.
+- **Delete:** establish supersession, redundancy, or loss of recovery or reasoning value. Repair incoming links that remain outside the generated catalog, including a hand-written link in the INDEX header. A link does not confer permanent retention, but its sentence cannot be discarded mechanically. Typical noise with no residual decision value: admission-gate status (see [admission](admission.md)); competitor comparison matrix snapshots; a second "completed" / "已完成" ledger; a finished task left at `status: done`; deferred items and one-off research that no longer steer a live choice. Delete a finished task after its conclusions are in a decision or fact.
 
 Dates and project inactivity alone do not retire applicable constraints or accepted work. Missing rationale prose does not establish missing value. Inspect evidence without inventing a reason. Preserve reasons that can still change a decision, including accepted targets absent from code. Existing code, tests, and native docs can replace implementation summaries, not user requirements. "It might return someday" is insufficient to keep an otherwise retired architecture in active knowledge.
 
 ## Handoffs And Environment Observations
 
-A handoff stays after completion with `status: done`. It remains searchable and listed in `tasks/INDEX.md`. Completion and the ban on a second tracker are in [notes](notes.md). A final answer, Git commit, or quiet period does not prove completion. Delete cancelled or replaced work that has no remaining recovery value, including its route. If the outcome cannot be established, leave the handoff until it can.
+A handoff exists while recovery is still needed. When the work is done, lift lasting conclusions into a decision or fact, then delete the task. Do not leave `status: done`. Completion is in [admission](admission.md) and [notes](notes.md). A final answer, Git commit, or quiet period does not prove completion. Delete cancelled or replaced work that has no remaining recovery value, including its route. If the outcome cannot be established, leave the handoff until it can.
 
 Environment observations must pass the same admission test as other knowledge. Record the environment described, not the machine on which the note was written. A different environment does not invalidate a still-applicable lesson. A past installation or successful run alone does not earn a permanent record. Keep platform and version conditions on retained lessons. Delete the observation when it no longer applies. There is no destruction date and no mechanical cleanup of disposable notes.
 

@@ -1,6 +1,6 @@
 ---
 type: runbooks
-description: One sentence naming this procedure.
+description: What this procedure covers, and when to run it.
 ---
 <!-- Replace <标题> with the real title. Saving this placeholder returns PLACEHOLDER_TITLE. -->
 # <标题>
