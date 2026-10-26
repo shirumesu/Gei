@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.12.2",
+  "version": "0.13.0",
   "description": "External, topic-routed project knowledge with autonomous maintenance, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
   "author": {
     "name": "shirumesu",
