@@ -23,5 +23,3 @@ After:
 > 1. 检查 Pod 已挂载 `pure-s3-ca` Secret。
 > 2. 执行 `pgbackrest check`，确认 WAL 归档成功。
 > 3. 开始 PITR 演练。
-
-The rewrite states the conclusion first, names each object (`archive_command`, `pure-s3-ca`), gives one reason in one sentence, and turns the procedure into single-action steps.
