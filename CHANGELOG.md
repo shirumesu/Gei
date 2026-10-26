@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### 仓库
+
+- 删除 `tests/`（含 `spec-check.test.mjs`）和 `package.json` 的 `test` 脚本。仓库不再包含测试。
+
 ### Spec
 
 - `spec_edit` 校验 frontmatter。除 `INDEX.md` 外，文档必须有 `type`（`facts`、`decisions`、`runbooks`、`log`、`tasks`）和一行 `description`；`type` 为 `tasks` 时必须有 `status`（`todo`、`doing`、`blocked`、`done`）。`sources` 仍可选。这些字段用普通 create、replace、replace_lines 写入，不再有托管行。create 在同一项目里按标题、description 和路径拒绝相似文档，并返回已有路径。不合规则整批不写入。
