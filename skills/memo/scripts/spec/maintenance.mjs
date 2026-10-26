@@ -130,12 +130,33 @@ export class SpecCheck {
       return { target, pattern: new RegExp(`(?<![\\p{L}\\p{N}_./%:+-])(?:${escaped.join("|")})(?![\\p{L}\\p{N}_./%+-])`, "iu") };
     });
     const lines = Frontmatter.maskGei(content).split("\n");
-    let fence = null;
-    const usable = lines.map(line => {
+    let fence = null, comment = false;
+    const usable = lines.map(raw => {
+      if (fence) {
+        const marker = /^\s*(`{3,}|~{3,})/u.exec(raw);
+        if (marker && marker[1][0] === fence) fence = null;
+        return "";
+      }
+      let line = raw;
+      if (comment) {
+        const end = line.indexOf("-->");
+        if (end < 0) return "";
+        comment = false;
+        line = line.slice(end + 3);
+      }
       const marker = /^\s*(`{3,}|~{3,})/u.exec(line);
-      if (marker) { if (!fence) fence = marker[1][0]; else if (fence === marker[1][0]) fence = null; return ""; }
-      if (fence) return "";
-      return line.replace(/`+[^`]*`+/gu, "");
+      const commentAt = line.indexOf("<!--");
+      if (marker && (commentAt < 0 || marker.index < commentAt)) { fence = marker[1][0]; return ""; }
+      let visible = "";
+      while (line.length) {
+        const start = line.indexOf("<!--");
+        if (start < 0) { visible += line; break; }
+        visible += line.slice(0, start);
+        const end = line.indexOf("-->", start + 4);
+        if (end < 0) { comment = true; break; }
+        line = line.slice(end + 3);
+      }
+      return visible.replace(/`+[^`]*`+/gu, "");
     });
     usable.forEach((line, index) => {
       const match = /^\s*\[([^\]]+)\]:\s*(<[^>]+>|\S+)/u.exec(line);

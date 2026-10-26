@@ -50,10 +50,13 @@ export class ProjectIndex {
   }
 
   // One pass is not enough: replacing `<!--` with `<!-` turns `<!---` back into `<!--`.
+  // Square brackets are removed so a description cannot open a second Markdown link.
+  // U+0085 is not in \s; U+2028 and U+2029 are folded explicitly as well.
   static catalogText(value) {
     let text = String(value).replace(/\\/gu, "\\\\");
     while (text.includes("<!--")) text = text.replaceAll("<!--", "<!-");
-    return text.replace(/\s+/gu, " ").trim();
+    text = text.replace(/[\[\]]/gu, "");
+    return text.replace(/[\s\u0085\u2028\u2029]+/gu, " ").trim();
   }
 
   static lineValue(value) {
