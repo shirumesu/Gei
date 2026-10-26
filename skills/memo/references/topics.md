@@ -18,8 +18,8 @@ A long topic should shed redundant and retired content before splitting. Split o
 
 ## Write Path
 
-Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A topic README uses `type: facts` and a one-line description. `INDEX.md` does not use that frontmatter. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
+Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A topic README uses `type: facts` and a one-line description; the [facts example](../templates/facts.md) is the shape, including its short Routes block. `INDEX.md` does not use that frontmatter. A note may be `decisions`, `facts`, `runbooks`, or `log`. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
 
 Correct known stale claims in the same task. Merge overlapping notes, remove content made redundant by a reliable code/test/native-doc authority, and retain superseded rationale only while it can change future judgment. A different branch does not by itself retire an applicable constraint. User-requested documentation should remain complete for its purpose; compress incidental memory, not the requested deliverable.
 
-Indexes route; topic pages explain current knowledge; notes explain conditional reasoning. Avoid repeating detailed facts between them. Markdown folding does not reduce raw-file input: separate detail into linked files when selective reads need it.
+Indexes route. Topic pages carry current facts. Notes hold a decision, a fact list, a procedure, or a free-shape log. Avoid repeating detailed facts between them. Markdown folding does not reduce raw-file input: separate detail into linked files when selective reads need it.

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Memo
+
+- 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。
+
 ### 仓库
 
 - 删除 `tests/`（含 `spec-check.test.mjs`）和 `package.json` 的 `test` 脚本。仓库不再包含测试。

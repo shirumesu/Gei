@@ -7,7 +7,6 @@ status: todo
 
 Goal:
 Acceptance:
-Assumptions / open decisions:
 State:
 Next:
-Verification / evidence:
+Verification:

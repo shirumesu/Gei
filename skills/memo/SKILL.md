@@ -36,7 +36,7 @@ Use the Hook-provided external workspace. Knowledge lives under `projects/<proje
 
 - `INDEX.md`: short background, durable working agreements, and business-term routes to topics. This is injected and does not require `type`, `description`, or `status`. Remove redundant or retired material before splitting detail into linked topic/note files that earn selective reading. Leave only a short retrieval cue for moved content; a small project may need only an index.
 - `topics/<domain>/README.md`: domain terms, ownership, non-obvious constraints, code/native-doc entry points, and relevant note routes. Use `type: facts` and a one-line description. Split by responsibility only when lookup gets difficult.
-- `topics/<domain>/notes/<meaningful-name>.md`: scoped decision or pitfall, its reasons/evidence, and when to reconsider. Use `type: decisions` or `facts` and a one-line description.
+- `topics/<domain>/notes/<meaningful-name>.md`: scoped decision, fact list, procedure, or free-shape record, with reasons and when to reconsider. Use `type: decisions`, `facts`, `runbooks`, or `log`, and a one-line description.
 - `tasks/<name>.md`: accepted work that must survive handoff, with `type: tasks`, a one-line description, and `status` (`todo`, `doing`, `blocked`, or `done`). Do not create a second task tracker. When lasting knowledge is merged, delete the task in the same `spec_edit` batch—never leave `status: done` or a "completed" / "已完成" ledger occupying space.
 - `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects.
 
@@ -57,7 +57,7 @@ Keep a note only while it can still change a later decision. Deferred comparison
 - Legacy path-hash identity or five-file/Group store: [migration](references/migrate.md).
 - Sentence and term style (ASD-STE100-style) for any write: [wording](references/writing.md).
 
-Use only the relevant [index](templates/index.md), [topic](templates/topic.md), [note](templates/note.md), or [task](templates/task.md) example; headings are optional. Write short statements and links for agent retrieval, not a narrative report.
+Use only the relevant [index](templates/index.md), [facts](templates/facts.md), [decisions](templates/decisions.md), [runbooks](templates/runbooks.md), [log](templates/log.md), or [tasks](templates/tasks.md) example; headings are optional. Write short statements and links for agent retrieval, not a narrative report.
 
 ## Finish
 
