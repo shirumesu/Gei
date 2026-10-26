@@ -117,13 +117,20 @@ export class DuplicateGuard {
     return this.fold(base.replace(/[-_]+/gu, " "));
   }
 
+  // Same heading overview() shows spec_read: skip fenced code and HTML comments, including a heading on the comment's closing line.
   static title(content) {
     const lines = Frontmatter.split(content).body.split("\n");
-    let fence = null;
+    let fence = null, comment = false;
     for (const raw of lines) {
       const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/u.exec(raw);
       if (fence) {
         if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
+        continue;
+      }
+      if (comment) { comment = !raw.includes("-->"); continue; }
+      const commentStart = raw.indexOf("<!--");
+      if (commentStart >= 0) {
+        comment = raw.indexOf("-->", commentStart + 4) < 0;
         continue;
       }
       if (marker) { fence = marker[1]; continue; }

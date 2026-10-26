@@ -3,10 +3,10 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
-import { Frontmatter } from "../skills/memo/scripts/spec/metadata.mjs";
+import { ProjectIndex } from "../skills/memo/scripts/spec/index.mjs";
 
-export const PROJECT_INDEX_BYTES = 3072;
-export const SHARED_INDEX_BYTES = 1024;
+export const PROJECT_INDEX_BYTES = ProjectIndex.PROJECT_BODY_BYTES;
+export const SHARED_INDEX_BYTES = ProjectIndex.SHARED_BODY_BYTES;
 export const CONTEXT_BYTES = 4096;
 export const SHARED_CONTEXT_BYTES = 1536;
 
@@ -145,9 +145,10 @@ export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the sour
 function toolContext(header, name, result, indexBudget, totalBudget) {
   const state = result.stale ? "offline cache" : result.source;
   const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n${result.maintenance ? result.maintenance + "\n" : ""}\n`;
-  const content = Frontmatter.split(result.content).body.replace(/<!--[\s\S]*?-->/gu, "").trim()
+  const content = ProjectIndex.injectedBody(result.content)
     || result.missing || "Index is unavailable. Read this path with spec_read before creating knowledge.";
-  return clipLines(prefix + clipLines(content, Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix))), totalBudget);
+  const room = Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix));
+  return clipLines(prefix + ProjectIndex.fitInjection(content, room), totalBudget);
 }
 
 const BACKGROUND = "Background Memo is on: after the session, a worker reviews its record for incidental knowledge and scheduled maintenance. Write knowledge during the session only when the user explicitly asks to record, correct, or remove it; do not offer to record anything.";
@@ -171,7 +172,7 @@ export async function loadProjectContext(cwd) {
     const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
       .filter(file => fs.existsSync(path.join(project.specRoot, file)));
     result.missing = [background(config) ? "No knowledge for this project yet."
-      : `No knowledge for this project yet. When work earns durable knowledge, create ${name} with spec_edit in the same batch as its first topic or note. That topic or note needs YAML frontmatter with type and a one-line description, plus status when type is tasks. Otherwise create nothing.`,
+      : `No knowledge for this project yet. When work earns durable knowledge, spec_edit writes the document and creates ${name} from topic READMEs and tasks in status order in that same save. That document needs YAML frontmatter with type and a one-line description, plus status when type is tasks. Otherwise create nothing.`,
       ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
   }
   return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);

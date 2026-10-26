@@ -98,7 +98,7 @@ Background maintenance uses the current tool's headless mode (`claude -p` or `co
 | `spec_read` | Read knowledge documents |
 | `spec_search` | Search the knowledge store |
 | `spec_edit` | Create or edit a knowledge document |
-| `spec_check` | Check for broken links, duplicate content, and stale sources |
+| `spec_check` | Check for broken links, unlinked topic notes, duplicate content, and stale sources |
 | `spec_status` | Show where the knowledge store is and its status |
 
 Knowledge is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME`), in directories named by project. You do not add any files to the project:
@@ -108,11 +108,15 @@ projects/<project>/
   INDEX.md
   topics/<domain>/README.md
   topics/<domain>/notes/<note>.md
+  tasks/INDEX.md
   tasks/<task>.md
 context/
   INDEX.md
   notes/<lesson>.md
 ```
+
+`spec_edit` rewrites that project's `INDEX.md` in the same save: one line per topic README, then at most five tasks in status order (doing, blocked, todo, done). When more tasks exist, that group ends with `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`. Every task is listed in `tasks/INDEX.md`, which is not injected. A heading and agreements outside the generated block can still be written by hand.
+
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 

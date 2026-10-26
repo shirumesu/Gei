@@ -6,6 +6,7 @@ import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
 import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard, TitlePlaceholder } from "./retrieval.mjs";
 import { Frontmatter } from "./metadata.mjs";
+import { ProjectIndex } from "./index.mjs";
 import { SpecCheck, SourceDrift } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
@@ -142,7 +143,7 @@ export class SpecStore {
     if (!config.enabled) return "";
     const previous = readJson(this.maintenanceFile(config, prefix));
     if (previous && this.clock() - previous.at < 7 * 86400000) return "";
-    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
+    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, topic notes missing from their README, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
   }
   async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
     SpecCheck.scopePrefix(path_prefix);
@@ -260,7 +261,9 @@ export class SpecStore {
       const touched = [...new Set(edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]))];
       const createScopes = [...new Set(edits.filter(edit => edit.op === "create").map(edit => DuplicateGuard.scope(edit.path)))];
       const corpus = createScopes.length ? this.names(current).filter(name => createScopes.some(prefix => name.startsWith(prefix))) : [];
-      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus])]);
+      const scopes = [...new Set(touched.map(name => ProjectIndex.scope(name)))];
+      const scopeNames = this.names(current).filter(name => scopes.some(prefix => name.startsWith(prefix)));
+      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus, ...scopeNames])]);
       const revision = this.version(config, current.oid);
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
@@ -294,6 +297,8 @@ export class SpecStore {
       const surviving = changed(current.files, result).filter(name => result[name] !== undefined);
       Frontmatter.assertChanged(result, surviving);
       TitlePlaceholder.assertReplaced(result, surviving);
+      const indexScopes = ProjectIndex.scopesTouched(current.files, result);
+      ProjectIndex.apply(result, current.files, indexScopes);
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });

@@ -5,6 +5,10 @@ const TYPES = ["facts", "decisions", "runbooks", "log", "tasks"];
 const STATUSES = ["todo", "doing", "blocked", "done"];
 
 export class Frontmatter {
+  static typeOrder() {
+    return TYPES.slice();
+  }
+
   static split(content) {
     const match = /^(?:\uFEFF)?---\r?\n([\s\S]*?)(?<=\n)---(?:\r?\n|$)/u.exec(content || "");
     if (!match) return { header: "", body: content || "", block: "" };
@@ -17,6 +21,7 @@ export class Frontmatter {
     return String(content).replace(/^gei:[^\n]*(?:\n[ \t]+[^\n]*)*/gmu, match => match.replace(/[^\n]/gu, " "));
   }
 
+  // Every generated catalog, including tasks/INDEX.md, skips frontmatter.
   static exempt(docPath) {
     return typeof docPath === "string" && docPath.endsWith("/INDEX.md");
   }
@@ -42,6 +47,7 @@ export class Frontmatter {
     }
     return line;
   }
+
 
   // Scalar `type`, `description`, and `status` only. `sources` stays with SourceDrift.
   static scalars(content) {

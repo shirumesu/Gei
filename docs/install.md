@@ -1,8 +1,8 @@
 # Install Gei
 
-This document is for the installing AI agent. Install only Gei, verify the selected install path, and report the result.
+This document is for the AI agent that performs the installation. Install only Gei, verify the selected install path, and report the result.
 
-Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but include the standalone Spec CLI.
+Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but they include the standalone Spec CLI.
 
 For an existing path-hash knowledge store, reconcile the affected project's old directories through [Memo migration](../skills/memo/references/migrate.md) before enabling the updated Hooks. Storage uses project names without `project.json` or per-project bindings. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
 

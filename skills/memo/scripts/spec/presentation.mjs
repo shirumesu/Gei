@@ -3,6 +3,7 @@ export class CheckText {
     source_unavailable: "A listed source path does not exist in the checkout",
     source_changed: "A listed source's last git commit is newer than this document",
     broken_reference: "Outgoing reference is missing",
+    orphan_note: "This topic note is not linked from its topic README",
     duplicate_content: "Substantial prose repeats in another document; assess ownership before merging",
   };
 
@@ -21,6 +22,7 @@ export class CheckText {
       if (duplicate.peers_omitted) lines.push(`    ${duplicate.peers_omitted} more occurrences omitted.`);
     }
     if (item.duplicates_omitted) lines.push(`  ${item.duplicates_omitted} more duplicate blocks omitted.`);
+    if (item.topic_readme) lines.push(`  Topic README: ${item.topic_readme}`);
     for (const ref of item.broken || []) lines.push(`  Missing: ${ref.target}, referenced at line ${ref.line}`);
     if (item.broken_total > item.broken?.length) lines.push(`  Missing references: ${item.broken_total} total; remaining entries omitted.`);
     return lines.join("\n");
@@ -29,7 +31,7 @@ export class CheckText {
     const lines = [`Maintenance check: ${result.path_prefix}`,
       `Revision: ${result.revision}${result.stale ? " (cached snapshot)" : ""}`,
       `Documents: ${result.documents}; candidates: ${result.candidates}`,
-      "Signals: broken references, duplicate prose, and source drift. Not assessed: factual correctness, continued value, and live behavior. Zero candidates is not a quality verdict."];
+      "Signals: broken references, topic notes missing from their README, duplicate prose, and source drift. Not assessed: factual correctness, continued value, and live behavior. Zero candidates is not a quality verdict."];
     const counts = Object.entries(result.counts || {});
     if (counts.length) lines.push(`Counts: ${counts.map(([key, value]) => `${key} ${value}`).join("; ")}`);
     if (result.next_check) lines.push(`Continue candidates: spec_check ${JSON.stringify(result.next_check)}`);

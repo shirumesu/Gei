@@ -3,6 +3,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fail, documentPath, isDocument } from "./io.mjs";
 import { Frontmatter } from "./metadata.mjs";
+import { ProjectIndex } from "./index.mjs";
 
 // Source drift uses git commit times, not stored content hashes.
 export class SourceDrift {
@@ -129,12 +130,33 @@ export class SpecCheck {
       return { target, pattern: new RegExp(`(?<![\\p{L}\\p{N}_./%:+-])(?:${escaped.join("|")})(?![\\p{L}\\p{N}_./%+-])`, "iu") };
     });
     const lines = Frontmatter.maskGei(content).split("\n");
-    let fence = null;
-    const usable = lines.map(line => {
+    let fence = null, comment = false;
+    const usable = lines.map(raw => {
+      if (fence) {
+        const marker = /^\s*(`{3,}|~{3,})/u.exec(raw);
+        if (marker && marker[1][0] === fence) fence = null;
+        return "";
+      }
+      let line = raw;
+      if (comment) {
+        const end = line.indexOf("-->");
+        if (end < 0) return "";
+        comment = false;
+        line = line.slice(end + 3);
+      }
       const marker = /^\s*(`{3,}|~{3,})/u.exec(line);
-      if (marker) { if (!fence) fence = marker[1][0]; else if (fence === marker[1][0]) fence = null; return ""; }
-      if (fence) return "";
-      return line.replace(/`+[^`]*`+/gu, "");
+      const commentAt = line.indexOf("<!--");
+      if (marker && (commentAt < 0 || marker.index < commentAt)) { fence = marker[1][0]; return ""; }
+      let visible = "";
+      while (line.length) {
+        const start = line.indexOf("<!--");
+        if (start < 0) { visible += line; break; }
+        visible += line.slice(0, start);
+        const end = line.indexOf("-->", start + 4);
+        if (end < 0) { comment = true; break; }
+        line = line.slice(end + 3);
+      }
+      return visible.replace(/`+[^`]*`+/gu, "");
     });
     usable.forEach((line, index) => {
       const match = /^\s*\[([^\]]+)\]:\s*(<[^>]+>|\S+)/u.exec(line);
@@ -232,12 +254,30 @@ export class SpecCheck {
     for (const found of byDocument.values()) found.sort((a, b) => a.line - b.line);
     return byDocument;
   }
+  // A topic note is reachable when its topic README links it. INDEX does not list it.
+  static unlinkedTopicNotes(files) {
+    const byReadme = new Map();
+    for (const name of Object.keys(files)) {
+      const note = ProjectIndex.topicNote(name);
+      if (!note || typeof files[name] !== "string") continue;
+      if (!byReadme.has(note.readme)) byReadme.set(note.readme, []);
+      byReadme.get(note.readme).push(name);
+    }
+    const orphans = new Map();
+    for (const [readme, notes] of byReadme) {
+      const content = files[readme];
+      const linked = new Set(typeof content === "string" ? this.references(readme, content).filter(item => !item.uncertain).map(item => item.target) : []);
+      for (const name of notes) if (!linked.has(name)) orphans.set(name, readme);
+    }
+    return orphans;
+  }
   static inventory(files, prefix, { checkoutRoot, commitTime = () => null } = {}) {
     const selected = this.scopePrefix(prefix);
     const known = Object.keys(files).filter(isDocument);
     const refs = Object.entries(files).filter(([name]) => isDocument(name)).flatMap(([name, content]) => this.references(name, content, known));
     const all = Object.entries(files).filter(([name]) => isDocument(name) && selected(name)).sort(([a], [b]) => a.localeCompare(b));
     const duplicates = this.duplicateProse(all);
+    const orphans = this.unlinkedTopicNotes(files);
     const results = [];
     for (const [name, content] of all) {
       const drift = SourceDrift.assess(content, { checkoutRoot, docTime: SourceDrift.list(content).length ? commitTime(name) : null });
@@ -245,15 +285,17 @@ export class SpecCheck {
       const repeated = duplicates.get(name) || [];
       const reasons = [...drift.reasons];
       if (broken.length) reasons.push("broken_reference");
+      if (orphans.has(name)) reasons.push("orphan_note");
       if (repeated.length) reasons.push("duplicate_content");
       if (!reasons.length) continue;
       results.push({ path: name, reasons,
         broken: broken.slice(0, 20), broken_total: broken.length,
+        topic_readme: orphans.get(name),
         source_changes: drift.source_changes,
         duplicates: repeated.slice(0, 3), duplicates_omitted: Math.max(0, repeated.length - 3),
-        next: "Read the document. Repair a missing link, reconcile a source whose latest git commit is newer than this document, or merge repeated prose. A signal does not delete the document." });
+        next: "Read the document. Repair a missing link, link a topic note from its topic README, reconcile a source whose latest git commit is newer than this document, or merge repeated prose. A signal does not delete the document." });
     }
-    const rank = item => item.reasons.some(reason => reason === "broken_reference" || reason === "source_changed") ? 0 : 1;
+    const rank = item => item.reasons.some(reason => reason === "broken_reference" || reason === "orphan_note" || reason === "source_changed") ? 0 : 1;
     results.sort((a, b) => rank(a) - rank(b) || a.path.localeCompare(b.path));
     return { documents: all.length, results };
   }
