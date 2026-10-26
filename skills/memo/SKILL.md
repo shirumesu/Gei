@@ -15,7 +15,7 @@ When the Hook reports Background Memo, a worker owns incidental capture and sche
 
 For incidental memory, keep information only when it can change a plausible future decision or avoid non-obvious repeated investigation, and an existing authority does not already supply it. This includes continuing constraints, accepted decisions, reusable pitfalls, and necessary handoffs. Update the existing owner first. Routine edits, test counts, raw logs, generic advice, and code facts cheap to recover earn no note. No write is a successful outcome.
 
-Do not record these as knowledge status (they fail the admission gate):
+These status facts fail the admission gate. Do not record them as knowledge:
 - git push or sync status (pushed or not)
 - ahead/behind `origin` or other branch-tracking status
 - Unreleased used as a living source-status field ("still Unreleased", "not released yet")
@@ -32,7 +32,7 @@ Use `spec_read/search/edit` for knowledge access. These tools resolve the user's
 
 Non-INDEX documents require YAML frontmatter in the file. Set `type` to `facts`, `decisions`, `runbooks`, `log`, or `tasks`. Set `description` to one non-empty line. `tasks` also requires `status`: `todo`, `doing`, `blocked`, or `done`. `sources` stays an optional list of checkout-relative paths. `INDEX.md` does not use these fields. Write the fields with `create`, `replace`, or `replace_lines`. `spec_edit` rejects a create or edit that leaves them invalid. `create` also rejects a likely duplicate in the same project and returns the existing paths. Edit that document instead. Match the body to that `type`'s template, including `- fact [source; date]` for `facts`. Omit an empty section.
 
-Use the Hook-provided external workspace. Knowledge lives under `projects/<project-name>`. No identity manifest is needed. Session start never creates files. The first `spec_edit` that writes a valid document also creates `INDEX.md` in that same save. Do not create an empty index ahead of that document. No repository files are required. No fixed architecture/impact/changelog collection, Group registry, or routine whole-store audit.
+Use the Hook-provided external workspace. Knowledge lives under `projects/<project-name>`. No identity manifest is needed. Session start never creates files. The first `spec_edit` that writes a valid document also creates `INDEX.md` in that same save. Do not create an empty index ahead of that document. No repository files are required. Do not keep a fixed architecture/impact/changelog collection, a Group registry, or a routine whole-store audit.
 
 - `INDEX.md`: a short hand-written header (purpose and confirmed working agreements) plus a generated catalog. Edit only text outside the generated markers. Format, groups, and budgets: [topics](references/topics.md).
 - `topics/<domain>/README.md`: domain terms, ownership, constraints, entry points, and note routes. Use `type: facts`. Shape: [topics](references/topics.md).

@@ -10,14 +10,14 @@ Add missing frontmatter in the same batch. Requirements are in [Memo Shape](../S
 
 ## Decide The Outcome
 
-- **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A source-file change is a prompt to read the source, not a deletion order.
+- **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A source-file change means read the source; it is not a deletion order.
 - **Delete:** establish supersession, redundancy, or loss of recovery or reasoning value. Repair incoming links that remain outside the generated catalog, including a hand-written link in the INDEX header. A link does not confer permanent retention, but its sentence cannot be discarded mechanically. Typical noise with no residual decision value: admission-gate status (see [Memo](../SKILL.md)); competitor comparison matrix snapshots; completed handoff progress tables or tasks rewritten to "completed" / "已完成"; deferred items and one-off research that no longer steer a live choice.
 
 Dates and project inactivity alone do not retire applicable constraints or accepted work. Missing rationale prose does not establish missing value. Inspect evidence without inventing a reason. Preserve reasons that can still change a decision, including accepted targets absent from code. Existing code, tests, and native docs can replace implementation summaries, not user requirements. "It might return someday" is insufficient to keep an otherwise retired architecture in active knowledge.
 
 ## Handoffs And Environment Observations
 
-A handoff exists while recovery is needed. Completion, `status`, and the ban on a second tracker are in [notes](notes.md). A final answer, Git commit, or quiet period does not prove completion. Cancelled or replaced work follows that same delete, including its route. If the outcome cannot be established, leave the handoff until it can.
+A handoff exists while recovery is needed. Completion, `status`, and the ban on a second tracker are in [notes](notes.md). A final answer, Git commit, or quiet period does not prove completion. Delete cancelled or replaced work the same way, including its route. If the outcome cannot be established, leave the handoff until it can.
 
 Environment observations must pass the same admission test as other knowledge. Record the environment described, not the machine on which the note was written. A different environment does not invalidate a still-applicable lesson. A past installation or successful run alone does not earn a permanent record. Keep platform and version conditions on retained lessons. Delete the observation when it no longer applies. There is no destruction date and no mechanical cleanup of disposable notes.
 

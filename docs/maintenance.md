@@ -41,7 +41,7 @@ Local mode makes no git commits, so an edit does not move the document's commit 
 
 ## Edits and recovery
 
-Ordinary `spec_edit` calls need edits and a summary; there is no review array or verification record. Creation, correction, rename, and deletion share one batch, and the same save rebuilds the [INDEX catalog](spec.md#daily-use). A document with invalid frontmatter is omitted until fixed. The first valid document creates the index. Deleting the index while documents remain restores it from the previous header. Deleting the last document leaves an empty block; no index is created where none existed.
+Ordinary `spec_edit` calls need edits and a summary; there is no review array or verification record. Creation, correction, rename, and deletion share one batch, and the same save rebuilds the [INDEX catalog](spec.md#daily-use). A document with invalid frontmatter is omitted from the catalog until fixed. The first valid document creates the index. Deleting the index while documents remain restores it from the previous header. Deleting the last document leaves an empty block; no index is created where none existed.
 
 Deletion batches reject remaining incoming references outside the generated block, including hand-written header links. Generated lines are updated first, so the caller never repairs them.
 
