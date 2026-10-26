@@ -10,7 +10,7 @@ A topic page should answer: which business terms belong here, what this domain o
 
 1. Match the request's business terms or tradeoff dimensions to the INDEX routes already in context; follow their links without a preliminary INDEX tool read. If the index is missing (including after compaction), clipped, or needs refreshing, retrieve the needed content through `spec_read`.
 2. Read the matching topic page and only relevant note summaries, source, tests, or native docs.
-3. Search within the topic using terms, symptoms, alternatives and selection criteria when no direct route matches. Listings and extracted previews help choose bodies to read; they are not verified summaries. A missing description means no extractable opening prose, not absent knowledge; truncation leaves omitted content unknown. Read before repairing either. Continue a listing only when the requested scope needs it, rather than reading the full notes corpus.
+3. Search within the topic using terms, symptoms, alternatives and selection criteria when no direct route matches. Listings and extracted previews help choose bodies to read; they are not verified summaries. A missing description means the frontmatter `description` is missing or empty, not absent knowledge; truncation leaves omitted content unknown. Read before repairing either. Continue a listing only when the requested scope needs it, rather than reading the full notes corpus.
 4. Expand only for a concrete dependency or missing owner; use repository search when knowledge is absent.
 5. Stop when scope, constraints, important unknowns, and verification are clear.
 

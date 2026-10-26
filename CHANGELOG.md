@@ -12,6 +12,7 @@
 
 ### Spec
 
+- frontmatter 标量去掉行尾 `#` 注释：只去掉前面有空白、且不在引号内的 `#`。`description_missing` 改看 frontmatter 的 `description`，不再看正文第一段。
 - `spec_edit` 校验 frontmatter。除 `INDEX.md` 外，文档必须有 `type`（`facts`、`decisions`、`runbooks`、`log`、`tasks`）和一行 `description`；`type` 为 `tasks` 时必须有 `status`（`todo`、`doing`、`blocked`、`done`）。`sources` 仍可选。这些字段用普通 create、replace、replace_lines 写入，不再有托管行。create 在同一项目里按标题、description 和路径拒绝相似文档，并返回已有路径。不合规则整批不写入。
 - 移除机械清理和复查元数据。检查只保留坏链接、重复内容和 sources 漂移：frontmatter 里的可选 `sources` 列表按 git 提交时间比较，源路径不存在则报告 source_unavailable，源提交晚于文档则报告 source_changed。不再保存内容哈希，也不再提供复查参数。
 - 读取、搜索和编辑把 YAML frontmatter 当作普通正文。默认从第 1 行读起，不再跳过或保护旧的单行生命周期字段。
