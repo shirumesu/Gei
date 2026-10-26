@@ -9,16 +9,17 @@ Use `node <gei>/bin/gei.mjs spec check --scope projects/example/` (or `--all` fo
 Checks return 10 candidates by default, a revision, and only these signals:
 
 - `broken_reference`: an outgoing Markdown reference does not name a document in the snapshot.
+- `orphan_note`: a Markdown file under `topics/<domain>/`, other than that domain's `README.md`, is not linked from the README. A note the README links is reachable and is not reported. INDEX does not list sub-notes.
 - `duplicate_content`: the same normalized prose block of at least 160 Unicode characters appears in another document in the scope. Code, navigation comments, and YAML frontmatter are excluded; paraphrases are not detected. Shared wording may be intentional; the agent decides ownership.
 - `source_changed` / `source_unavailable`: the document's YAML frontmatter lists `sources`. With `--checkout-root` (MCP `checkout_root`) for one `projects/<project>/` scope, each path is resolved inside that checkout. `source_unavailable` means the path does not exist there. `source_changed` means both the source file and the knowledge document have a last git commit, and the source commit time is later than the document commit time (`git log -1 --format=%ct`). No content hash is stored.
 
-`--limit`, `--offset`, and `--revision` paginate a fixed snapshot; MCP also returns `next_check`. Without `checkout_root`, sources are not judged. Missing git history on either side never yields `source_changed`. In GitHub mode the knowledge document has no local work tree, so `source_changed` is absent. `broken_reference`, `duplicate_content`, and `source_unavailable` are still reported.
+`--limit`, `--offset`, and `--revision` paginate a fixed snapshot; MCP also returns `next_check`. Without `checkout_root`, sources are not judged. Missing git history on either side never yields `source_changed`. In GitHub mode the knowledge document has no local work tree, so `source_changed` is absent. `broken_reference`, `orphan_note`, `duplicate_content`, and `source_unavailable` are still reported.
 
 Meaning, retention, and live behavior are not assessed, and no signal authorizes deletion. The check is read-only. A fresh online check quiets startup hints for seven days. Plain-text or unsupported Markdown references still count as dependencies when they name a real knowledge path.
 
 ## Frontmatter
 
-`spec_edit` requires YAML frontmatter on every document except `INDEX.md`. `type` is `facts`, `decisions`, `runbooks`, `log`, or `tasks`. `description` is one non-empty line. A `tasks` document also requires `status`: `todo`, `doing`, `blocked`, or `done`. A `create`, `replace`, `replace_lines`, or `rename` that leaves a non-INDEX document without them fails with `FRONTMATTER` and writes nothing; add missing fields to older documents in the same batch. The fields are ordinary text, written with `create`, `replace`, or `replace_lines` (line 1 included).
+`spec_edit` requires YAML frontmatter on every document except a path ending in `/INDEX.md`, including `tasks/INDEX.md`. `type` is `facts`, `decisions`, `runbooks`, `log`, or `tasks`. `description` is one non-empty line. A `tasks` document also requires `status`: `todo`, `doing`, `blocked`, or `done`. A `create`, `replace`, `replace_lines`, or `rename` that leaves a non-INDEX document without them fails with `FRONTMATTER` and writes nothing; add missing fields to older documents in the same batch. The fields are ordinary text, written with `create`, `replace`, or `replace_lines` (line 1 included).
 
 `sources` is an optional YAML list in the frontmatter (not a JSON field or hash map). List checkout-relative files whose later commits should reopen the note, not every file that was read.
 
@@ -41,7 +42,7 @@ Local mode makes no git commits, so an edit does not move the document's commit 
 
 ## Edits and recovery
 
-Ordinary `spec_edit` calls need edits and a summary; there is no review array or verification record. Creation, correction, rename, and deletion share one batch, and the same save rebuilds the [INDEX catalog](spec.md#daily-use). A document with invalid frontmatter is omitted from the catalog until fixed. The first valid document creates the index. Deleting the index while documents remain restores it from the previous header. Deleting the last document leaves an empty block; no index is created where none existed.
+Ordinary `spec_edit` calls need edits and a summary; there is no review array or verification record. Creation, correction, rename, and deletion share one batch, and the same save rebuilds the [INDEX catalog](spec.md#daily-use) and `tasks/INDEX.md`. A document with invalid frontmatter is omitted from the catalog until fixed. The first topic README or task creates the index. A note alone does not. Deleting an index while documents it lists remain restores it from the previous header. Deleting the last listed document leaves an empty block; no index is created where none existed. A done task stays in `tasks/INDEX.md`.
 
 Deletion batches reject remaining incoming references outside the generated block, including hand-written header links. Generated lines are updated first, so the caller never repairs them.
 

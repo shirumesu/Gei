@@ -98,7 +98,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 | `spec_read` | 读取知识文档 |
 | `spec_search` | 搜索知识库 |
 | `spec_edit` | 新建或修改知识文档 |
-| `spec_check` | 检查坏链接、重复内容、过时的来源 |
+| `spec_check` | 检查坏链接、主题 README 未链接的笔记、重复内容、过时的来源 |
 | `spec_status` | 查看当前知识库位置和状态 |
 
 知识默认存放在 `~/.agents/geispec`（可用 `GEI_SPEC_HOME` 修改），按项目名分目录，不需要在项目里加任何文件：
@@ -108,13 +108,14 @@ projects/<project>/
   INDEX.md
   topics/<domain>/README.md
   topics/<domain>/notes/<note>.md
+  tasks/INDEX.md
   tasks/<task>.md
 context/
   INDEX.md
   notes/<lesson>.md
 ```
 
-`spec_edit` 会在同一次保存里按各篇的一行 `description` 重写该项目的 `INDEX.md`，一篇一行，按 `type` 分组。生成块外面的标题和约定仍可手写。
+`spec_edit` 会在同一次保存里重写该项目的 `INDEX.md`：每个主题 README 一行，再加上最近的至多五条任务。全部任务在不注入的 `tasks/INDEX.md`。生成块外面的标题和约定仍可手写。
 
 也可以改存到自己的 GitHub 私有仓库（告诉 Agent 绑定到哪个 repo 就好）。
 

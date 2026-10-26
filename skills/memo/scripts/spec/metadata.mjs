@@ -21,6 +21,7 @@ export class Frontmatter {
     return String(content).replace(/^gei:[^\n]*(?:\n[ \t]+[^\n]*)*/gmu, match => match.replace(/[^\n]/gu, " "));
   }
 
+  // Every generated catalog, including tasks/INDEX.md, skips frontmatter.
   static exempt(docPath) {
     return typeof docPath === "string" && docPath.endsWith("/INDEX.md");
   }

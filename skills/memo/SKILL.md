@@ -34,11 +34,11 @@ Non-INDEX documents require YAML frontmatter in the file. Set `type` to `facts`,
 
 Use the Hook-provided external workspace. Knowledge lives under `projects/<project-name>`. No identity manifest is needed. Session start never creates files. The first `spec_edit` that writes a valid document also creates `INDEX.md` in that same save. Do not create an empty index ahead of that document. No repository files are required. Do not keep a fixed architecture/impact/changelog collection, a Group registry, or a routine whole-store audit.
 
-- `INDEX.md`: a short hand-written header (purpose and confirmed working agreements) plus a generated catalog. Edit only text outside the generated markers. Format, groups, and budgets: [topics](references/topics.md).
+- `INDEX.md`: a short hand-written header (purpose and confirmed working agreements) plus a generated catalog of topic READMEs, then at most 5 tasks. Read INDEX, then the topic README, then the note. Edit only text outside the generated markers. Format and budgets: [topics](references/topics.md).
 - `topics/<domain>/README.md`: domain terms, ownership, constraints, entry points, and note routes. Use `type: facts`. Shape: [topics](references/topics.md).
-- `topics/<domain>/notes/<meaningful-name>.md`: one scoped decision, fact list, procedure, or free-shape record. Types: [notes](references/notes.md).
-- `tasks/<name>.md`: accepted work that must survive handoff, with `type: tasks`. Completion and deletion: [notes](references/notes.md).
-- `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects.
+- `topics/<domain>/notes/<meaningful-name>.md`: one scoped decision, fact list, procedure, or free-shape record. It is not an INDEX line. The topic README links it. Types: [notes](references/notes.md).
+- `tasks/<name>.md`: accepted work, with `type: tasks`. `tasks/INDEX.md` lists every task and is not injected. A done task stays. Completion: [notes](references/notes.md).
+- `context/INDEX.md` and `context/notes/`: only lessons whose conditions apply across unrelated projects. Shared INDEX lists topic READMEs when context has topics, and otherwise lists `context/notes/`.
 
 Keep one owner per fact. Navigation repeats only a short retrieval cue. Resolve repository-relative evidence against the current checkout, not the knowledge directory.
 

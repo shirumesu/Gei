@@ -143,7 +143,7 @@ export class SpecStore {
     if (!config.enabled) return "";
     const previous = readJson(this.maintenanceFile(config, prefix));
     if (previous && this.clock() - previous.at < 7 * 86400000) return "";
-    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
+    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, topic notes missing from their README, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
   }
   async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
     SpecCheck.scopePrefix(path_prefix);
@@ -295,10 +295,37 @@ export class SpecStore {
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
       Frontmatter.assertChanged(result, changed(current.files, result).filter(name => result[name] !== undefined));
-      ProjectIndex.apply(result, current.files, ProjectIndex.scopesTouched(current.files, result));
+      const indexScopes = ProjectIndex.scopesTouched(current.files, result);
+      const updatedAt = await this.taskUpdatedAt(config, current.files, result, indexScopes);
+      ProjectIndex.apply(result, current.files, indexScopes, updatedAt);
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });
+  }
+  // Local order uses the knowledge file mtime. GitHub order uses the committer time
+  // of the last commit that touched the path. A task created or edited in this save
+  // counts as updated now, because those bytes are not on disk or in a commit yet.
+  async taskUpdatedAt(config, before, after, scopes) {
+    const now = this.clock();
+    const names = Object.keys(after).filter(name => scopes.some(scope => name.startsWith(scope)) && ProjectIndex.isTaskDocument(name, after[name]));
+    const times = new Map();
+    const remote = [];
+    for (const name of names) {
+      if (!Object.hasOwn(before, name) || before[name] !== after[name]) {
+        times.set(name, now);
+        continue;
+      }
+      if (config.mode === "local") {
+        try { times.set(name, fs.statSync(safeFile(this.home, name)).mtimeMs); }
+        catch { times.set(name, null); }
+      } else remote.push(name);
+    }
+    for (let index = 0; index < remote.length; index += 6) {
+      await Promise.all(remote.slice(index, index + 6).map(async name => {
+        times.set(name, await this.github.latestCommitterMs(config.github, name));
+      }));
+    }
+    return name => times.has(name) ? times.get(name) : null;
   }
   async commitChanges(config, current, result, summary, { deleting = false } = {}) {
     for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge and metadata files must be at most 1 MiB.", { path: name });
