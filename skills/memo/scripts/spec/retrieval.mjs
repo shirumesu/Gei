@@ -1,3 +1,4 @@
+import { fail } from "./io.mjs";
 import { Frontmatter } from "./metadata.mjs";
 
 export function overview(content) {
@@ -167,5 +168,16 @@ export class DuplicateGuard {
     }
     matches.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
     return matches;
+  }
+}
+
+// Templates use this heading. The author replaces it; duplicate detection is unchanged.
+export class TitlePlaceholder {
+  static text = "<标题>";
+
+  static assertReplaced(files, paths) {
+    const pending = [...paths].filter(docPath => DuplicateGuard.title(files[docPath]) === this.text).sort();
+    if (!pending.length) return;
+    fail("PLACEHOLDER_TITLE", `Replace the heading placeholder <标题> with the real title before saving.\n${pending.join("\n")}`, { applied: false, paths: pending });
   }
 }

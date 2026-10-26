@@ -4,7 +4,7 @@
 
 ### Memo
 
-- 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。
+- 模板按 type 各一份：`facts.md`、`decisions.md`、`runbooks.md`、`log.md`、`tasks.md`，另加无 frontmatter 的 `index.md`。删除 `note.md`、`task.md`、`topic.md`。笔记可以是 `decisions`、`facts`、`runbooks` 或 `log`。模板一级标题是占位符 `<标题>`；create 或 replace 留下它时返回 `PLACEHOLDER_TITLE`，不写入。
 
 ### 仓库
 

@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard } from "./retrieval.mjs";
+import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard, TitlePlaceholder } from "./retrieval.mjs";
 import { Frontmatter } from "./metadata.mjs";
 import { SpecCheck, SourceDrift } from "./maintenance.mjs";
 
@@ -291,7 +291,9 @@ export class SpecStore {
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
-      Frontmatter.assertChanged(result, changed(current.files, result).filter(name => result[name] !== undefined));
+      const surviving = changed(current.files, result).filter(name => result[name] !== undefined);
+      Frontmatter.assertChanged(result, surviving);
+      TitlePlaceholder.assertReplaced(result, surviving);
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });
