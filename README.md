@@ -115,7 +115,7 @@ context/
   notes/<lesson>.md
 ```
 
-`spec_edit` 会在同一次保存里重写该项目的 `INDEX.md`：每个主题 README 一行，再加上最近的至多五条任务。全部任务在不注入的 `tasks/INDEX.md`。生成块外面的标题和约定仍可手写。
+`spec_edit` 会在同一次保存里重写该项目的 `INDEX.md`：每个主题 README 一行，再加上最近的至多五条任务。超过五条时末行是 `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`。全部任务在不注入的 `tasks/INDEX.md`。生成块外面的标题和约定仍可手写。
 
 也可以改存到自己的 GitHub 私有仓库（告诉 Agent 绑定到哪个 repo 就好）。
 

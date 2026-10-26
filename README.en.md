@@ -115,7 +115,7 @@ context/
   notes/<lesson>.md
 ```
 
-`spec_edit` rewrites that project's `INDEX.md` in the same save: one line per topic README, then at most five recent tasks. Every task is listed in `tasks/INDEX.md`, which is not injected. A heading and agreements outside the generated block can still be written by hand.
+`spec_edit` rewrites that project's `INDEX.md` in the same save: one line per topic README, then at most five recent tasks. When more tasks exist, that group ends with `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`. Every task is listed in `tasks/INDEX.md`, which is not injected. A heading and agreements outside the generated block can still be written by hand.
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 

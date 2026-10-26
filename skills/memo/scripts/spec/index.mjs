@@ -82,7 +82,7 @@ export class ProjectIndex {
   }
 
   static moreTasksLine(hidden) {
-    return `More tasks: ${hidden}. See [tasks/INDEX.md](tasks/INDEX.md).`;
+    return `更多任务 ${hidden} 个，见 [tasks/INDEX.md](tasks/INDEX.md)`;
   }
 
   // A topic note is any Markdown file under topics/<domain>/ except that domain's README and any INDEX.
