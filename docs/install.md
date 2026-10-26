@@ -77,7 +77,7 @@ gei
   skills/memo/templates/index.md
 ```
 
-Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, `spec_check`, and `spec_gc`, and respond to `spec_status`. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, and `spec_check`, and respond to `spec_status`. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Claude Plugin
 
@@ -109,7 +109,7 @@ Gei
   skills/memo/references/storage.md
 ```
 
-Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start through `${CLAUDE_PLUGIN_ROOT}`, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, `spec_check`, and `spec_gc`, and respond to `spec_status`. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start through `${CLAUDE_PLUGIN_ROOT}`, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, and `spec_check`, and respond to `spec_status`. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Skills Zip
 

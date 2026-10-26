@@ -4,10 +4,8 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { overview, documentOrder, lifecycleLines, lifecycleSummary, windowBytes, sharedBudgets, readWindow } from "./retrieval.mjs";
-import { fieldText, managedLines, managedSpans } from "./metadata.mjs";
-import { convertLegacy } from "./legacy.mjs";
-import { inventory, gcPlan, applyReviews, assertDeletionLinks, scopePrefix } from "./maintenance.mjs";
+import { overview, documentOrder, windowBytes, sharedBudgets, readWindow } from "./retrieval.mjs";
+import { SpecCheck, SourceDrift } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -137,29 +135,23 @@ export class SpecStore {
   async setBackground(background) {
     return this.run(config => { writeJson(this.configFile, { ...config, background }); return { background, enabled: config.enabled }; }, { enabled: false });
   }
-  environment() {
-    const file = path.join(this.state, "environment.json");
-    let value = readJson(file);
-    if (!value) { value = { id: randomUUID() }; writeJson(file, value); }
-    return value.id;
-  }
   maintenanceFile(config, prefix) { return path.join(this.state, "maintenance", hash(this.target(config) + ":" + prefix) + ".json"); }
   maintenanceHint(prefix) {
     const config = this.config();
     if (!config.enabled) return "";
     const previous = readJson(this.maintenanceFile(config, prefix));
     if (previous && this.clock() - previous.at < 7 * 86400000) return "";
-    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Assess continued value before verification; inspect reported coverage and the bounded review_sample even if candidates is zero. Missing evidence and age do not authorize deletion.`;
+    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
   }
   async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
-    scopePrefix(path_prefix);
+    SpecCheck.scopePrefix(path_prefix);
     if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(max_results) || max_results < 1 || max_results > 100 || (offset && !revision)) fail("ARGUMENT", "Use a revision for pagination and a batch of 1–100.");
     if (checkout_root && !/^projects\/[^/]+\/$/u.test(path_prefix)) fail("ARGUMENT", "Source checks need one explicit project scope and its checkout_root.");
     return this.run(async config => {
       const snapshot = await this.snapshot(config, revision);
       await this.hydrate(config, snapshot, this.names(snapshot));
-      const environment = this.environment();
-      const report = inventory(snapshot.files, path_prefix, { now: this.clock(), environment, checkoutRoot: checkout_root });
+      const commitTime = config.mode === "local" ? name => SourceDrift.commitTime(this.home, name) : () => null;
+      const report = SpecCheck.inventory(snapshot.files, path_prefix, { checkoutRoot: checkout_root, commitTime });
       const results = [];
       let bytes = 0;
       for (const item of report.results.slice(offset, offset + max_results)) {
@@ -170,45 +162,14 @@ export class SpecStore {
       const counts = {};
       for (const item of report.results) for (const reason of item.reasons) counts[reason] = (counts[reason] || 0) + 1;
       const currentRevision = this.version(config, snapshot.oid);
-      const previous = readJson(this.maintenanceFile(config, path_prefix)) || {};
-      const unsignaled = report.unsignaled || [];
-      const sampleStart = (previous.next_sample_offset || 0) % Math.max(1, unsignaled.length);
-      const samplePaths = revision && previous.sample_revision === snapshot.oid
-        ? (previous.sample_paths || []).filter(name => unsignaled.some(item => item.path === name))
-        : Array.from({ length: Math.min(3, unsignaled.length) }, (_, index) => unsignaled[(sampleStart + index) % unsignaled.length].path);
-      const reviewSample = offset === 0 ? samplePaths.map(name => ({ path: name, action: "assess_value",
-        next: "Read for continued value, duplication and acceptance provenance. No mechanical signal is not verification; no edit is required if this knowledge still earns retention.",
-        read: { paths: [name], revision: currentRevision } })) : [];
-      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock(),
-        next_sample_offset: (sampleStart + samplePaths.length) % Math.max(1, unsignaled.length), sample_revision: snapshot.oid, sample_paths: samplePaths });
+      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock() });
       const nextOffset = offset + results.length < report.results.length ? offset + results.length : undefined;
       return { revision: currentRevision, source: snapshot.source, stale: Boolean(snapshot.stale),
-        coverage: report.coverage,
-        environment, path_prefix, documents: report.documents, candidates: report.results.length, cooling: report.cooling,
-        gc_eligible: report.results.filter(item => item.action === "gc_eligible").length, counts,
-        review_sample: reviewSample, sample_limit: 3, results,
+        path_prefix, documents: report.documents, candidates: report.results.length, counts, results,
         remaining: Math.max(0, report.results.length - offset - results.length),
         next_offset: nextOffset,
         next_check: nextOffset === undefined ? undefined : { path_prefix, revision: currentRevision, offset: nextOffset, max_results, ...(checkout_root ? { checkout_root } : {}) } };
     });
-  }
-  async gc({ path_prefix, base_revision, plan_id, apply = false } = {}) {
-    scopePrefix(path_prefix);
-    const plan = await this.run(async config => {
-      const snapshot = await this.latest(config, { refresh: apply });
-      if (apply && (!base_revision || this.oid(config, base_revision) !== snapshot.oid)) fail("REVISION_CONFLICT", "Preview GC and apply its current base_revision; nothing was deleted.", { applied: false });
-      await this.hydrate(config, snapshot, this.names(snapshot));
-      const result = gcPlan(snapshot.files, path_prefix, { now: this.clock(), environment: this.environment() });
-      const planId = hash(JSON.stringify([path_prefix, result.changes]));
-      if (apply && plan_id !== planId) fail("PLAN_CHANGED", "Preview cleanup again; its deletion or navigation set changed.", { applied: false });
-      return { preview: !apply, revision: this.version(config, snapshot.oid), source: snapshot.source, stale: Boolean(snapshot.stale),
-        path_prefix, plan_id: planId, deleted: result.deleted, declarations: result.declarations, navigation: result.navigation, blocked: result.blocked,
-        edits: Object.entries(result.changes).map(([name, content]) => content === null ? { op: "delete", path: name } : { op: "replace", path: name, old_text: snapshot.files[name], new_text: content }) };
-    });
-    const { edits, ...visible } = plan;
-    if (!apply || !edits.length) return { ...visible, applied: false };
-    const result = await this.edit({ base_revision: plan.revision, summary: "Remove explicitly expired transient knowledge", edits });
-    return { ...visible, ...result, preview: false };
   }
   async read({ paths, revision, start_line, start_column = 1, max_lines = 200, line_numbers = false } = {}) {
     if (!Array.isArray(paths) || !paths.length || paths.length > 20) fail("ARGUMENT", "Read between 1 and 20 paths in one call.");
@@ -220,8 +181,7 @@ export class SpecStore {
       const snapshot = await this.snapshot(config, revision);
       await this.hydrate(config, snapshot, paths);
       const pinned = this.version(config, snapshot.oid);
-      // Omitting start_line skips only Gei-managed frontmatter. Line numbers stay physical.
-      const starts = paths.map(name => snapshot.files[name] === undefined ? 1 : start_line ?? managedLines(snapshot.files[name]).hidden + 1);
+      const starts = paths.map(() => start_line ?? 1);
       const needs = paths.map((name, index) => {
         const text = snapshot.files[name];
         if (text === undefined) return 0;
@@ -237,15 +197,14 @@ export class SpecStore {
           const window = readWindow(text, { start_line: starts[index], start_column, max_lines, line_numbers }, budgets[index]);
           const next_read = window.truncated ? { paths: [name], revision: pinned, start_line: window.next_line,
             start_column: window.next_column, max_lines, line_numbers } : undefined;
-          return { path: name, exists: true, ...overview(text), lifecycle: lifecycleSummary(text), next_read, ...window };
+          return { path: name, exists: true, ...overview(text), next_read, ...window };
         }) };
     });
   }
-  async search({ query = "", path_prefix = "projects/", revision, max_results = 30, offset = 0, include_lifecycle = false } = {}) {
+  async search({ query = "", path_prefix = "projects/", revision, max_results = 30, offset = 0 } = {}) {
     if (typeof query !== "string" || typeof path_prefix !== "string" || !/^(projects\/|context\/)/u.test(path_prefix) || path_prefix.includes("..") || path_prefix.includes("\\")) fail("ARGUMENT", "Use a literal query and a projects/ or context/ path prefix.");
     if (!Number.isInteger(max_results) || max_results < 1 || max_results > 100) fail("ARGUMENT", "max_results must be between 1 and 100.");
     if (!Number.isInteger(offset) || offset < 0 || (offset && !revision)) fail("ARGUMENT", "Use offset >= 0 and supply revision when continuing a search.");
-    if (typeof include_lifecycle !== "boolean") fail("ARGUMENT", "include_lifecycle must be a boolean.");
     return this.run(async config => {
       const snapshot = await this.snapshot(config, revision);
       const pinned = this.version(config, snapshot.oid);
@@ -262,9 +221,7 @@ export class SpecStore {
         for (const name of names) {
           await this.hydrate(config, snapshot, [name]);
           const text = snapshot.files[name];
-          const excluded = include_lifecycle ? new Set() : lifecycleLines(text);
           for (const [index, line] of text.split("\n").entries()) {
-            if (excluded.has(index)) continue;
             const match = line.toLowerCase().indexOf(query.toLowerCase());
             if (match < 0 || seen++ < offset) continue;
             const chars = Array.from(line);
@@ -281,13 +238,13 @@ export class SpecStore {
       const truncated = results.length > max_results;
       const next_offset = truncated ? offset + max_results : undefined;
       return { revision: pinned, source: snapshot.source, stale: Boolean(snapshot.stale), order, offset,
-        next_offset, next_search: truncated ? { query, path_prefix, revision: pinned, max_results, offset: next_offset, include_lifecycle } : undefined,
+        next_offset, next_search: truncated ? { query, path_prefix, revision: pinned, max_results, offset: next_offset } : undefined,
         results: results.slice(0, max_results), truncated };
     });
   }
-  async edit({ base_revision, summary, edits = [], reviews = [], checkout_root } = {}) {
+  async edit({ base_revision, summary, edits = [] } = {}) {
     if (typeof summary !== "string" || !summary.trim() || summary.length > 200 || /[\r\n]/u.test(summary)) fail("ARGUMENT", "Provide a concise, single-line summary (1–200 characters).");
-    if (!Array.isArray(edits) || !Array.isArray(reviews) || !edits.length && !reviews.length || edits.length + reviews.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits/reviews.");
+    if (!Array.isArray(edits) || !edits.length || edits.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits.");
     for (const edit of edits) { documentPath(edit.path); if (edit.op === "rename") documentPath(edit.to); if (!["replace", "replace_lines", "create", "delete", "rename"].includes(edit.op)) fail("ARGUMENT", "Edit op must be replace, replace_lines, create, delete, or rename."); }
     return this.run(async config => {
       const expected = this.oid(config, base_revision);
@@ -298,11 +255,10 @@ export class SpecStore {
         fail("REVISION_CONFLICT", "Knowledge changed. Read the changed documents and reconcile before retrying. Nothing was applied.",
           { applied: false, current_revision: this.version(config, current.oid), changed_paths: base ? changed(versions(base), versions(current)) : undefined });
       }
-      const deleting = edits.some(edit => edit.op === "delete" || edit.op === "rename") || reviews.some(review => review.outcome === "delete");
-      const touched = [...new Set([...edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]), ...reviews.map(review => review.path)])];
+      const deleting = edits.some(edit => edit.op === "delete" || edit.op === "rename");
+      const touched = [...new Set(edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]))];
       await this.hydrate(config, current, deleting ? this.names(current) : touched);
       const revision = this.version(config, current.oid);
-      const bases = { ...current.files };
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
       for (const [index, edit] of edits.entries()) {
@@ -313,36 +269,24 @@ export class SpecStore {
         } else if (edit.op === "create") {
           if (exists) error("EXISTS", "The document already exists; read and edit it instead of creating.");
           if (typeof edit.content !== "string") error("ARGUMENT", "create requires content.");
-          if (fieldText(edit.content)) error("MANAGED", "Do not write the gei lifecycle field; submit a review to record verification.");
-          result[edit.path] = edit.content; delete bases[edit.path];
+          result[edit.path] = edit.content;
         } else {
           if (!exists) error("NOT_FOUND", "Read or create this document before editing it.");
-          if (edit.op === "delete") { delete result[edit.path]; delete bases[edit.path]; }
+          if (edit.op === "delete") delete result[edit.path];
           else if (edit.op === "rename") {
             if (own(result, edit.to)) error("EXISTS", "The rename destination already exists.");
-            bases[edit.to] = bases[edit.path]; delete bases[edit.path];
             result[edit.to] = result[edit.path]; delete result[edit.path];
           } else {
             if (typeof edit.old_text !== "string" || !edit.old_text || typeof edit.new_text !== "string") error("ARGUMENT", "replace requires nonempty old_text and a string new_text.");
-            // Matches touching the managed lifecycle field are invisible to readers and never count.
-            const text = result[edit.path], spans = managedSpans(text), found = [];
-            for (let at = text.indexOf(edit.old_text); at >= 0; at = text.indexOf(edit.old_text, at + 1)) {
-              if (!spans.some(([start, end]) => at < end && at + edit.old_text.length > start)) found.push(at);
-            }
+            const text = result[edit.path], found = [];
+            for (let at = text.indexOf(edit.old_text); at >= 0; at = text.indexOf(edit.old_text, at + 1)) found.push(at);
             if (found.length !== 1) error(found.length ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once in the document body. Use the base context below, or reread with line numbers and use replace_lines.", { matches: found.length, ...editHelp(current.files[edit.path], edit, revision) });
             result[edit.path] = text.slice(0, found[0]) + edit.new_text + text.slice(found[0] + edit.old_text.length);
           }
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
-      // Guards above keep edits off the lifecycle field; this check fails loudly if one slips through.
-      for (const name of touched) {
-        if (result[name] !== undefined && bases[name] !== undefined && fieldText(result[name]) !== fieldText(bases[name])) {
-          fail("MANAGED", "An edit changed the gei lifecycle field or its frontmatter. Nothing was applied.", { applied: false, path: name });
-        }
-      }
-      applyReviews(current.files, result, reviews, { now: this.clock(), environment: this.environment(), checkoutRoot: checkout_root });
-      if (deleting) assertDeletionLinks(current.files, result);
+      if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });
   }
@@ -381,26 +325,6 @@ export class SpecStore {
     writeJson(this.headFile(config), { oid: commit.oid, checkedAt: new Date().toISOString() });
     return { applied: true, source: "github", revision: this.version(config, commit.oid), paths: Object.keys(changes), url: commit.url };
   }
-  async migrateMetadata({ path_prefix = "all", base_revision, apply = false } = {}) {
-    const selected = scopePrefix(path_prefix);
-    return this.run(async config => {
-      const current = await this.latest(config, { refresh: true });
-      if (apply && (!base_revision || this.oid(config, base_revision) !== current.oid)) fail("REVISION_CONFLICT", "Preview metadata migration and apply its current base_revision.", { applied: false });
-      const names = this.names(current).filter(selected);
-      await this.hydrate(config, current, names);
-      const result = { ...current.files }, migrated = [], blocked = [];
-      for (const name of names) {
-        try {
-          const converted = convertLegacy(result[name]);
-          if (converted) { result[name] = converted.content; migrated.push({ path: name, baseline: converted.baseline }); }
-        } catch (error) { blocked.push({ path: name, error: error.message }); }
-      }
-      const preview = { preview: !apply, revision: this.version(config, current.oid), path_prefix, format: 5, migrated, blocked };
-      if (!apply) return preview;
-      if (blocked.length) fail("METADATA_CONFLICT", "Repair or verify the blocked lifecycle records before applying this migration.", { blocked, applied: false });
-      return { ...preview, ...await this.commitChanges(config, current, result, "Compact lifecycle metadata to format 5") };
-    });
-  }
   backupDeletion(config, before, changes) {
     const root = path.join(this.state, "deletions");
     fs.mkdirSync(root, { recursive: true });
@@ -431,8 +355,8 @@ export class SpecStore {
         if (content === null) delete restored[name]; else restored[name] = content;
       }
       validateNames(Object.keys(restored));
-      assertDeletionLinks(current.files, restored);
-      // Recovery restores the exact preimages, including their lifecycle state.
+      SpecCheck.assertDeletionLinks(current.files, restored);
+      // Recovery restores the exact preimages.
       publish(this.home, this.state, saved.before);
       const next = await this.latest(config);
       return { ...visible, applied: true, source: "local", revision: this.version(config, next.oid) };

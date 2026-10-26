@@ -49,9 +49,9 @@ When work establishes reliable background, an accepted consequential decision, a
 
 Routine changes require neither a note nor an internal Changelog or whole-store audit. Link existing authorities and add only knowledge that changes understanding or decisions. See [Memo](skills/memo/SKILL.md).
 
-Each knowledge document remains one Markdown file. Optional one-line `gei` frontmatter is written only by structured reviews; ordinary edits cannot change it or renew verification. Read/search skip it by default and report a one-line lifecycle summary, always with physical line numbers, and documents without metadata may remain plain Markdown.
+Each knowledge document remains one Markdown file. Optional YAML frontmatter may list `sources` as checkout-relative paths. Reads start at line 1 and line numbers stay physical. There is no separate lifecycle field.
 
-`spec_check` returns a bounded maintenance worklist; the agent keeps, updates, deletes, or defers from evidence. Review dates and infrequent project use never delete ordinary knowledge. `spec_gc` only removes explicitly disposable transient records, previews by default, and checks dependencies. There is no archive search layer. See [knowledge maintenance](docs/maintenance.md) for metadata, recovery, and optional scheduling.
+`spec_check` returns a bounded worklist of broken references, duplicate prose, and source drift (a listed source's last git commit is newer than the document, or the source path is missing). Age and an empty list never delete knowledge. See [knowledge maintenance](docs/maintenance.md) for the signals and deletion recovery.
 
 ## Hooks And Reading Budgets
 

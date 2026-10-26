@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import fs from "node:fs";
-import { formatMaintenance } from "./presentation.mjs";
+import { CheckText } from "./presentation.mjs";
 import { SpecStore } from "./store.mjs";
 import { callTool } from "./tools.mjs";
 
@@ -18,13 +18,9 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
   refresh                        Download the current complete snapshot
   read | search | edit           Read JSON arguments from stdin or --input FILE
   check --scope PREFIX          Bounded maintenance worklist; --all covers both roots
-  gc --scope PREFIX             Preview explicit transient cleanup; --apply executes
-                                with --base-revision REV --plan-id ID from the preview
-  migrate-metadata [--scope PREFIX | --all] [--apply --base-revision REV]
-                                 Convert old lifecycle records to compact format 5; preview by default
   restore [--backup ID]          List/preview local deletion recovery; --apply restores
-  check/gc display a readable worklist; --json returns structured output.
-  check/gc also accept JSON via --input FILE (same schema as MCP).
+  check displays a readable worklist; --json returns structured output.
+  check also accepts JSON via --input FILE (same schema as MCP).
   check: --limit N --offset N --revision REV --checkout-root DIR
   login                          Explain GitHub authentication
 
@@ -41,7 +37,7 @@ try {
   const positional = [];
   for (let i = 0; i < args.length; i++) {
     if (["--apply", "--create", "--all", "--json"].includes(args[i])) options[args[i].slice(2)] = true;
-    else if (["--repo", "--branch", "--input", "--cached-revision", "--scope", "--base-revision", "--plan-id", "--revision", "--limit", "--offset", "--checkout-root", "--backup"].includes(args[i]) && args[i + 1] && !args[i + 1].startsWith("--")) options[args[i].slice(2).replaceAll("-", "_")] = args[++i];
+    else if (["--repo", "--branch", "--input", "--cached-revision", "--scope", "--revision", "--limit", "--offset", "--checkout-root", "--backup"].includes(args[i]) && args[i + 1] && !args[i + 1].startsWith("--")) options[args[i].slice(2).replaceAll("-", "_")] = args[++i];
     else if (args[i].startsWith("--")) throw new Error(`Unknown or incomplete option: ${args[i]}`);
     else positional.push(args[i]);
   }
@@ -53,22 +49,20 @@ try {
   else if (command === "refresh") result = await store.refresh();
   else if (command === "connect" && positional[0] === "github") result = await store.connect(options);
   else if (command === "use" && positional[0] === "local") result = await store.useLocal(options);
-  else if (command === "migrate-metadata") result = await store.migrateMetadata({ path_prefix: options.scope || "all", base_revision: options.base_revision, apply: Boolean(options.apply) });
   else if (command === "restore") result = await store.restore(options);
-  else if (["check", "gc"].includes(command)) {
+  else if (command === "check") {
     const input = options.input ? JSON.parse(fs.readFileSync(options.input, "utf8")) : { path_prefix: options.all ? "all" : options.scope,
-      ...(options.base_revision ? { base_revision: options.base_revision } : {}), ...(options.revision ? { revision: options.revision } : {}),
-      ...(options.plan_id ? { plan_id: options.plan_id } : {}),
+      ...(options.revision ? { revision: options.revision } : {}),
       ...(options.limit ? { max_results: Number(options.limit) } : {}), ...(options.offset ? { offset: Number(options.offset) } : {}),
-      ...(options.checkout_root ? { checkout_root: options.checkout_root } : {}), ...(options.apply ? { apply: true } : {}) };
-    result = await callTool(store, `spec_${command}`, input);
+      ...(options.checkout_root ? { checkout_root: options.checkout_root } : {}) };
+    result = await callTool(store, "spec_check", input);
   }
   else if (command === "login") result = { command: "gh auth login --hostname github.com", alternative: "Set GEI_GITHUB_TOKEN in your private environment. Never put tokens in knowledge or plugin files." };
   else if (["read", "search", "edit"].includes(command)) {
     const input = options.input ? fs.readFileSync(options.input, "utf8") : fs.readFileSync(0, "utf8");
     result = await callTool(store, `spec_${command}`, JSON.parse(input));
   } else throw new Error("Unknown command. Use --help.");
-  process.stdout.write((["check", "gc"].includes(command) && !options.json ? formatMaintenance(`spec_${command}`, result) : JSON.stringify(result, null, 2)) + "\n");
+  process.stdout.write((command === "check" && !options.json ? CheckText.format(result) : JSON.stringify(result, null, 2)) + "\n");
 } catch (error) {
   process.stderr.write(JSON.stringify({ code: error.code || "ERROR", message: error.message, ...error.details }) + "\n");
   process.exitCode = 1;
