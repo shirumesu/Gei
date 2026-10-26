@@ -10,7 +10,7 @@ A topic page should answer: which business terms belong here, what this domain o
 
 1. Match the request's business terms or tradeoff dimensions to the INDEX routes already in context; follow their links without a preliminary INDEX tool read. If the index is missing (including after compaction), clipped, or needs refreshing, retrieve the needed content through `spec_read`.
 2. Read the matching topic page and only relevant note summaries, source, tests, or native docs.
-3. Search within the topic using terms, symptoms, alternatives and selection criteria when no direct route matches. Listings and extracted previews help choose bodies to read; they are not verified summaries. A missing description means no extractable opening prose, not absent knowledge; truncation leaves omitted content unknown. Read before repairing either. Continue a listing only when the requested scope needs it, rather than reading the full notes corpus.
+3. Search within the topic using terms, symptoms, alternatives and selection criteria when no direct route matches. Listings and extracted previews help choose bodies to read; they are not verified summaries. A missing description means the frontmatter `description` is missing or empty, not absent knowledge; truncation leaves omitted content unknown. Read before repairing either. Continue a listing only when the requested scope needs it, rather than reading the full notes corpus.
 4. Expand only for a concrete dependency or missing owner; use repository search when knowledge is absent.
 5. Stop when scope, constraints, important unknowns, and verification are clear.
 
@@ -18,8 +18,8 @@ A long topic should shed redundant and retired content before splitting. Split o
 
 ## Write Path
 
-Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
+Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A topic README uses `type: facts` and a one-line description; the [facts example](../templates/facts.md) is the shape, including its short Routes block. `INDEX.md` does not use that frontmatter. A note may be `decisions`, `facts`, `runbooks`, or `log`. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
 
 Correct known stale claims in the same task. Merge overlapping notes, remove content made redundant by a reliable code/test/native-doc authority, and retain superseded rationale only while it can change future judgment. A different branch does not by itself retire an applicable constraint. User-requested documentation should remain complete for its purpose; compress incidental memory, not the requested deliverable.
 
-Indexes route; topic pages explain current knowledge; notes explain conditional reasoning. Avoid repeating detailed facts between them. Markdown folding does not reduce raw-file input: separate detail into linked files when selective reads need it.
+Indexes route. Topic pages carry current facts. Notes hold a decision, a fact list, a procedure, or a free-shape log. Avoid repeating detailed facts between them. Markdown folding does not reduce raw-file input: separate detail into linked files when selective reads need it.

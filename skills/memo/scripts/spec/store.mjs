@@ -4,7 +4,8 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { overview, documentOrder, windowBytes, sharedBudgets, readWindow } from "./retrieval.mjs";
+import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard, TitlePlaceholder } from "./retrieval.mjs";
+import { Frontmatter } from "./metadata.mjs";
 import { SpecCheck, SourceDrift } from "./maintenance.mjs";
 
 const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
@@ -222,7 +223,7 @@ export class SpecStore {
           await this.hydrate(config, snapshot, [name]);
           const text = snapshot.files[name];
           for (const [index, line] of text.split("\n").entries()) {
-            const match = line.toLowerCase().indexOf(query.toLowerCase());
+            const match = LiteralSearch.indexIn(line, query);
             if (match < 0 || seen++ < offset) continue;
             const chars = Array.from(line);
             const column = Array.from(line.slice(0, match)).length;
@@ -257,7 +258,9 @@ export class SpecStore {
       }
       const deleting = edits.some(edit => edit.op === "delete" || edit.op === "rename");
       const touched = [...new Set(edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]))];
-      await this.hydrate(config, current, deleting ? this.names(current) : touched);
+      const createScopes = [...new Set(edits.filter(edit => edit.op === "create").map(edit => DuplicateGuard.scope(edit.path)))];
+      const corpus = createScopes.length ? this.names(current).filter(name => createScopes.some(prefix => name.startsWith(prefix))) : [];
+      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus])]);
       const revision = this.version(config, current.oid);
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
@@ -269,6 +272,8 @@ export class SpecStore {
         } else if (edit.op === "create") {
           if (exists) error("EXISTS", "The document already exists; read and edit it instead of creating.");
           if (typeof edit.content !== "string") error("ARGUMENT", "create requires content.");
+          const matches = DuplicateGuard.existing(result, edit.path, edit.content);
+          if (matches.length) error("DUPLICATE", `An existing document in this project already matches this title, description, or path. Edit it instead of creating another: ${matches.map(item => item.path).join(", ")}.`, { existing_paths: matches.map(item => item.path), matches });
           result[edit.path] = edit.content;
         } else {
           if (!exists) error("NOT_FOUND", "Read or create this document before editing it.");
@@ -280,12 +285,15 @@ export class SpecStore {
             if (typeof edit.old_text !== "string" || !edit.old_text || typeof edit.new_text !== "string") error("ARGUMENT", "replace requires nonempty old_text and a string new_text.");
             const text = result[edit.path], found = [];
             for (let at = text.indexOf(edit.old_text); at >= 0; at = text.indexOf(edit.old_text, at + 1)) found.push(at);
-            if (found.length !== 1) error(found.length ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once in the document body. Use the base context below, or reread with line numbers and use replace_lines.", { matches: found.length, ...editHelp(current.files[edit.path], edit, revision) });
+            if (found.length !== 1) error(found.length ? "AMBIGUOUS_MATCH" : "NO_MATCH", "old_text must match exactly once in the document, including its frontmatter. Use the base context below, or reread with line numbers and use replace_lines.", { matches: found.length, ...editHelp(current.files[edit.path], edit, revision) });
             result[edit.path] = text.slice(0, found[0]) + edit.new_text + text.slice(found[0] + edit.old_text.length);
           }
         }
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
+      const surviving = changed(current.files, result).filter(name => result[name] !== undefined);
+      Frontmatter.assertChanged(result, surviving);
+      TitlePlaceholder.assertReplaced(result, surviving);
       if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
       return this.commitChanges(config, current, result, summary, { deleting });
     });

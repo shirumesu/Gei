@@ -6,6 +6,8 @@ First assess continued value: merge duplicates, remove cheaply recoverable imple
 
 Optional `sources` in YAML frontmatter lists checkout-relative files whose later commits should reopen the document. Pass that project's `checkout_root` when checking. A source whose last git commit is newer than the document's is a prompt to investigate, not proof the note is false. A missing source path means the listed file is not in the checkout. Age, low read counts, and project inactivity do not retire an applicable constraint.
 
+An edit that saves a non-INDEX document must leave `type` and a one-line `description`, and `status` when `type` is `tasks`. Add those fields in the same batch when the document does not have them yet. `INDEX.md` is exempt. `sources` stays optional.
+
 ## Decide The Outcome
 
 - **Correct or merge:** update the owning document, preserve useful conditions and reasons, and repair references. A source-file change is a prompt to read the source, not a deletion order.

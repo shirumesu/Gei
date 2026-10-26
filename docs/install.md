@@ -75,6 +75,11 @@ gei
   hooks/memo_hook.mjs
   hooks/memo_worker.mjs
   skills/memo/templates/index.md
+  skills/memo/templates/facts.md
+  skills/memo/templates/decisions.md
+  skills/memo/templates/runbooks.md
+  skills/memo/templates/log.md
+  skills/memo/templates/tasks.md
 ```
 
 Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, expose `spec_status`, `spec_read`, `spec_search`, `spec_edit`, and `spec_check`, and respond to `spec_status`. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
@@ -102,6 +107,11 @@ Gei
   hooks/memo_hook.mjs
   hooks/memo_worker.mjs
   skills/memo/templates/index.md
+  skills/memo/templates/facts.md
+  skills/memo/templates/decisions.md
+  skills/memo/templates/runbooks.md
+  skills/memo/templates/log.md
+  skills/memo/templates/tasks.md
   skills/consider/SKILL.md
   skills/diagnose/SKILL.md
   skills/inspect/SKILL.md
