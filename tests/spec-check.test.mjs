@@ -222,8 +222,8 @@ test("MCP check, read, search, and edit against a temp git checkout", { timeout:
       summary: "Edit plain Markdown and drop the old line",
       edits: [
         { op: "replace", path: "projects/example/INDEX.md", old_text: "IndexTokenAlpha", new_text: "IndexTokenBeta" },
-        { op: "replace", path: "projects/example/notes/old-line.md", old_text: legacyHeader, new_text: "" },
-        { op: "create", path: "projects/example/notes/plain.md", content: "# Plain\n\nPlainMarker has no lifecycle field.\n" },
+        { op: "replace", path: "projects/example/notes/old-line.md", old_text: legacyHeader, new_text: "---\ntype: facts\ndescription: Legacy marker kept after the old line was removed.\n---\n" },
+        { op: "create", path: "projects/example/notes/plain.md", content: "---\ntype: facts\ndescription: Plain marker note with no lifecycle field.\n---\n# Plain\n\nPlainMarker has no lifecycle field.\n" },
       ],
     });
     assert.equal(edited.isError, undefined);
@@ -234,6 +234,8 @@ test("MCP check, read, search, and edit against a temp git checkout", { timeout:
     assert.doesNotMatch(updated["projects/example/notes/old-line.md"].content, /gei:/);
     assert.match(updated["projects/example/notes/old-line.md"].content, /LegacyMarker/);
     assert.match(updated["projects/example/notes/plain.md"].content, /PlainMarker/);
+    assert.match(updated["projects/example/notes/plain.md"].content, /type: facts/);
+    assert.match(updated["projects/example/notes/plain.md"].content, /description: Plain marker note/);
     const searched = await client.call("spec_search", { query: "PlainMarker", path_prefix: "projects/example/", revision: edited.structuredContent.revision });
     assert.equal(searched.structuredContent.results[0].path, "projects/example/notes/plain.md");
   } finally {

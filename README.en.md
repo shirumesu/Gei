@@ -49,7 +49,7 @@ When work establishes reliable background, an accepted consequential decision, a
 
 Routine changes require neither a note nor an internal Changelog or whole-store audit. Link existing authorities and add only knowledge that changes understanding or decisions. See [Memo](skills/memo/SKILL.md).
 
-Each knowledge document remains one Markdown file. Optional YAML frontmatter may list `sources` as checkout-relative paths. Reads start at line 1 and line numbers stay physical. There is no separate lifecycle field.
+Each knowledge document remains one Markdown file. Except for `INDEX.md`, `spec_edit` requires YAML frontmatter with `type` (`facts`, `decisions`, `runbooks`, `log`, or `tasks`) and a one-line `description`. `tasks` also requires `status` (`todo`, `doing`, `blocked`, or `done`). `sources` remains an optional list of checkout-relative paths. Write these fields with ordinary create/replace. create rejects a similar title, description, or path in the same project and returns the existing paths. Reads start at line 1 and line numbers stay physical. There is no separate lifecycle field.
 
 `spec_check` returns a bounded worklist of broken references, duplicate prose, and source drift (a listed source's last git commit is newer than the document, or the source path is missing). Age and an empty list never delete knowledge. See [knowledge maintenance](docs/maintenance.md) for the signals and deletion recovery.
 

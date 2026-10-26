@@ -1,9 +1,10 @@
+---
+type: facts
+description: One sentence naming what this topic owns.
+---
 # Domain
 
-Terms: user vocabulary and consequential ambiguities.
-Owns: responsibility and relevant boundaries.
-Constraints: only facts that can change decisions.
-Evidence: repo-relative source, tests, or native-document entry points.
+- Term or constraint [source; date]
 
 ## Routes
 <!-- - Symptom or decision criteria -> [note](notes/topic.md): applicability. -->

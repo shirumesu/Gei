@@ -1,7 +1,12 @@
+---
+type: tasks
+description: One sentence naming the accepted work.
+status: todo
+---
 # Task
 
 Goal:
-Accepted:
+Acceptance:
 Assumptions / open decisions:
 State:
 Next:

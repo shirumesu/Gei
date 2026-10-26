@@ -18,12 +18,16 @@ Coverage of meaning, retention, and live behavior is explicitly unassessed. Zero
 
 Neither a duplicate hint nor a newer source commit authorizes deletion. Textual or unsupported Markdown references remain dependencies when they name an actual knowledge path.
 
-## Sources frontmatter
+## Frontmatter
 
-`sources` is an optional YAML list in the document frontmatter, written by the editor as ordinary Markdown. It is not a JSON field and it is not a hash map. List checkout-relative files whose later commits should reopen the note, not every file that was read.
+`spec_edit` requires YAML frontmatter on every document except `INDEX.md`. `type` is `facts`, `decisions`, `runbooks`, `log`, or `tasks`. `description` is one non-empty line. A `tasks` document also requires `status`: `todo`, `doing`, `blocked`, or `done`. A create, replace, line replace, or rename that leaves a non-INDEX document without those fields fails with `FRONTMATTER` and writes nothing. Add the fields in the same batch when an older document does not have them yet. The fields are ordinary text. `create`, `replace`, and `replace_lines` write them, including line 1.
+
+`sources` is an optional YAML list in that same frontmatter. It is not a JSON field and it is not a hash map. List checkout-relative files whose later commits should reopen the note, not every file that was read.
 
 ```markdown
 ---
+type: facts
+description: One line used later to label this document in INDEX.
 sources:
   - hooks/knowledge.mjs
   - docs/spec.md
@@ -33,15 +37,15 @@ sources:
 The actual knowledge.
 ```
 
-A flow sequence (`sources: [hooks/knowledge.mjs]`) is also read. Other frontmatter keys are left untouched. Reads start at line 1 and include this header. `body_start_line` is the first line after it. Search matches the full file.
+A flow sequence (`sources: [hooks/knowledge.mjs]`) is also read. Keys other than `type`, `description`, `status`, and `sources` are left untouched. Reads start at line 1 and include this header. `body_start_line` is the first line after it. Search matches the full file.
 
 Local mode does not create git commits. An edit therefore does not move the document's commit time until something commits the knowledge file. Drift compares those commit times, not working-tree mtimes.
 
 ## Edits and recovery
 
-Ordinary `spec_edit` calls need edits and a summary. There is no review array and no separate verification record. Creation, correction, rename, and deletion are the same batch. Deletion batches still reject remaining incoming references. That does not prove semantic consistency.
+Ordinary `spec_edit` calls need edits and a summary. There is no review array and no separate verification record. Creation, correction, rename, and deletion are the same batch. Deletion batches still reject remaining incoming references. That does not prove semantic consistency. A non-INDEX document in the saved batch must satisfy the frontmatter rules above. `INDEX.md` may stay a plain heading and route list.
 
-Semantic deletion and link repairs stay atomic. `rename` moves the complete file. Plain documents stay plain Markdown.
+Semantic deletion and link repairs stay atomic. `rename` moves the complete file. The moved document must still satisfy those rules unless the destination is `INDEX.md`.
 
 GitHub deletion is one commit and recovery uses repository history. Local deletion batches save changed preimages outside knowledge, under runtime state, for 30 days. `spec restore` lists available deletion backups; `spec restore --backup ID` previews one; adding `--apply` restores the batch if no later content would be overwritten. Expired backups are removed on a later local deletion and are no longer offered. Older read snapshots are not a retention service. Recovery is for an actual mistake, not routine knowledge search.
 

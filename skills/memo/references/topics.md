@@ -18,7 +18,7 @@ A long topic should shed redundant and retired content before splitting. Split o
 
 ## Write Path
 
-Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
+Keep each note discoverable through its nearest topic page; keep each topic reachable from INDEX or a parent topic. A topic README uses `type: facts` and a one-line description. `INDEX.md` does not use that frontmatter. A task worth resuming gets one temporary route, removed when no longer active. Cross-domain references link to the owner.
 
 Correct known stale claims in the same task. Merge overlapping notes, remove content made redundant by a reliable code/test/native-doc authority, and retain superseded rationale only while it can change future judgment. A different branch does not by itself retire an applicable constraint. User-requested documentation should remain complete for its purpose; compress incidental memory, not the requested deliverable.
 

@@ -6,7 +6,7 @@ Without MCP, run `node <memo>/scripts/spec/cli.mjs --help`. The `read`, `search`
 
 Default local storage needs no authentication. GitHub connection is an explicit user choice of repository and upload scope; preview before applying. If credentials are unavailable, explain the setup requirement without asking for a token in chat. Do not silently connect a guessed repository, change storage mode, or create a writable offline fork.
 
-Line numbers are physical file lines. Optional YAML frontmatter, including a `sources` list, is part of the document and can be edited. `body_start_line` is the first line after that frontmatter. There is no separate lifecycle field.
+Line numbers are physical file lines. YAML frontmatter is part of the document and can be edited, including line 1. Except for `INDEX.md`, keep `type` (`facts`, `decisions`, `runbooks`, `log`, or `tasks`) and a one-line `description`. `tasks` also keeps `status` (`todo`, `doing`, `blocked`, or `done`). `sources` stays optional. `FRONTMATTER` means the saved document would omit those fields. `DUPLICATE` means `create` found a similar title, description, or path in the same project; `existing_paths` names the documents to edit instead. `body_start_line` is the first line after that frontmatter. There is no separate lifecycle field.
 
 On `REVISION_CONFLICT`, read the changed documents and update the proposal. On `NO_MATCH` or `AMBIGUOUS_MATCH`, read the exact text and include enough surrounding context. On `SUBMISSION_UNCONFIRMED`, inspect the current remote documents before retrying. Unavailable uncached documents require connectivity. Disabled Spec remains disabled until the user requests otherwise.
 

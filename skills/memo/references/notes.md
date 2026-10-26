@@ -1,6 +1,6 @@
 # Decisions, Pitfalls, And Handoffs
 
-Record a reason that can change plausible future work and is not already available from an authority worth linking. Prefer the existing topic; create a note only when one coherent decision or pitfall earns separate retrieval. Keep the conclusion and applicability near the top, followed by useful reasons and evidence. The [note example](../templates/note.md) is optional scaffolding, not a form to fill.
+Record a reason that can change plausible future work and is not already available from an authority worth linking. Prefer the existing topic; create a note only when one coherent decision or pitfall earns separate retrieval. A note uses `type: decisions` or `facts` and a one-line `description`. Keep the conclusion and applicability near the top, followed by useful reasons and evidence. The [note example](../templates/note.md) is optional scaffolding, not a form to fill.
 
 ## Decision Transfer
 
@@ -22,4 +22,4 @@ Keep a pitfall only when its trigger remains plausible and a future agent needs 
 
 Use one [task record](../templates/task.md) only for accepted work that needs cross-session recovery. Capture goal, accepted decisions, open assumptions, current state, next action, and verification pointers. Do not copy the conversation.
 
-Update the same record when accepted scope or recovery state changes. At completion, merge only earned lasting knowledge into its owner, then delete the handoff and its route in the same batch—do not mark it completed and leave it as a progress ledger or second product-spec book. Preserve still-useful reasoning in its topic/note owner, not a completed task inventory. Deferred items, competitor comparisons, and one-off research are deleted once the decision lands; they are not lasting notes. Uncertain completion stays until the outcome is known; age is not a deletion reason. See [maintenance](maintenance.md). No four-file change package or internal changelog is required.
+Update the same record when accepted scope or recovery state changes. Set `status` to `todo`, `doing`, `blocked`, or `done` as the work moves. At completion, merge only earned lasting knowledge into its owner, then delete the handoff and its route in the same batch—do not leave `status: done` as a progress ledger or second product-spec book. Preserve still-useful reasoning in its topic/note owner, not a completed task inventory. Deferred items, competitor comparisons, and one-off research are deleted once the decision lands; they are not lasting notes. Uncertain completion stays until the outcome is known; age is not a deletion reason. See [maintenance](maintenance.md). No four-file change package or internal changelog is required.
