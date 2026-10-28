@@ -429,6 +429,17 @@ export class SpecStore {
       return { mode: "local", directory: this.home, backup, from_revision: this.version(config, remote.oid) };
     }, { enabled: false });
   }
+  async projectNames() {
+    return this.run(async config => {
+      if (config.mode === "local") {
+        const root = path.join(this.home, "projects");
+        return new Set(fs.existsSync(root) ? fs.readdirSync(root, { withFileTypes: true })
+          .filter(item => item.isDirectory() && fs.existsSync(path.join(root, item.name, "INDEX.md"))).map(item => item.name) : []);
+      }
+      const snapshot = await this.latest(config, { timeout: 1000 });
+      return new Set(this.names(snapshot).map(name => /^projects\/([^/]+)\/INDEX\.md$/u.exec(name)?.[1]).filter(Boolean));
+    }, { enabled: false, lockTimeout: 4000 });
+  }
   async index(name) {
     documentPath(name);
     // SessionStart knowledge hooks can overlap a remote refresh in another process.

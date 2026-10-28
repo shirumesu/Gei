@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { randomUUID } from "node:crypto";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
 import { hash, readJson, writeJson } from "../skills/memo/scripts/spec/io.mjs";
-import { resolveProject } from "./knowledge.mjs";
+import { resolveWorkspace } from "./knowledge.mjs";
 
 // Capture follows mem0's hook design: record prompts and final replies from hook
 // input instead of parsing host transcripts, whose formats are not stable interfaces.
@@ -322,7 +322,7 @@ export async function processSession(dir, handoff, running, { dryRun = false } =
         results.push("too little content");
       } else {
         if (!meta.cwd || !fs.existsSync(meta.cwd)) throw new Error(`session workspace is unavailable: ${meta.cwd}`);
-        const resolved = resolveProject(meta.cwd);
+        const resolved = await resolveWorkspace(meta.cwd, store);
         const index = await store.index(`projects/${resolved.projectId}/INDEX.md`);
         const project = { ...resolved, indexExists: Boolean(index.content) };
         const earlier = journal.slice(0, meta.cursor).map(entryText).join("\n\n").slice(-CONTEXT_CHARS);

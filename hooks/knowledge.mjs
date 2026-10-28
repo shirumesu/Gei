@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
 import { ProjectIndex } from "../skills/memo/scripts/spec/index.mjs";
+import { writeJson } from "../skills/memo/scripts/spec/io.mjs";
 
 export const PROJECT_INDEX_BYTES = ProjectIndex.PROJECT_BODY_BYTES;
 export const SHARED_INDEX_BYTES = ProjectIndex.SHARED_BODY_BYTES;
@@ -97,9 +98,44 @@ export function resolveRepository(startDir) {
   return { checkoutRoot, projectRoot, gitCommonDir };
 }
 
-export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}) {
+export function readProjectRoots(file) {
+  let value;
+  try { value = JSON.parse(fs.readFileSync(file, "utf8")); } catch { return {}; }
+  if (!value || typeof value !== "object") return {};
+  return Object.fromEntries(Object.entries(value).map(([id, roots]) =>
+    [id, (Array.isArray(roots) ? roots : []).filter(root => typeof root === "string" && fs.existsSync(root))]));
+}
+
+export function rememberProjectRoot(file, projectId, root) {
+  const roots = readProjectRoots(file);
+  if (roots[projectId]?.includes(root)) return;
+  roots[projectId] = [...(roots[projectId] || []), root];
+  writeJson(file, Object.fromEntries(Object.entries(roots).filter(([, list]) => list.length)));
+}
+
+function parentProject(start, knownProjects, roots) {
+  const home = normalizeRoot(os.homedir());
+  if (start === home) return null;
+  for (let dir = path.dirname(start); dir !== home && dir !== path.dirname(dir); dir = path.dirname(dir)) {
+    const id = projectName(path.basename(dir));
+    if (!knownProjects.has(id)) continue;
+    const recorded = roots[id] || [];
+    if (recorded.length && !recorded.includes(dir)) continue;
+    return { projectId: id, root: dir, recorded: recorded.length > 0 };
+  }
+  return null;
+}
+
+export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome(), knownProjects = null, rootsFile = null } = {}) {
   const repository = resolveRepository(startDir);
-  const projectId = projectIdForRoot(repository.projectRoot);
+  const ownProjectId = projectIdForRoot(repository.projectRoot);
+  const parent = knownProjects && !knownProjects.has(ownProjectId)
+    ? parentProject(repository.projectRoot, knownProjects, readProjectRoots(rootsFile)) : null;
+  if (parent) {
+    repository.projectRoot = parent.root;
+    if (!repository.gitCommonDir) repository.checkoutRoot = parent.root;
+  }
+  const projectId = parent?.projectId || ownProjectId;
   const projectsRoot = path.join(geiSpecHome, "projects");
   const specRoot = path.join(projectsRoot, projectId);
   const legacyRoots = [];
@@ -124,7 +160,16 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome() } = {}
       if (names.includes(projectId)) legacyRoots.push(candidateRoot);
     }
   }
-  return { ...repository, projectId, specRoot, legacyRoots, geiSpecHome };
+  return { ...repository, projectId, ownProjectId, parent, projectExists: Boolean(knownProjects?.has(projectId)),
+    specRoot, legacyRoots, geiSpecHome };
+}
+
+export const projectRootsFile = store => path.join(store.state, "roots.json");
+
+export async function resolveWorkspace(startDir, store = new SpecStore({ authTimeout: 500 })) {
+  let knownProjects = null;
+  try { knownProjects = await store.projectNames(); } catch {}
+  return resolveProject(startDir, { knownProjects, rootsFile: projectRootsFile(store) });
 }
 
 export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the source index if relevant; shorten it during maintenance.]") {
@@ -158,7 +203,8 @@ export async function loadProjectContext(cwd) {
   const store = new SpecStore({ authTimeout: 500 });
   const config = store.config();
   if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
-  const project = resolveProject(cwd);
+  const project = await resolveWorkspace(cwd, store);
+  if (project.projectExists) rememberProjectRoot(projectRootsFile(store), project.projectId, project.projectRoot);
   if (project.legacyRoots.length) throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories: ${project.legacyRoots.join(", ")}`);
   const name = `projects/${project.projectId}/INDEX.md`;
   const result = await store.index(name);
@@ -175,7 +221,8 @@ export async function loadProjectContext(cwd) {
       : `No knowledge for this project yet. When work earns durable knowledge, spec_edit writes the document and creates ${name} from topic READMEs and tasks in status order in that same save. That document needs YAML frontmatter with type and a one-line description, plus status when type is tasks. Otherwise create nothing.`,
       ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
   }
-  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
+  const via = project.parent ? ` (parent workspace ${project.parent.root}, ${project.parent.recorded ? "recorded root" : "name match, now recorded"}; ${project.ownProjectId} has no knowledge)` : "";
+  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}${via}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
 }
 
 export async function loadSharedContext() {

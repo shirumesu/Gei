@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readHookInput, resolveProject, getHookStartDir } from "./knowledge.mjs";
+import { readHookInput, resolveWorkspace, getHookStartDir } from "./knowledge.mjs";
 import { log, memoState, record, recover, schedule, takeReports } from "./memo.mjs";
 
 const host = process.argv[2] === "codex" ? "codex" : "claude";
@@ -12,7 +12,7 @@ try {
     const event = input.hook_event_name;
     if (event === "SessionStart") {
       recover(state.dir);
-      const reports = takeReports(state.dir, resolveProject(getHookStartDir(input)).projectId);
+      const reports = takeReports(state.dir, (await resolveWorkspace(getHookStartDir(input), state.store)).projectId);
       if (reports.length) {
         const lines = reports.slice(-3).map(item => `- ${item.summary} (${item.paths.join(", ")})`);
         process.stdout.write(`${JSON.stringify({ systemMessage: `Gei Memo updated knowledge after earlier sessions:\n${lines.join("\n")}` })}\n`);
