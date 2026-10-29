@@ -148,11 +148,11 @@ export class Memory {
 
   static fold(value) { return String(value ?? "").normalize("NFKC").replace(/\s+/gu, " ").trim().toLowerCase(); }
 
+  // Same rule when+do, pitfall when+avoid, why choice, or env subject+key. Several rules may share one `when`.
   static same(entry, other) {
     if (entry.type !== other.type) return false;
-    if (entry.type === "env") return this.fold(entry.subject) === this.fold(other.subject) && entry.key === other.key;
-    const head = TYPES[entry.type].head;
-    return this.fold(entry[head]) === this.fold(other[head]);
+    const keys = { rule: ["when", "do"], pitfall: ["when", "avoid"], why: ["choice"], env: ["subject", "key"] }[entry.type];
+    return keys.every(name => this.fold(entry[name]) === this.fold(other[name]));
   }
 
   // Eviction candidates: inferred, then observed, then user; older or undated first.
