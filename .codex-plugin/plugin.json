@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.13.1",
+  "version": "0.14.0",
   "description": "Short, typed project memory kept outside the repo, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
   "author": {
     "name": "shirumesu",
