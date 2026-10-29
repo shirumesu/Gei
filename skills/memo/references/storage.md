@@ -1,17 +1,26 @@
-# External Storage
+# Storage And Tools
 
-Use `~/.agents/geispec`, overridden by `GEI_SPEC_HOME`. All Gei knowledge stays outside the source repository. Do not add AGENTS.md, local spec folders, or ignore rules for it.
+Knowledge lives in `~/.agents/geispec` (override with `GEI_SPEC_HOME`), never in the source repository. Settings and caches live in `~/.agents/gei-state` (override with `GEI_SPEC_STATE`). The user can bind a private GitHub repository instead; then every `spec_edit` is one commit, and its history is the audit trail. Do not add AGENTS.md, local spec folders, or ignore rules for it.
 
-The workspace Hook supplies the resolved checkout and project index, and never writes knowledge. Rules for creating `INDEX.md` (never empty) are in [Memo Shape](../SKILL.md). Catalog rewrite and header markers: [topics](topics.md). Edit the header when the task establishes reliable purpose or agreements. Create topic, note, or task directories only with real content. Shared Context has its own read-only Hook and its own generated `context/INDEX.md`.
+## Scopes
 
-Knowledge lives in `projects/<project-name>`. The name comes from the main repository root for ordinary Git repositories and linked worktrees, the common Git directory for separate metadata or bare repositories, and the exact directory for non-Git workspaces. When that name has no `INDEX.md` yet, the nearest parent directory below the user's home whose name already has one owns the workspace instead: a code repository or a `docs/` folder inside a broader workspace joins that workspace's knowledge. A nested repository with its own `INDEX.md` keeps its own name; create that index to split it out. Filesystem links resolve to their targets. Names use Unicode NFKC, lowercase, whitespace converted to hyphens, remaining characters outside Unicode letters/numbers/dot/underscore/hyphen replaced with hyphens, and leading/trailing punctuation trimmed. An empty result becomes `project`.
+- `projects/<project-name>/`: one project's `MEMORY.md`, `docs/`, `tasks/`, and the generated indexes.
+- `context/`: shared memory and docs for every project.
 
-Equal normalized names intentionally share knowledge across machines and clones. Keep names consistent across machines. Give unrelated projects different names. Moving a checkout without changing its name needs no update. Renaming a project also requires renaming its knowledge directory and repairing incoming links. No UUID, path hash, `project.json`, or per-machine binding is needed. The workspace Hook records the local roots of projects with knowledge in `roots.json` under Gei state. That record only vetoes a parent match when the same project is recorded at another existing directory; vanished paths are dropped, so moves still need no update. Legacy manifests are consulted only to discover knowledge that needs [migration](migrate.md). They no longer control identity.
+The project name is the main repository root's directory name for Git repositories and linked worktrees, the common Git directory's name for separate metadata or bare repositories, and the directory name otherwise. It is normalized with Unicode NFKC, lowercase, whitespace to hyphens, other characters outside letters, numbers, dot, underscore, and hyphen to hyphens, and trimmed. Equal names share memory across machines and clones. When the name has no memory yet, the nearest parent directory below the home directory whose name has memory owns the workspace. The startup Hook records project roots in local state (`roots.json`) to keep that parent match from taking a same-named project in another directory.
 
-Local storage is the default. Users can connect a private GitHub knowledge repository through the bundled CLI. Tools then read and commit remotely while Hooks use versioned INDEX caches. User configuration selects the repository once, and normalized project names select its knowledge paths. No separate agent push is required. Settings and cache live outside knowledge under `~/.agents/gei-state`, overridden by `GEI_SPEC_STATE`. See [tool access](tools.md) for setup or fallback. Shared knowledge must not turn branch- or environment-specific observations into universal facts. Include the relevant platform or revision and check the active checkout.
+## Tools
 
-Without a Hook, locate the configured store and derive the same project name. If the plugin runtime is available, call its exported `resolveWorkspace(cwd)` from `hooks/knowledge.mjs`. Its `legacyRoots` list identifies prior stores to reconcile before writing. In a skills-only installation, create the named directory and index only as needed. Automatic injection requires the plugin Hooks.
+- `spec_read` reads paths from one snapshot and returns a revision.
+- `spec_search` lists documents or finds literal lines.
+- `spec_edit` saves one batch against that revision: entry operations on `MEMORY.md`, text operations on `docs/` and `tasks/`.
 
-Promote a note to Shared Context only when the reason and conditions apply across unrelated projects. Move the owner and repair links rather than duplicating it. Keep project relations as direct external topic links. A Group manifest is unnecessary.
+Errors:
 
-If filesystem permissions block a write, use the host's normal approval mechanism. Semantic maintenance is already authorized. Do not ask the user to reconfirm the content.
+- `REVISION_CONFLICT`: read the changed documents and reconcile.
+- `NO_MATCH` / `AMBIGUOUS_MATCH`: reread the exact text.
+- `MEMORY_FORMAT`: someone hand-edited `MEMORY.md` into an invalid shape; fix those lines with a text edit.
+- `MEMORY_ENTRY`, `DUPLICATE_ENTRY`, `MEMORY_FULL`, `INDEX_FULL`, `FRONTMATTER`, `GENERATED`: the message says what to change.
+- `SUBMISSION_UNCONFIRMED`: read the remote state before retrying.
+
+Without MCP, run `node <memo>/scripts/spec/cli.mjs --help`. `read`, `search`, and `edit` take the same JSON through stdin or `--input FILE`. `show projects/<project>/` prints what a session receives. Plugin installs also expose `node <gei>/bin/gei.mjs spec ...`. Do not assume a global `gei` executable. If GitHub credentials are unavailable, explain the setup; never ask for a token in chat or switch storage mode on your own.

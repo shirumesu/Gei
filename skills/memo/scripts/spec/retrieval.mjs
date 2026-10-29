@@ -1,4 +1,3 @@
-import { fail } from "./io.mjs";
 import { Frontmatter } from "./metadata.mjs";
 
 export function overview(content) {
@@ -41,9 +40,10 @@ export function overview(content) {
 }
 
 export function documentOrder(name) {
-  if (name.endsWith("/INDEX.md")) return 0;
-  if (/\/topics\/[^/]+\/README\.md$/u.test(name)) return 1;
-  return name.includes("/notes/") ? 3 : 2;
+  if (name.endsWith("/MEMORY.md")) return 0;
+  if (name.endsWith("/INDEX.md")) return 1;
+  if (/\/docs\//u.test(name)) return 2;
+  return /\/tasks\//u.test(name) ? 3 : 4;
 }
 
 export function windowBytes(text, start_line, start_column, max_lines, line_numbers) {
@@ -92,101 +92,5 @@ export function readWindow(text, { start_line, start_column, max_lines, line_num
 export class LiteralSearch {
   static indexIn(line, query) {
     return String(line).toLowerCase().indexOf(String(query).toLowerCase());
-  }
-}
-
-// Create-time duplicate check. Body prose is not a signal, so a later INDEX can quote descriptions.
-// Equality needs 8 characters. Containment needs 12, so a short shared word does not match.
-// Title and description are compared across those two fields. A path stem is compared with stems and titles.
-export class DuplicateGuard {
-  static scope(docPath) {
-    const project = /^projects\/([^/]+)\//u.exec(docPath);
-    return project ? `projects/${project[1]}/` : "context/";
-  }
-
-  static fold(value) {
-    return String(value ?? "").normalize("NFKC").replace(/\s+/gu, " ").trim();
-  }
-
-  static length(value) {
-    return Array.from(value).length;
-  }
-
-  static stem(docPath) {
-    const base = String(docPath).slice(String(docPath).lastIndexOf("/") + 1).replace(/\.md$/iu, "");
-    return this.fold(base.replace(/[-_]+/gu, " "));
-  }
-
-  // Same heading overview() shows spec_read: skip fenced code and HTML comments, including a heading on the comment's closing line.
-  static title(content) {
-    const lines = Frontmatter.split(content).body.split("\n");
-    let fence = null, comment = false;
-    for (const raw of lines) {
-      const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/u.exec(raw);
-      if (fence) {
-        if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
-        continue;
-      }
-      if (comment) { comment = !raw.includes("-->"); continue; }
-      const commentStart = raw.indexOf("<!--");
-      if (commentStart >= 0) {
-        comment = raw.indexOf("-->", commentStart + 4) < 0;
-        continue;
-      }
-      if (marker) { fence = marker[1]; continue; }
-      const heading = /^#\s+(.+?)(?:\s+#+)?$/u.exec(raw.trim());
-      if (heading) return heading[1].trim();
-    }
-    return "";
-  }
-
-  static cues(docPath, content) {
-    const { values } = Frontmatter.scalars(content);
-    return { description: values.description || "", title: this.title(content), stem: this.stem(docPath) };
-  }
-
-  static alike(left, right) {
-    const a = this.fold(left);
-    const b = this.fold(right);
-    const span = Math.min(this.length(a), this.length(b));
-    if (!span || span < 8) return false;
-    if (a.toLowerCase() === b.toLowerCase()) return true;
-    if (span < 12) return false;
-    const [shorter, longer] = this.length(a) <= this.length(b) ? [a, b] : [b, a];
-    return LiteralSearch.indexIn(longer, shorter) >= 0;
-  }
-
-  static via(next, prior) {
-    const via = [];
-    if (this.alike(next.description, prior.description)) via.push("description");
-    if (this.alike(next.title, prior.title)) via.push("title");
-    if (this.alike(next.description, prior.title) || this.alike(next.title, prior.description)) via.push("title-description");
-    if (this.alike(next.stem, prior.stem)) via.push("path");
-    if (this.alike(next.stem, prior.title) || this.alike(next.title, prior.stem)) via.push("path-title");
-    return via;
-  }
-
-  static existing(files, docPath, content) {
-    const scope = this.scope(docPath);
-    const next = this.cues(docPath, content);
-    const matches = [];
-    for (const [name, text] of Object.entries(files)) {
-      if (name === docPath || typeof text !== "string" || !name.startsWith(scope)) continue;
-      const via = this.via(next, this.cues(name, text));
-      if (via.length) matches.push({ path: name, via });
-    }
-    matches.sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0);
-    return matches;
-  }
-}
-
-// Templates use this heading. The author replaces it; duplicate detection is unchanged.
-export class TitlePlaceholder {
-  static text = "<标题>";
-
-  static assertReplaced(files, paths) {
-    const pending = [...paths].filter(docPath => DuplicateGuard.title(files[docPath]) === this.text).sort();
-    if (!pending.length) return;
-    fail("PLACEHOLDER_TITLE", `Replace the heading placeholder <标题> with the real title before saving.\n${pending.join("\n")}`, { applied: false, paths: pending });
   }
 }

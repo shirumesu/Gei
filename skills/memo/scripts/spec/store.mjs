@@ -4,10 +4,10 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch, DuplicateGuard, TitlePlaceholder } from "./retrieval.mjs";
-import { Frontmatter } from "./metadata.mjs";
+import { overview, documentOrder, windowBytes, sharedBudgets, readWindow, LiteralSearch } from "./retrieval.mjs";
+import { Documents, Frontmatter } from "./metadata.mjs";
 import { ProjectIndex } from "./index.mjs";
-import { SpecCheck, SourceDrift } from "./maintenance.mjs";
+import { Memory } from "./memory.mjs";
 
 const DEFAULTS = { enabled: true, background: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -15,11 +15,10 @@ const changed = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].f
 // Git checkouts may convert LF to CRLF; only migration treats those bytes as equivalent.
 const sameImportContent = (a, b) => typeof b === "string" && a.replaceAll("\r\n", "\n") === b.replaceAll("\r\n", "\n");
 export class SpecStore {
-  constructor({ env = process.env, github, clock = Date.now, ...options } = {}) {
+  constructor({ env = process.env, github, ...options } = {}) {
     Object.assign(this, locations(env));
     this.github = github || new GitHub({ env, ...options });
     this.configFile = path.join(this.state, "config.json");
-    this.clock = clock;
   }
   config() {
     const config = { ...DEFAULTS, ...readJson(this.configFile, {}) };
@@ -137,42 +136,6 @@ export class SpecStore {
   async setBackground(background) {
     return this.run(config => { writeJson(this.configFile, { ...config, background }); return { background, enabled: config.enabled }; }, { enabled: false });
   }
-  maintenanceFile(config, prefix) { return path.join(this.state, "maintenance", hash(this.target(config) + ":" + prefix) + ".json"); }
-  maintenanceHint(prefix) {
-    const config = this.config();
-    if (!config.enabled) return "";
-    const previous = readJson(this.maintenanceFile(config, prefix));
-    if (previous && this.clock() - previous.at < 7 * 86400000) return "";
-    return `Maintenance check due: use Memo and spec_check with path_prefix ${prefix}. Signals are broken references, topic notes missing from their README, duplicate prose, and source drift; pass the project checkout_root. Age and a clean result do not authorize deletion.`;
-  }
-  async check({ path_prefix, revision, offset = 0, max_results = 10, checkout_root } = {}) {
-    SpecCheck.scopePrefix(path_prefix);
-    if (!Number.isInteger(offset) || offset < 0 || !Number.isInteger(max_results) || max_results < 1 || max_results > 100 || (offset && !revision)) fail("ARGUMENT", "Use a revision for pagination and a batch of 1–100.");
-    if (checkout_root && !/^projects\/[^/]+\/$/u.test(path_prefix)) fail("ARGUMENT", "Source checks need one explicit project scope and its checkout_root.");
-    return this.run(async config => {
-      const snapshot = await this.snapshot(config, revision);
-      await this.hydrate(config, snapshot, this.names(snapshot));
-      const commitTime = config.mode === "local" ? name => SourceDrift.commitTime(this.home, name) : () => null;
-      const report = SpecCheck.inventory(snapshot.files, path_prefix, { checkoutRoot: checkout_root, commitTime });
-      const results = [];
-      let bytes = 0;
-      for (const item of report.results.slice(offset, offset + max_results)) {
-        const size = Buffer.byteLength(JSON.stringify(item));
-        if (results.length && bytes + size > 48000) break;
-        results.push(item); bytes += size;
-      }
-      const counts = {};
-      for (const item of report.results) for (const reason of item.reasons) counts[reason] = (counts[reason] || 0) + 1;
-      const currentRevision = this.version(config, snapshot.oid);
-      if (!revision && !snapshot.stale) writeJson(this.maintenanceFile(config, path_prefix), { at: this.clock() });
-      const nextOffset = offset + results.length < report.results.length ? offset + results.length : undefined;
-      return { revision: currentRevision, source: snapshot.source, stale: Boolean(snapshot.stale),
-        path_prefix, documents: report.documents, candidates: report.results.length, counts, results,
-        remaining: Math.max(0, report.results.length - offset - results.length),
-        next_offset: nextOffset,
-        next_check: nextOffset === undefined ? undefined : { path_prefix, revision: currentRevision, offset: nextOffset, max_results, ...(checkout_root ? { checkout_root } : {}) } };
-    });
-  }
   async read({ paths, revision, start_line, start_column = 1, max_lines = 200, line_numbers = false } = {}) {
     if (!Array.isArray(paths) || !paths.length || paths.length > 20) fail("ARGUMENT", "Read between 1 and 20 paths in one call.");
     paths.forEach(documentPath);
@@ -212,7 +175,7 @@ export class SpecStore {
       const pinned = this.version(config, snapshot.oid);
       const names = this.names(snapshot).filter(name => isDocument(name) && name.startsWith(path_prefix));
       const results = [];
-      const order = query ? "path-line" : "indexes-topic-owners-documents-notes-path";
+      const order = query ? "path-line" : "memory-index-docs-tasks-path";
       if (!query) {
         names.sort((a, b) => documentOrder(a) - documentOrder(b) || (a < b ? -1 : a > b ? 1 : 0));
         const selected = names.slice(offset, offset + max_results + 1);
@@ -247,7 +210,13 @@ export class SpecStore {
   async edit({ base_revision, summary, edits = [] } = {}) {
     if (typeof summary !== "string" || !summary.trim() || summary.length > 200 || /[\r\n]/u.test(summary)) fail("ARGUMENT", "Provide a concise, single-line summary (1–200 characters).");
     if (!Array.isArray(edits) || !edits.length || edits.length > 100) fail("ARGUMENT", "Provide between 1 and 100 edits.");
-    for (const edit of edits) { documentPath(edit.path); if (edit.op === "rename") documentPath(edit.to); if (!["replace", "replace_lines", "create", "delete", "rename"].includes(edit.op)) fail("ARGUMENT", "Edit op must be replace, replace_lines, create, delete, or rename."); }
+    const ops = ["replace", "replace_lines", "create", "delete", "rename", "add_entry", "update_entry", "remove_entry"];
+    for (const edit of edits) {
+      documentPath(edit.path); if (edit.op === "rename") documentPath(edit.to);
+      if (!ops.includes(edit.op)) fail("ARGUMENT", `Edit op must be one of ${ops.join(", ")}.`);
+      if (Documents.kind(edit.path) === "index" || (edit.to && Documents.kind(edit.to) === "index")) fail("GENERATED", "INDEX.md and tasks/INDEX.md are generated from docs/ and tasks/; edit those documents instead.", { applied: false, path: edit.path });
+      if (edit.op.endsWith("_entry") && !Memory.isPath(edit.path)) fail("ARGUMENT", "Entry operations target <scope>MEMORY.md.", { applied: false, path: edit.path });
+    }
     return this.run(async config => {
       const expected = this.oid(config, base_revision);
       const current = await this.latest(config, { refresh: true });
@@ -257,13 +226,10 @@ export class SpecStore {
         fail("REVISION_CONFLICT", "Knowledge changed. Read the changed documents and reconcile before retrying. Nothing was applied.",
           { applied: false, current_revision: this.version(config, current.oid), changed_paths: base ? changed(versions(base), versions(current)) : undefined });
       }
-      const deleting = edits.some(edit => edit.op === "delete" || edit.op === "rename");
       const touched = [...new Set(edits.flatMap(edit => edit.to ? [edit.path, edit.to] : [edit.path]))];
-      const createScopes = [...new Set(edits.filter(edit => edit.op === "create").map(edit => DuplicateGuard.scope(edit.path)))];
-      const corpus = createScopes.length ? this.names(current).filter(name => createScopes.some(prefix => name.startsWith(prefix))) : [];
       const scopes = [...new Set(touched.map(name => ProjectIndex.scope(name)))];
-      const scopeNames = this.names(current).filter(name => scopes.some(prefix => name.startsWith(prefix)));
-      await this.hydrate(config, current, deleting ? this.names(current) : [...new Set([...touched, ...corpus, ...scopeNames])]);
+      const catalogued = this.names(current).filter(name => scopes.some(prefix => name.startsWith(prefix)) && Documents.kind(name) !== "legacy");
+      await this.hydrate(config, current, [...new Set([...touched, ...catalogued])]);
       const revision = this.version(config, current.oid);
       const ranges = rangeReplacements(current.files, edits, revision);
       const result = { ...current.files };
@@ -272,11 +238,12 @@ export class SpecStore {
         const error = (code, message, extra = {}) => fail(code, message, { applied: false, edit_index: index, path: edit.path, ...extra });
         if (edit.op === "replace_lines") {
           result[edit.path] = ranges.get(edit.path);
+        } else if (edit.op.endsWith("_entry")) {
+          const entries = exists ? Memory.assertValid(edit.path, result[edit.path]) : [];
+          result[edit.path] = Memory.format(Memory.applyOperation(entries, edit, error));
         } else if (edit.op === "create") {
           if (exists) error("EXISTS", "The document already exists; read and edit it instead of creating.");
           if (typeof edit.content !== "string") error("ARGUMENT", "create requires content.");
-          const matches = DuplicateGuard.existing(result, edit.path, edit.content);
-          if (matches.length) error("DUPLICATE", `An existing document in this project already matches this title, description, or path. Edit it instead of creating another: ${matches.map(item => item.path).join(", ")}.`, { existing_paths: matches.map(item => item.path), matches });
           result[edit.path] = edit.content;
         } else {
           if (!exists) error("NOT_FOUND", "Read or create this document before editing it.");
@@ -295,15 +262,17 @@ export class SpecStore {
         if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
       const surviving = changed(current.files, result).filter(name => result[name] !== undefined);
+      for (const name of surviving.filter(Memory.isPath)) {
+        const after = Memory.assertValid(name, result[name]);
+        const before = own(current.files, name) ? Memory.parse(current.files[name]).entries : [];
+        Memory.assertBudget(name, before, after);
+      }
       Frontmatter.assertChanged(result, surviving);
-      TitlePlaceholder.assertReplaced(result, surviving);
-      const indexScopes = ProjectIndex.scopesTouched(current.files, result);
-      ProjectIndex.apply(result, current.files, indexScopes);
-      if (deleting) SpecCheck.assertDeletionLinks(current.files, result);
-      return this.commitChanges(config, current, result, summary, { deleting });
+      ProjectIndex.apply(result, current.files, ProjectIndex.scopesTouched(current.files, result));
+      return this.commitChanges(config, current, result, summary);
     });
   }
-  async commitChanges(config, current, result, summary, { deleting = false } = {}) {
+  async commitChanges(config, current, result, summary) {
     for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge and metadata files must be at most 1 MiB.", { path: name });
     const changes = Object.fromEntries(changed(current.files, result).map(name => [name, result[name] ?? null]));
     const finalNames = new Set(this.names(current));
@@ -311,10 +280,9 @@ export class SpecStore {
     validateNames([...finalNames]);
     if (!Object.keys(changes).length) return { applied: false, unchanged: true, revision: this.version(config, current.oid), paths: [] };
     if (config.mode === "local") {
-      const backup = deleting ? this.backupDeletion(config, current.files, changes) : undefined;
       publish(this.home, this.state, changes);
       const next = await this.latest(config);
-      return { applied: true, source: "local", revision: this.version(config, next.oid), paths: Object.keys(changes), backup };
+      return { applied: true, source: "local", revision: this.version(config, next.oid), paths: Object.keys(changes) };
     }
     let commit;
     try { commit = await this.github.commit(config.github, current.oid, changes, summary); }
@@ -337,43 +305,6 @@ export class SpecStore {
     this.saveSnapshot(config, next);
     writeJson(this.headFile(config), { oid: commit.oid, checkedAt: new Date().toISOString() });
     return { applied: true, source: "github", revision: this.version(config, commit.oid), paths: Object.keys(changes), url: commit.url };
-  }
-  backupDeletion(config, before, changes) {
-    const root = path.join(this.state, "deletions");
-    fs.mkdirSync(root, { recursive: true });
-    for (const file of fs.readdirSync(root)) {
-      if (!/^\d+-[a-f0-9-]+\.json$/u.test(file)) continue;
-      if (Number(file.split("-")[0]) < this.clock() - 30 * 86400000) fs.rmSync(path.join(root, file));
-    }
-    const id = `${this.clock()}-${randomUUID()}`;
-    writeJson(path.join(root, id + ".json"), { at: this.clock(), target: this.target(config),
-      before: Object.fromEntries(Object.keys(changes).map(name => [name, before[name] ?? null])), after: changes });
-    return id;
-  }
-  async restore({ backup, apply = false } = {}) {
-    return this.run(async config => {
-      if (config.mode !== "local") fail("CONFIG", "Use the selected GitHub repository's commit history for remote recovery.");
-      const root = path.join(this.state, "deletions");
-      if (!backup) return { backups: fs.existsSync(root) ? fs.readdirSync(root).filter(file => /^\d+-[a-f0-9-]+\.json$/u.test(file) && Number(file.split("-")[0]) >= this.clock() - 30 * 86400000).map(file => file.slice(0, -5)) : [] };
-      if (!/^\d+-[a-f0-9-]+$/u.test(backup)) fail("ARGUMENT", "Use a listed backup identifier.");
-      const saved = readJson(path.join(root, backup + ".json"));
-      if (!saved || saved.target !== this.target(config) || saved.at < this.clock() - 30 * 86400000) fail("BACKUP", "Backup is unavailable for this binding or has expired.");
-      const current = await this.latest(config);
-      const conflicts = Object.keys(saved.after).filter(name => (current.files[name] ?? null) !== saved.after[name]);
-      if (apply && conflicts.length) fail("REVISION_CONFLICT", "Recovery would overwrite later changes; reconcile them first.", { paths: conflicts });
-      const visible = { preview: !apply, backup, revision: this.version(config, current.oid), paths: Object.keys(saved.before), conflicts };
-      if (!apply) return visible;
-      const restored = { ...current.files };
-      for (const [name, content] of Object.entries(saved.before)) {
-        if (content === null) delete restored[name]; else restored[name] = content;
-      }
-      validateNames(Object.keys(restored));
-      SpecCheck.assertDeletionLinks(current.files, restored);
-      // Recovery restores the exact preimages.
-      publish(this.home, this.state, saved.before);
-      const next = await this.latest(config);
-      return { ...visible, applied: true, source: "local", revision: this.version(config, next.oid) };
-    });
   }
   async refresh() {
     return this.run(async config => { const snapshot = await this.latest(config, { refresh: true });
@@ -429,30 +360,28 @@ export class SpecStore {
       return { mode: "local", directory: this.home, backup, from_revision: this.version(config, remote.oid) };
     }, { enabled: false });
   }
+  // A project exists once it has MEMORY.md or a generated INDEX.md.
   async projectNames() {
+    const project = name => /^projects\/([^/]+)\/(?:MEMORY|INDEX)\.md$/u.exec(name)?.[1];
     return this.run(async config => {
-      if (config.mode === "local") {
-        const root = path.join(this.home, "projects");
-        return new Set(fs.existsSync(root) ? fs.readdirSync(root, { withFileTypes: true })
-          .filter(item => item.isDirectory() && fs.existsSync(path.join(root, item.name, "INDEX.md"))).map(item => item.name) : []);
-      }
+      if (config.mode === "local") return new Set(Object.keys(scan(this.home)).map(project).filter(Boolean));
       const snapshot = await this.latest(config, { timeout: 1000 });
-      return new Set(this.names(snapshot).map(name => /^projects\/([^/]+)\/INDEX\.md$/u.exec(name)?.[1]).filter(Boolean));
+      return new Set(this.names(snapshot).map(project).filter(Boolean));
     }, { enabled: false, lockTimeout: 4000 });
   }
-  async index(name) {
-    documentPath(name);
-    // SessionStart knowledge hooks can overlap a remote refresh in another process.
+  // SessionStart reads one scope's MEMORY.md and INDEX.md; it can overlap a remote refresh in another process.
+  async startup(scope) {
+    const names = [`${scope}${Memory.FILE}`, ProjectIndex.indexPath(scope)];
+    names.forEach(documentPath);
     return this.run(async config => {
       if (config.mode === "local") {
-        const file = safeFile(this.home, name);
-        const available = fs.existsSync(file);
-        return { content: available ? fs.readFileSync(file, "utf8") : "", mode: "local", source: "local", stale: false, available };
+        const read = name => { const file = safeFile(this.home, name); return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : ""; };
+        return { memory: read(names[0]), index: read(names[1]), mode: "local", source: "local", stale: false };
       }
-      let snapshot = await this.latest(config, { timeout: 1000 });
-      await this.hydrate(config, snapshot, [name], { timeout: 1000, allowUnavailable: true });
-      return { content: snapshot.files[name] || "", revision: this.version(config, snapshot.oid), mode: config.mode,
-        source: snapshot.source, stale: Boolean(snapshot.stale), checkedAt: snapshot.checkedAt, available: own(snapshot.files, name) };
+      const snapshot = await this.latest(config, { timeout: 1000 });
+      await this.hydrate(config, snapshot, names, { timeout: 1000, allowUnavailable: true });
+      return { memory: snapshot.files[names[0]] || "", index: snapshot.files[names[1]] || "", mode: config.mode,
+        source: snapshot.source, stale: Boolean(snapshot.stale), checkedAt: snapshot.checkedAt };
     }, { lockTimeout: 4000 });
   }
 }

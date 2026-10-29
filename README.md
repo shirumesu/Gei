@@ -78,7 +78,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 | Skill | 做什么 |
 | --- | --- |
 | consider | 动手前判断值不值得做、怎么做、会锁定什么 |
-| memo | 记录和维护项目的背景、决策和交接 |
+| memo | 只记代码里找不到、能防住具体错误的短条目：约定、踩过的坑、环境、取舍理由 |
 | diagnose | 先拿到能复现的命令，找到根因再修 |
 | inspect | 用新上下文的子代理对照原始需求审查改动，需手动调用 |
 
@@ -86,36 +86,31 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 
 | 时机 | 做什么 |
 | --- | --- |
-| 会话开始 | 注入当前项目的知识索引和跨项目经验，不加载正文；显示上次后台整理的结果 |
+| 会话开始 | 注入当前项目和跨项目的记忆条目，以及文档、任务列表；显示上次后台整理的结果 |
 | 发消息、回复结束、会话结束 | 记录会话内容，排队交给后台整理 |
 
-后台整理用当前工具的无头模式（`claude -p` 或 `codex exec`）把会话里值得留下的内容写进知识库，不打断会话。`spec background off` 可关闭。
+后台整理用当前工具的无头模式（`claude -p` 或 `codex exec`）把会话里真正值得留下的条目写进记忆，不打断会话。`spec background off` 可关闭。
 
 ### MCP
 
 | 工具 | 做什么 |
 | --- | --- |
-| `spec_read` | 读取知识文档 |
+| `spec_read` | 读取记忆、文档和任务 |
 | `spec_search` | 搜索知识库 |
-| `spec_edit` | 新建或修改知识文档 |
-| `spec_check` | 检查坏链接、主题 README 未链接的笔记、重复内容、过时的来源 |
-| `spec_status` | 查看当前知识库位置和状态 |
+| `spec_edit` | 增删改记忆条目，新建或修改文档和任务 |
 
 知识默认存放在 `~/.agents/geispec`（可用 `GEI_SPEC_HOME` 修改），按项目名分目录，不需要在项目里加任何文件：
 
 ```text
 projects/<project>/
-  INDEX.md
-  topics/<domain>/README.md
-  topics/<domain>/notes/<note>.md
-  tasks/INDEX.md
-  tasks/<task>.md
-context/
-  INDEX.md
-  notes/<lesson>.md
+  MEMORY.md        记忆条目，会话开始时全部注入
+  docs/<doc>.md    长文档，只列标题和一句话描述
+  tasks/<task>.md  进行中的任务
+  INDEX.md         自动生成的文档和任务列表
+context/           跨项目共用，结构相同
 ```
 
-`spec_edit` 会在同一次保存里重写该项目的 `INDEX.md`：每个主题 README 一行，再加上按状态排序的前 5 条任务（doing、blocked、todo、done）。超过五条时末行是 `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`。全部任务在不注入的 `tasks/INDEX.md`。生成块外面的标题和约定仍可手写。
+每条记忆只能是四种之一：`rule`（约定）、`pitfall`（常规做法在这里会失败）、`env`（仓库外的环境事实）、`why`（代码里看不出的取舍理由），字段固定、长度有上限。项目记忆写满（7000 字节）后会拒绝新条目，必须先删或合并。所以记忆不会无限变大，每次注入都不会被截断。`MEMORY.md` 在 GitHub 上也能直接读和改；`spec show projects/<project>/` 可以看到会话实际收到的内容。
 
 也可以改存到自己的 GitHub 私有仓库（告诉 Agent 绑定到哪个 repo 就好）。
 

@@ -78,7 +78,7 @@ This gives you only the Skills, not the Hooks or MCP.
 | Skill | What it does |
 | --- | --- |
 | consider | Before you start, judge whether it is worth doing, how to do it, and what the choice locks in |
-| memo | Record and maintain the project's background, decisions, and handoffs |
+| memo | Keep only short entries the code cannot answer and that prevent a concrete mistake: agreements, pitfalls, environment facts, reasons behind choices |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
 
@@ -86,7 +86,7 @@ This gives you only the Skills, not the Hooks or MCP.
 
 | When | What it does |
 | --- | --- |
-| Session start | Inject the current project's knowledge index and cross-project experience, without loading the document bodies. Show the result of the last background maintenance |
+| Session start | Inject the project's and the shared memory entries, plus the list of docs and tasks. Show the result of the last background maintenance |
 | Sending a message, the end of a reply, and the end of a session | Record the session and queue it for background maintenance |
 
 Background maintenance uses the current tool's headless mode (`claude -p` or `codex exec`) to write what is worth keeping from the session into the knowledge store, without interrupting the session. Turn it off with `spec background off`.
@@ -95,28 +95,22 @@ Background maintenance uses the current tool's headless mode (`claude -p` or `co
 
 | Tool | What it does |
 | --- | --- |
-| `spec_read` | Read knowledge documents |
+| `spec_read` | Read memory, docs, and tasks |
 | `spec_search` | Search the knowledge store |
-| `spec_edit` | Create or edit a knowledge document |
-| `spec_check` | Check for broken links, unlinked topic notes, duplicate content, and stale sources |
-| `spec_status` | Show where the knowledge store is and its status |
+| `spec_edit` | Add, update, or remove memory entries; create or edit docs and tasks |
 
 Knowledge is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME`), in directories named by project. You do not add any files to the project:
 
 ```text
 projects/<project>/
-  INDEX.md
-  topics/<domain>/README.md
-  topics/<domain>/notes/<note>.md
-  tasks/INDEX.md
-  tasks/<task>.md
-context/
-  INDEX.md
-  notes/<lesson>.md
+  MEMORY.md        memory entries, all injected at session start
+  docs/<doc>.md    long documents, listed by title and one-line description
+  tasks/<task>.md  work in progress
+  INDEX.md         generated list of docs and tasks
+context/           shared across projects, same layout
 ```
 
-`spec_edit` rewrites that project's `INDEX.md` in the same save: one line per topic README, then at most five tasks in status order (doing, blocked, todo, done). When more tasks exist, that group ends with `更多任务 N 个，见 [tasks/INDEX.md](tasks/INDEX.md)`. Every task is listed in `tasks/INDEX.md`, which is not injected. A heading and agreements outside the generated block can still be written by hand.
-
+Each memory entry is one of four types: `rule` (an agreement), `pitfall` (the usual method fails here), `env` (an environment fact outside the repo), or `why` (a reason the code cannot show). Fields are fixed and length-limited. A full project memory (7000 bytes) rejects new entries until something is removed or merged, so memory cannot grow without bound and the injection is never cut. `MEMORY.md` reads and edits fine on GitHub, and `spec show projects/<project>/` prints what a session actually receives.
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 

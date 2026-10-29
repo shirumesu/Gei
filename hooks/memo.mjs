@@ -214,35 +214,27 @@ function entryText(entry) {
   return `[${entry.role} ${entry.at.slice(0, 16).replace("T", " ")}]\n${entry.text}`;
 }
 
-export function buildPrompt({ project, sharedExists, meta, earlier, entries, store }) {
+export function buildPrompt({ project, meta, earlier, entries }) {
   const skill = fs.readFileSync(path.join(ROOT, "skills", "memo", "SKILL.md"), "utf8").replace(/^---[\s\S]*?---\n/u, "");
-  const hints = [];
-  if (project.indexExists) {
-    const hint = store.maintenanceHint(`projects/${project.projectId}/`);
-    if (hint) hints.push(`${hint} Use checkout_root ${project.checkoutRoot}.`);
-  }
-  const shared = sharedExists && store.maintenanceHint("context/");
-  if (shared) hints.push(shared);
   return `# Gei background Memo
 
-You maintain Gei knowledge after a coding session ended or paused. No user is present: do not ask questions, do not edit repository files, and do not run commands that change state.
+You maintain Gei memory after a coding session ended or paused. No user is present: do not ask questions, do not edit repository files, and do not run commands that change state.
 
-Project: ${project.projectId} (knowledge root projects/${project.projectId}/; ${project.indexExists ? "INDEX.md exists" : "no INDEX.md yet"})
+Project: ${project.projectId} (memory projects/${project.projectId}/MEMORY.md; ${project.memoryExists ? "it exists" : "not created yet"}; shared memory context/MEMORY.md)
 Checkout: ${project.checkoutRoot} (read-only evidence; it may have changed since the session)
 Session: ${meta.host} ${meta.session_id}, ${meta.started_at} to ${meta.updated_at}${meta.ended ? ", ended" : ", may continue later"}
-Memo skill files: ${path.join(ROOT, "skills", "memo")} (read references/ only when a write needs them)
 
-The record lists each user prompt and the agent's final reply per turn. Intermediate tool output is absent; verify claims against the checkout or knowledge when a write depends on them.
+The record lists each user prompt and the agent's final reply per turn. Intermediate tool output is absent; check a claim against the checkout before you record it.
 
 Apply the Memo skill below to the whole record, not to the latest turn:
-- Judge outcomes at the end of the record. A choice reversed later in the session is not a decision. A proposal the user did not accept is not accepted.
-- Corrections and friction: when the user corrected the agent's approach, rejected a result, or stated a working preference, decide its scope. Project-specific: the hand-written header of the project INDEX (purpose and agreements) or the owning document. The generated catalog is not edited by hand. Applies across unrelated projects: context/ (shared knowledge injected at every session start). Never promote one choice into a universal preference.
-- If existing knowledge already covered a correction the user had to repeat, that knowledge failed: make it shorter, more prominent, or move the agreement into the INDEX header instead of adding a duplicate. Change a document's description to change its catalog line. When a check, lint, or script could prevent the repeated mistake, record that check as the recommended fix.
-- The agent may have written knowledge during the session. Read the current documents before editing and do not duplicate or revert their changes.
-- Write in the language of the existing knowledge; for a new project use the session's main language.
-- Skip non-durable content. Record only what will change future behavior and cannot be found in code, git, or docs. facts: environment, account ownership, external limits, pitfalls hit; not grep-able code, temporary state, or process. decisions: situation, why, how to apply, and what not to do; not the discussion; a rejected option is one line, "rejected X because Y". runbooks: repeated operations with non-obvious steps; not one-offs, steps \`--help\` explains, or standard git/PR flow. tasks: in progress and todo, with acceptance criteria and status; when done, lift conclusions into decisions or facts, then delete; do not leave status done and do not move the task into log. log: scratch; a weekly tidy distills, then deletes. Never record secrets or credentials, chit-chat, content already clear in a PR or commit, one-off verification results, or restated general knowledge. description is one sentence: what the document covers and when to read it.
+- Judge outcomes at the end of the record. A choice reversed later in the session is not a decision. A proposal the user did not accept is not a decision.
+- A user correction or stated working preference is the strongest signal. If an existing entry already covered it and the agent still erred, make that entry shorter and clearer instead of adding another.
+- A rejected option is recorded only when the user rejected a re-proposal of it in this record.
+- Read the current memory before editing; the session may have written entries already. Do not duplicate or revert them.
+- On MEMORY_FULL, remove inferred, then observed entries that matter least. Never remove a basis=user entry; skip the write instead.
+- Write in the language of the existing memory; for a new project use the session's main language.
 - No write is a normal and frequent outcome.
-${hints.length ? `\nScheduled maintenance for this run (bounded; skip when the record already needs the whole budget):\n${hints.map(item => `- ${item}`).join("\n")}\n` : ""}
+
 Finish with the requested JSON: summary and paths.
 
 <memo-skill>
@@ -276,7 +268,7 @@ const specServer = () => ({ command: process.execPath, args: [path.join(ROOT, "s
 
 async function runClaude({ meta, cwd, prompt, env, running }) {
   const model = meta.model || (meta.transcript_path && transcriptModel(meta.transcript_path));
-  const tools = ["spec_read", "spec_search", "spec_edit", "spec_check"].map(name => `mcp__spec__${name}`);
+  const tools = ["spec_read", "spec_search", "spec_edit"].map(name => `mcp__spec__${name}`);
   const stdout = await run(process.env.GEI_MEMO_CLAUDE || "claude", ["-p", "--setting-sources", "", "--strict-mcp-config",
     "--mcp-config", JSON.stringify({ mcpServers: { spec: specServer() } }), "--tools", "Read,Grep,Glob",
     "--allowedTools", ...tools, "Read", "Grep", "Glob", "--permission-mode", "dontAsk", "--no-session-persistence",
@@ -323,11 +315,10 @@ export async function processSession(dir, handoff, running, { dryRun = false } =
       } else {
         if (!meta.cwd || !fs.existsSync(meta.cwd)) throw new Error(`session workspace is unavailable: ${meta.cwd}`);
         const resolved = await resolveWorkspace(meta.cwd, store);
-        const index = await store.index(`projects/${resolved.projectId}/INDEX.md`);
-        const project = { ...resolved, indexExists: Boolean(index.content) };
+        const startup = await store.startup(`projects/${resolved.projectId}/`);
+        const project = { ...resolved, memoryExists: Boolean(startup.memory) };
         const earlier = journal.slice(0, meta.cursor).map(entryText).join("\n\n").slice(-CONTEXT_CHARS);
-        const sharedExists = Boolean((await store.index("context/INDEX.md")).content);
-        const prompt = buildPrompt({ project, sharedExists, meta, earlier, entries, store });
+        const prompt = buildPrompt({ project, meta, earlier, entries });
         if (dryRun) return prompt;
         const env = { ...process.env, [WORKER_ENV]: "1" };
         const runner = meta.host === "codex" ? runCodex : runClaude;

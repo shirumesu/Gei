@@ -3,20 +3,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
-import { ProjectIndex } from "../skills/memo/scripts/spec/index.mjs";
+import { scopeContext } from "../skills/memo/scripts/spec/context.mjs";
 import { writeJson } from "../skills/memo/scripts/spec/io.mjs";
-
-export const PROJECT_INDEX_BYTES = ProjectIndex.PROJECT_BODY_BYTES;
-export const SHARED_INDEX_BYTES = ProjectIndex.SHARED_BODY_BYTES;
-export const CONTEXT_BYTES = 4096;
-export const SHARED_CONTEXT_BYTES = 1536;
-
-export function getGeiSpecHome(env = process.env) {
-  const configured = env.GEI_SPEC_HOME?.trim() || "";
-  const expanded = configured === "~" ? os.homedir()
-    : configured.replace(/^~[\\/]/u, `${os.homedir()}${path.sep}`);
-  return path.resolve(expanded || path.join(os.homedir(), ".agents", "geispec"));
-}
 
 export function getHookStartDir(input, env = process.env) {
   return typeof input.cwd === "string" && input.cwd
@@ -39,10 +27,7 @@ export function writeSessionStartContext(additionalContext) {
 }
 
 export function writeSessionStartError(operation, error) {
-  process.stdout.write(`${JSON.stringify({
-    systemMessage: clipLines(`Gei ${operation} failed.\n${error.message || String(error)}`, 1024,
-      "\n[Error detail clipped.]"),
-  })}\n`);
+  process.stdout.write(`${JSON.stringify({ systemMessage: `Gei ${operation} failed.\n${String(error.message || error).slice(0, 800)}` })}\n`);
 }
 
 export function normalizeRoot(value) {
@@ -62,14 +47,6 @@ function projectName(value) {
 
 export function projectIdForRoot(value) {
   return projectName(path.basename(normalizeRoot(value)));
-}
-
-function readOptional(filePath) {
-  try { return fs.readFileSync(filePath, "utf8"); }
-  catch (error) {
-    if (error.code === "ENOENT") return "";
-    throw error;
-  }
 }
 
 export function resolveRepository(startDir) {
@@ -126,7 +103,7 @@ function parentProject(start, knownProjects, roots) {
   return null;
 }
 
-export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome(), knownProjects = null, rootsFile = null } = {}) {
+export function resolveProject(startDir, { knownProjects = null, rootsFile = null } = {}) {
   const repository = resolveRepository(startDir);
   const ownProjectId = projectIdForRoot(repository.projectRoot);
   const parent = knownProjects && !knownProjects.has(ownProjectId)
@@ -136,32 +113,7 @@ export function resolveProject(startDir, { geiSpecHome = getGeiSpecHome(), known
     if (!repository.gitCommonDir) repository.checkoutRoot = parent.root;
   }
   const projectId = parent?.projectId || ownProjectId;
-  const projectsRoot = path.join(geiSpecHome, "projects");
-  const specRoot = path.join(projectsRoot, projectId);
-  const legacyRoots = [];
-  if (fs.existsSync(projectsRoot)) {
-    for (const entry of fs.readdirSync(projectsRoot, { withFileTypes: true })) {
-      if (!entry.isDirectory() || entry.name === projectId) continue;
-      const candidateRoot = path.join(projectsRoot, entry.name);
-      if (entry.name.replace(/-[a-f0-9]{12}$/u, "") === projectId) {
-        legacyRoots.push(candidateRoot);
-        continue;
-      }
-      const raw = readOptional(path.join(candidateRoot, "project.json"));
-      if (!raw) continue;
-      let candidate;
-      try { candidate = JSON.parse(raw); } catch { continue; }
-      if (!candidate || typeof candidate !== "object") continue;
-      const names = [candidate.name, candidate.root, candidate.gitCommonDir,
-        ...(Array.isArray(candidate.aliases) ? candidate.aliases : [])]
-        .filter(value => typeof value === "string")
-        .map(value => projectName(value.replace(/\\/gu, "/").replace(/\/\.git\/?$/u, "")
-          .replace(/\/$/u, "").split("/").pop()));
-      if (names.includes(projectId)) legacyRoots.push(candidateRoot);
-    }
-  }
-  return { ...repository, projectId, ownProjectId, parent, projectExists: Boolean(knownProjects?.has(projectId)),
-    specRoot, legacyRoots, geiSpecHome };
+  return { ...repository, projectId, ownProjectId, parent, projectExists: Boolean(knownProjects?.has(projectId)) };
 }
 
 export const projectRootsFile = store => path.join(store.state, "roots.json");
@@ -172,32 +124,9 @@ export async function resolveWorkspace(startDir, store = new SpecStore({ authTim
   return resolveProject(startDir, { knownProjects, rootsFile: projectRootsFile(store) });
 }
 
-export function clipLines(content, maxBytes, suffix = "\n[Clipped: read the source index if relevant; shorten it during maintenance.]") {
-  if (Buffer.byteLength(content, "utf8") <= maxBytes) return content;
-  const lines = [];
-  const budget = maxBytes - Buffer.byteLength(suffix, "utf8");
-  if (budget < 0) return "";
-  let used = 0;
-  for (const line of content.split(/\r?\n/u)) {
-    const size = Buffer.byteLength(line, "utf8") + (lines.length ? 1 : 0);
-    if (used + size > budget) break;
-    lines.push(line);
-    used += size;
-  }
-  return lines.join("\n") + suffix;
-}
-
-function toolContext(header, name, result, indexBudget, totalBudget) {
-  const state = result.stale ? "offline cache" : result.source;
-  const prefix = `${header}\nSpec: ${result.mode}; ${state}${result.checkedAt ? `; checked ${result.checkedAt}` : ""}\nIndex: ${name}\nUse spec_read/search/edit with knowledge-relative paths. CLI fallback: skills/memo/scripts/spec/cli.mjs in the installed Gei package.\n${result.maintenance ? result.maintenance + "\n" : ""}\n`;
-  const content = ProjectIndex.injectedBody(result.content)
-    || result.missing || "Index is unavailable. Read this path with spec_read before creating knowledge.";
-  const room = Math.min(indexBudget, totalBudget - Buffer.byteLength(prefix));
-  return clipLines(prefix + ProjectIndex.fitInjection(content, room), totalBudget);
-}
-
-const BACKGROUND = "Background Memo is on: after the session, a worker reviews its record for incidental knowledge and scheduled maintenance. Write knowledge during the session only when the user explicitly asks to record, correct, or remove it; do not offer to record anything.";
+const BACKGROUND = "Background Memo is on: after the session a worker records what qualifies. During the session, change memory only when the user explicitly asks to record, correct, or remove something; do not offer to record.";
 const background = config => config.background !== false;
+const GUIDE = "Memory entries below are short facts this agent cannot find in the code: rules, pitfalls, environment, and decisions. Follow them; check an entry against the code when they disagree. Read listed docs and tasks with spec_read.";
 
 export async function loadProjectContext(cwd) {
   const store = new SpecStore({ authTimeout: 500 });
@@ -205,33 +134,20 @@ export async function loadProjectContext(cwd) {
   if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
   const project = await resolveWorkspace(cwd, store);
   if (project.projectExists) rememberProjectRoot(projectRootsFile(store), project.projectId, project.projectRoot);
-  if (project.legacyRoots.length) throw new Error(`Legacy knowledge needs Memo migration into ${project.specRoot}. Merge and repair links before moving old directories: ${project.legacyRoots.join(", ")}`);
-  const name = `projects/${project.projectId}/INDEX.md`;
-  const result = await store.index(name);
-  if (background(config)) result.maintenance = BACKGROUND;
-  else if (result.content) {
-    const hint = store.maintenanceHint(`projects/${project.projectId}/`);
-    if (hint) result.maintenance = hint;
-  }
-  // Knowledge is created by the first durable spec_edit, never by opening a session.
-  if (!result.content) {
-    const legacy = ["OVERVIEW.md", "ARCHITECTURE.md", "IMPACTS.md", "MEMORY.md", "CHANGELOG.md"]
-      .filter(file => fs.existsSync(path.join(project.specRoot, file)));
-    result.missing = [background(config) ? "No knowledge for this project yet."
-      : `No knowledge for this project yet. When work earns durable knowledge, spec_edit writes the document and creates ${name} from topic READMEs and tasks in status order in that same save. That document needs YAML frontmatter with type and a one-line description, plus status when type is tasks. Otherwise create nothing.`,
-      ...(legacy.length ? [`Legacy knowledge awaits Memo migration: ${legacy.map(file => `projects/${project.projectId}/${file}`).join(", ")}.`] : [])].join("\n");
-  }
-  const via = project.parent ? ` (parent workspace ${project.parent.root}, ${project.parent.recorded ? "recorded root" : "name match, now recorded"}; ${project.ownProjectId} has no knowledge)` : "";
-  return toolContext(`Gei agent workspace\nCheckout: ${project.checkoutRoot}\nProject: ${project.projectId}${via}\nINDEX content is supplied below; follow matching links directly without rereading INDEX. Resolve source evidence against this checkout.`, name, result, PROJECT_INDEX_BYTES, CONTEXT_BYTES);
+  const scope = `projects/${project.projectId}/`;
+  const result = await store.startup(scope);
+  const via = project.parent ? ` (parent workspace ${project.parent.root}; ${project.ownProjectId} has no memory)` : "";
+  const header = [`Gei project memory · ${project.projectId}${via} · checkout ${project.checkoutRoot}`, GUIDE,
+    background(config) ? BACKGROUND : "Background Memo is off: record what qualifies with the Memo skill before the final reply.",
+    ...(result.memory || result.index ? [] : [`No memory for this project yet; the first add_entry on ${scope}MEMORY.md creates it.`])].join("\n");
+  return scopeContext(header, scope, result);
 }
 
 export async function loadSharedContext() {
   const store = new SpecStore({ authTimeout: 500 });
   const config = store.config();
   if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
-  const result = await store.index("context/INDEX.md");
-  if (!result.content) return "";
-  const hint = !background(config) && store.maintenanceHint("context/");
-  if (hint) result.maintenance = hint;
-  return toolContext("Gei shared conditions: INDEX content is supplied below; follow matching lesson links directly without rereading INDEX. Check their applicability.", "context/INDEX.md", result, SHARED_INDEX_BYTES, SHARED_CONTEXT_BYTES);
+  const result = await store.startup("context/");
+  if (!result.memory && !result.index) return "";
+  return scopeContext("Gei shared memory · applies across projects; a project entry that conflicts wins.", "context/", result);
 }
