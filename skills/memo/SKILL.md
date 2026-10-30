@@ -5,16 +5,16 @@ description: Keep the user's memory outside the repository as plain Markdown fil
 
 # Memo
 
-Memory is a set of small files, each indexed by one line in `MEMORY.md`. The agent doing the work writes them during the session. Most work earns no entry; no write is a normal outcome.
+Memory is a set of topic files, each indexed by one line in `MEMORY.md`. The agent doing the work writes them during the session. Most work earns no entry; no write is a normal outcome.
 
 ## Layout
 
 ```
 AGENTS.md                      the user's standing instructions; injected
 context/MEMORY.md              index of shared memories; injected
-context/<name>.md              one memory
+context/<topic>.md             one memory
 projects/<project>/MEMORY.md   index of one project's memories; injected
-projects/<project>/<name>.md   one memory
+projects/<project>/<topic>.md  one memory
 ```
 
 - Change `AGENTS.md` only when the user explicitly asks for that file.
@@ -27,25 +27,24 @@ projects/<project>/<name>.md   one memory
 Record only when all hold:
 
 1. The user stated it, or it happened in this work: a correction, a failure, a repeated practice. Never record inference.
-2. The code, git history, and repository docs cannot answer it. Search before you write.
-3. It is static: it stays true after this task.
+2. The code, git history, repository docs, `AGENTS.md`, and shared memory cannot answer it. Search before you write.
+3. A later session will meet it again: it stays true after this task and the situation recurs.
 
-Typical: a user preference, a practice that recurs with a stable meaning, a pitfall where the usual method failed, an environment fact outside the repository, the reason for a choice the code cannot explain.
+Typical: a user preference, a practice that recurs with a stable meaning, a pitfall where the usual method fails, an environment fact outside the repository.
 
-Never: tasks, progress, work logs, plans, what was done, proposals the user did not accept, one-off results, general knowledge, secrets.
-
-Judge only whether it qualifies. Do not predict whether it will be useful later.
+Never: tasks, progress, plans, what was done, decisions about finished work (what was kept, rejected, or deferred), pitfalls of one-off work that will not recur, proposals the user did not accept, general knowledge, secrets.
 
 ## Writing
 
-- `MEMORY.md` holds only index lines, one per memory: `- [<name>](<name>.md) - <when it applies; why>`. Nothing else goes in it, however short the memory.
-- Every memory is its own file `<name>.md` in the same scope. The name is English kebab-case and says what to do or what it is about, e.g. `no-tables-in-reports.md`.
-- The file holds the memory itself, plain Markdown without frontmatter, usually one to three lines. Rules and pitfalls: `when X → do Y (because Z)`. Facts and preferences: short key-value pairs, e.g. `地点：伦敦；早餐：欧式，10am`.
-- Write the minimum a senior reader needs to act: no evidence, dates, politeness, or rhetoric; a fragment beats a sentence.
-- Keep the reason in a few words. It lets the reader apply the memory to cases it does not name.
+- `MEMORY.md` holds only index lines, one per memory file: `- [<topic>](<topic>.md) - <when to read it>`. Nothing else goes in it.
+- One file per topic. A new item on a recorded topic goes into that topic's file; start a file only for a new topic. The name is English kebab-case, e.g. `image-cve.md`, `local-testing.md`.
+- Each file starts with a `# Title`. A file with several items gives each its own `## heading`. Each item is the rule or fact in a sentence or two, then:
+  - `**Why:**` the reason the user gave, or the failure that taught it. Omit it when the reason is unknown; never guess one.
+  - `**How to apply:**` when it applies and what to do, including edge cases.
+- Write so a reader without this session understands it: plain sentences, no shorthand, symbols, or compressed key-value lists. Rewrite in your own words; never paste the conversation. No frontmatter, dates, or evidence logs.
 - Write in the language of the existing memory.
-- A new fact about something recorded updates that file. Remove a memory, file and index line, the moment it proves wrong.
-- Each injected file must stay under about 9,500 characters; beyond that the hook cuts it. When the injection says it was cut, merge memories and shorten descriptions before adding.
+- Update an item the moment it changes; remove it, and its index line once the file is empty, the moment it proves wrong.
+- An injected file over about 9,500 characters is cut. Keep index lines short and `AGENTS.md` lean.
 
 ## Reading
 
@@ -53,7 +52,7 @@ The injected index is all a session sees. Before acting on a task an index line 
 
 ## Saving
 
-Read `MEMORY.md` with `spec_read` for a revision, then save with `spec_edit` (`replace`, `replace_lines`, `create`, `delete`, `rename`). A memory file and its index line go in the same batch.
+Read with `spec_read` for a revision, then save with `spec_edit` (`replace`, `replace_lines`, `create`, `delete`, `rename`). A new file and its index line go in the same batch.
 
 Storage, project names, and the CLI fallback: [storage](references/storage.md).
 

@@ -4,7 +4,7 @@ This document is for the AI agent that performs the installation. Install only G
 
 Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but they include the standalone Spec CLI.
 
-Storage uses project names without `project.json` or per-project bindings. From v0.15.0, memory is plain Markdown: `AGENTS.md`, and in `context/` and each project a `MEMORY.md` index with one file per memory. Typed entries, `docs/`, `tasks/`, and generated `INDEX.md` from earlier versions are no longer injected; fold what still matters into those files. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
+Storage uses project names without `project.json` or per-project bindings. From v0.15.0, memory is plain Markdown: `AGENTS.md`, and in `context/` and each project a `MEMORY.md` index with one file per topic. Typed entries, `docs/`, `tasks/`, and generated `INDEX.md` from earlier versions are no longer injected; fold what still matters into those files. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
 
 ## Boundaries
 

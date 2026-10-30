@@ -17,7 +17,7 @@ async function handle(message) {
     case "initialize":
       reply({ protocolVersion: versions.includes(message.params?.protocolVersion) ? message.params.protocolVersion : versions[0],
         capabilities: { tools: {} }, serverInfo: { name: "gei-spec", version: "1.0.0" },
-        instructions: "Session start injects AGENTS.md, context/MEMORY.md, and the project's MEMORY.md when they have content. MEMORY.md is an index of one-file memories; read the relevant files with spec_read; change memory with spec_edit. Change AGENTS.md only when the user explicitly asks. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools. When structuredContent is available, consume it once; content is the text compatibility representation." }); break;
+        instructions: "Session start injects AGENTS.md, context/MEMORY.md, and the project's MEMORY.md when they have content. MEMORY.md indexes one topic file per line; read the relevant files with spec_read; change memory with spec_edit. Change AGENTS.md only when the user explicitly asks. Repository binding is user configuration. Do not edit the backing directory or run Git synchronization alongside these tools. When structuredContent is available, consume it once; content is the text compatibility representation." }); break;
     case "ping": reply({}); break;
     case "tools/list": reply({ tools }); break;
     case "tools/call":

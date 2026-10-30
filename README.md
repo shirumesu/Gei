@@ -78,7 +78,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 | Skill | 做什么 |
 | --- | --- |
 | consider | 动手前判断值不值得做、怎么做、会锁定什么 |
-| memo | 用纯 Markdown 记下代码里找不到的东西：你的偏好、反复出现的做法、踩过的坑，一条一个文件，跨机器、跨 Agent 共用 |
+| memo | 用纯 Markdown 记下代码里找不到的东西：你的偏好、反复出现的做法、踩过的坑，按主题分文件，跨机器、跨 Agent 共用 |
 | diagnose | 先拿到能复现的命令，找到根因再修 |
 | inspect | 用新上下文的子代理对照原始需求审查改动，需手动调用 |
 
@@ -101,12 +101,12 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 ```text
 AGENTS.md                      你的长期指令，会话开始时注入；Agent 只在你明确要求时修改
 context/MEMORY.md              跨项目记忆的索引，会话开始时注入
-context/<name>.md              一条记忆
+context/<topic>.md             一个主题的记忆
 projects/<project>/MEMORY.md   当前项目记忆的索引，会话开始时注入
-projects/<project>/<name>.md   一条记忆
+projects/<project>/<topic>.md  一个主题的记忆
 ```
 
-都是普通 Markdown，没有类型和元数据，在 GitHub 上可以直接读、直接改。`MEMORY.md` 只放索引，每行 `- [文件名](文件名.md) - 何时用；为什么`，再短的记忆也单独成文件，注入的内容保持很小，Agent 需要时再读。记忆只记有依据的静态事项，不记任务和进度。每个文件注入时上限约 9,500 字符，超出会按行截断并提示 Agent 精简。`spec show projects/<project>/MEMORY.md` 可以看到会话实际收到的内容。
+都是普通 Markdown，没有类型和元数据，在 GitHub 上可以直接读、直接改。`MEMORY.md` 只放索引，每行 `- [主题](主题.md) - 什么时候读`，注入的内容保持很小，Agent 需要时再读对应文件。同一主题的规则和事实合在一个文件里，每条写清做法、原因（Why）和用法（How to apply）。只记以后还会遇到的事，不记任务、进度和已完成工作的存档。每个文件注入时上限约 9,500 字符，超出会按行截断并提示 Agent 精简。`spec show projects/<project>/MEMORY.md` 可以看到会话实际收到的内容。
 
 也可以改存到自己的 GitHub 私有仓库（告诉 Agent 绑定到哪个 repo 就好）。
 

@@ -39,10 +39,3 @@ export function readWindow(text, { start_line, start_column, max_lines, line_num
     ...(line_numbers ? { line_numbers: true } : {}), start_column, truncated,
     next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
 }
-
-// Case-insensitive literal matcher for spec_search.
-export class LiteralSearch {
-  static indexIn(line, query) {
-    return String(line).toLowerCase().indexOf(String(query).toLowerCase());
-  }
-}

@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { locations, readJson, writeJson, locked, recover, publish, scan, revisionOf, documentPath, isDocument, safeFile, validateNames, fail, hash } from "./io.mjs";
 import { GitHub } from "./github.mjs";
 import { editHelp, rangeReplacements } from "./editing.mjs";
-import { windowBytes, sharedBudgets, readWindow, LiteralSearch } from "./retrieval.mjs";
+import { windowBytes, sharedBudgets, readWindow } from "./retrieval.mjs";
 
 const DEFAULTS = { enabled: true, mode: "local", generation: "initial", cacheSeconds: 60 };
 const own = (object, key) => Object.hasOwn(object, key);
@@ -41,17 +41,10 @@ export class SpecStore {
     return reference;
   }
   oid(config, revision) {
-    if (typeof revision === "string" && /^r_[a-f0-9]{16}$/u.test(revision)) {
-      const resolved = readJson(path.join(this.state, "revisions", `${revision}.json`));
-      if (!resolved || resolved.coordinates !== "markdown" || resolved.target !== this.target(config) || !/^[a-f0-9]{40,64}$/u.test(resolved.oid)) fail("REVISION", "This revision is unavailable, uses an older document view, or belongs to another binding. Read the documents again.");
-      return resolved.oid;
-    }
-    // Full references must identify the same physical Markdown coordinate contract.
-    const prefix = this.target(config) + ":markdown:";
-    if (typeof revision !== "string" || !revision.startsWith(prefix) || !/^[a-f0-9]{40,64}$/u.test(revision.slice(prefix.length))) {
-      fail("REVISION", "Read from the current storage binding before editing.");
-    }
-    return revision.slice(prefix.length);
+    if (typeof revision !== "string" || !/^r_[a-f0-9]{16}$/u.test(revision)) fail("REVISION", "Read from the current storage binding before editing.");
+    const resolved = readJson(path.join(this.state, "revisions", `${revision}.json`));
+    if (!resolved || resolved.coordinates !== "markdown" || resolved.target !== this.target(config) || !/^[a-f0-9]{40,64}$/u.test(resolved.oid)) fail("REVISION", "This revision is unavailable, uses an older document view, or belongs to another binding. Read the documents again.");
+    return resolved.oid;
   }
   snapshotFile(config, oid) { return path.join(this.state, "snapshots", hash(this.target(config)), `${oid}.json`); }
   // Format 4 trees include the root AGENTS.md; older cached trees omit it.
@@ -179,7 +172,7 @@ export class SpecStore {
           await this.hydrate(config, snapshot, [name]);
           const text = snapshot.files[name];
           for (const [index, line] of text.split("\n").entries()) {
-            const match = LiteralSearch.indexIn(line, query);
+            const match = line.toLowerCase().indexOf(query.toLowerCase());
             if (match < 0 || seen++ < offset) continue;
             const chars = Array.from(line);
             const column = Array.from(line.slice(0, match)).length;
@@ -243,13 +236,12 @@ export class SpecStore {
             result[edit.path] = text.slice(0, found[0]) + edit.new_text + text.slice(found[0] + edit.old_text.length);
           }
         }
-        if (result[edit.path] !== undefined && Buffer.byteLength(result[edit.path]) > 1024 * 1024) error("TOO_LARGE", "Knowledge documents must be at most 1 MiB.");
       }
       return this.commitChanges(config, current, result, summary);
     });
   }
   async commitChanges(config, current, result, summary) {
-    for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge and metadata files must be at most 1 MiB.", { path: name });
+    for (const [name, content] of Object.entries(result)) if (Buffer.byteLength(content) > 1024 * 1024) fail("TOO_LARGE", "Knowledge documents must be at most 1 MiB.", { path: name, applied: false });
     const changes = Object.fromEntries(changed(current.files, result).map(name => [name, result[name] ?? null]));
     const finalNames = new Set(this.names(current));
     for (const [name, content] of Object.entries(changes)) { if (content === null) finalNames.delete(name); else finalNames.add(name); }

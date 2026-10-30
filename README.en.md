@@ -101,12 +101,12 @@ Memory is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME
 ```text
 AGENTS.md                      your standing instructions, injected; agents change it only when you ask
 context/MEMORY.md              index of shared memories, injected
-context/<name>.md              one memory
+context/<topic>.md             one topic's memory
 projects/<project>/MEMORY.md   index of the current project's memories, injected
-projects/<project>/<name>.md   one memory
+projects/<project>/<topic>.md  one topic's memory
 ```
 
-It is all plain Markdown with no types or metadata, readable and editable on GitHub. `MEMORY.md` holds only index lines, `- [name](name.md) - when it applies; why`; every memory, however short, is its own file, so the injection stays small and the agent reads a memory when it needs it. Memory keeps only static facts with evidence behind them, never tasks or progress. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
+It is all plain Markdown with no types or metadata, readable and editable on GitHub. `MEMORY.md` holds only index lines, `- [topic](topic.md) - when to read it`, so the injection stays small and the agent reads a file when it needs it. Rules and facts on one topic share a file, each written out with its reason (Why) and use (How to apply). Memory keeps only what a later session will meet again, never tasks, progress, or archives of finished work. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 
