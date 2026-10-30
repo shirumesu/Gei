@@ -133,7 +133,7 @@ export const loadAgents = () => load("AGENTS.md",
   "# Gei AGENTS.md\nShared instructions for every project. Change this file only when the user explicitly asks.");
 
 export const loadShared = () => load("context/MEMORY.md",
-  "# Gei shared memory (context/MEMORY.md)\nApplies across projects; a project memory that conflicts wins. Read linked files with spec_read.");
+  "# Gei shared memory (context/MEMORY.md)\nApplies across projects; a project memory that conflicts wins. Each line indexes one memory file; read the files relevant to the task with spec_read.");
 
 export async function loadProject(cwd) {
   const store = new SpecStore({ authTimeout: 500 });
@@ -143,5 +143,5 @@ export async function loadProject(cwd) {
   rememberProjectRoot(projectRootsFile(store), project.projectId, project.projectRoot);
   const name = `projects/${project.projectId}/MEMORY.md`;
   const via = project.parent ? `; parent workspace ${project.parent.root}` : "";
-  return hookContext(`# Gei project memory · ${project.projectId} (${name}${via})\nRead linked files with spec_read.`, name, await store.startup(name));
+  return hookContext(`# Gei project memory · ${project.projectId} (${name}${via})\nEach line indexes one memory file; read the files relevant to the task with spec_read.`, name, await store.startup(name));
 }

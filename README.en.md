@@ -78,7 +78,7 @@ This gives you only the Skills, not the Hooks or MCP.
 | Skill | What it does |
 | --- | --- |
 | consider | Before you start, judge whether it is worth doing, how to do it, and what the choice locks in |
-| memo | Keep what the code cannot tell in plain Markdown, one memory per line: your preferences, recurring practices, pitfalls. Shared across machines and agents |
+| memo | Keep what the code cannot tell in plain Markdown, one file per memory: your preferences, recurring practices, pitfalls. Shared across machines and agents |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
 
@@ -100,13 +100,13 @@ Memory is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME
 
 ```text
 AGENTS.md                      your standing instructions, injected; agents change it only when you ask
-context/MEMORY.md              shared memory, one per line, injected
-context/<name>.md              a memory too long for a line (a release procedure, say), linked from MEMORY.md
-projects/<project>/MEMORY.md   the current project's memory, injected
-projects/<project>/<name>.md
+context/MEMORY.md              index of shared memories, injected
+context/<name>.md              one memory
+projects/<project>/MEMORY.md   index of the current project's memories, injected
+projects/<project>/<name>.md   one memory
 ```
 
-It is all plain Markdown with no types or metadata, readable and editable on GitHub. Memory keeps only static facts with evidence behind them, never tasks or progress. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
+It is all plain Markdown with no types or metadata, readable and editable on GitHub. `MEMORY.md` holds only index lines, `- [name](name.md) - when it applies; why`; every memory, however short, is its own file, so the injection stays small and the agent reads a memory when it needs it. Memory keeps only static facts with evidence behind them, never tasks or progress. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 

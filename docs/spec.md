@@ -33,13 +33,13 @@ In GitHub mode, after verifying migration and saving any later local-only files,
 ```text
 AGENTS.md                      the user's standing instructions, injected;
                                agents change it only on the user's explicit request
-context/MEMORY.md              memory for every project, injected
-context/<name>.md              one memory too long for a line, linked from MEMORY.md
-projects/<project>/MEMORY.md   memory for one project, injected
-projects/<project>/<name>.md
+context/MEMORY.md              index of shared memories, injected
+context/<name>.md              one memory
+projects/<project>/MEMORY.md   index of one project's memories, injected
+projects/<project>/<name>.md   one memory
 ```
 
-Everything is plain Markdown without frontmatter. `MEMORY.md` holds one memory per line, e.g. `- when X → do Y (because Z)` or short key-value pairs; a procedure that does not fit a line gets its own file and a linking line. The tools check paths and revisions, never content. The Memo skill holds the rules for what qualifies and how to write it.
+Everything is plain Markdown without frontmatter. `MEMORY.md` holds only index lines, `- [<name>](<name>.md) - <when it applies; why>`. Every memory, however short, is its own file, so the injected context stays small and the agent reads a memory when its line is relevant. The tools check paths and revisions, never content. The Memo skill holds the rules for what qualifies and how to write it.
 
 - `spec_read`: read up to 20 paths from one revision, default 200 lines per file and a shared 48 KB content budget. Content is raw Markdown; line numbers are physical. Set `line_numbers: true` for range edits. Truncated files include `next_read` arguments pinned to the snapshot.
 - `spec_search`: literal, case-insensitive search across full Markdown, or path enumeration with an empty query. Follow `next_search` for fixed-revision pagination.
