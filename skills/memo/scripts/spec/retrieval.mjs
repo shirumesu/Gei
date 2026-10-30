@@ -1,51 +1,3 @@
-import { Frontmatter } from "./metadata.mjs";
-
-export function overview(content) {
-  const parsed = Frontmatter.split(content);
-  const body_start_line = (parsed.header.match(/\n/gu) || []).length + 1;
-  const lines = parsed.body.split("\n");
-  let title = null, title_line = null, paragraph = [], excerpt_line = null, fence = null;
-  let paragraphComplete = false, comment = false;
-  for (const [index, raw] of lines.entries()) {
-    const line = raw.trim();
-    const marker = /^ {0,3}(`{3,}|~{3,})(.*)$/u.exec(raw);
-    if (fence) {
-      if (marker && marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
-      continue;
-    }
-    if (comment) { comment = !raw.includes("-->"); continue; }
-    const commentStart = raw.indexOf("<!--");
-    if (commentStart >= 0) {
-      if (paragraph.length) paragraphComplete = true;
-      comment = raw.indexOf("-->", commentStart + 4) < 0;
-      continue;
-    }
-    if (marker) { if (paragraph.length) paragraphComplete = true; fence = marker[1]; continue; }
-    const heading = /^#\s+(.+?)(?:\s+#+)?$/u.exec(line);
-    if (!title && heading) { title = heading[1]; title_line = body_start_line + index; }
-    const prose = line && !/^(?:#{1,6}\s|[-*+]\s|\d+[.)]\s|>|\||<|\[[^\]]+\]:|[-=_*]{3,}$)/u.test(line) && !/^\s{4}|^\t/u.test(raw);
-    if (!prose) { if (paragraph.length) paragraphComplete = true; continue; }
-    if (paragraphComplete) continue;
-    if (!paragraph.length) excerpt_line = body_start_line + index;
-    paragraph.push(line);
-  }
-  const excerpt = paragraph.length ? paragraph.join(" ") : null;
-  const shorten = (text, limit) => text === null ? null : Array.from(text).slice(0, limit).join("");
-  const described = Frontmatter.scalars(content).values.description;
-  return { overview: { extraction: "document", title: shorten(title, 160), title_line,
-    title_truncated: title !== null && Array.from(title).length > 160,
-    excerpt: shorten(excerpt, 280), excerpt_line,
-    excerpt_truncated: excerpt !== null && Array.from(excerpt).length > 280,
-    description_missing: !(typeof described === "string" && described.trim() !== "") }, body_start_line };
-}
-
-export function documentOrder(name) {
-  if (name.endsWith("/MEMORY.md")) return 0;
-  if (name.endsWith("/INDEX.md")) return 1;
-  if (/\/docs\//u.test(name)) return 2;
-  return /\/tasks\//u.test(name) ? 3 : 4;
-}
-
 export function windowBytes(text, start_line, start_column, max_lines, line_numbers) {
   return Buffer.byteLength(text.split("\n").slice(start_line - 1, start_line - 1 + max_lines).map((line, index) => {
     const segment = index === 0 ? Array.from(line).slice(start_column - 1).join("") : line;
@@ -88,7 +40,7 @@ export function readWindow(text, { start_line, start_column, max_lines, line_num
     next_line: truncated ? nextLine : undefined, next_column: truncated ? nextColumn : undefined };
 }
 
-// Case-insensitive literal matcher shared by spec_search and duplicate detection.
+// Case-insensitive literal matcher for spec_search.
 export class LiteralSearch {
   static indexIn(line, query) {
     return String(line).toLowerCase().indexOf(String(query).toLowerCase());

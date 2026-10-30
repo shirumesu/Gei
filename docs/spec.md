@@ -1,6 +1,6 @@
 # Spec storage and controls
 
-Gei works locally. The plugin bundles a Node.js stdio MCP server; no hosted server, port, or Cloudflare account is needed. GitHub storage is optional and user-owned. Markdown lives under `projects/<project-name>/` and `context/` in either mode.
+Gei works locally. The plugin bundles a Node.js stdio MCP server; no hosted server, port, or Cloudflare account is needed. GitHub storage is optional and user-owned. Markdown lives in `AGENTS.md`, `context/`, and `projects/<project-name>/` in either mode.
 
 ## Settings
 
@@ -17,7 +17,7 @@ Run `node <gei>/bin/gei.mjs spec <command>` (plugin or source), or `node <memo>/
 | `use local --apply` | Back up existing local Markdown outside the store, export, and change backend |
 | `use local --cached-revision REV --apply` | Explicitly export a fully cached revision when offline; never silently select an old snapshot |
 | `refresh` | Fetch the current complete snapshot, including bodies for offline reading |
-| `show projects/<name>/` | Print the memory and index a session in that project receives (`show context/` for shared) |
+| `show PATH` | Print what a session receives for `AGENTS.md`, `context/MEMORY.md`, or `projects/<name>/MEMORY.md` |
 | `login` | Show authentication setup instructions |
 
 GitHub credentials come from `GEI_GITHUB_TOKEN`, `GH_TOKEN`, `GITHUB_TOKEN`, `gh auth token`, or the Git credential helper, in that order; an invalid environment token must be fixed or removed. The token needs content read/write, plus repository creation for `--create`. The CLI never prints or saves credentials. `--branch` selects an existing branch instead of the default.
@@ -30,44 +30,22 @@ In GitHub mode, after verifying migration and saving any later local-only files,
 
 ## Daily use
 
-Each scope (`projects/<project-name>/` or `context/`) holds:
-
 ```text
-MEMORY.md        typed one-line entries, injected at session start
-docs/<name>.md   long documents (frontmatter description), listed in INDEX;
-                 docs/<dir>/*.md are linked from a top-level doc instead
-tasks/<name>.md  work in progress (description, status todo|doing|blocked)
-INDEX.md         generated list of docs and the first 5 tasks
-tasks/INDEX.md   generated list of every task
+AGENTS.md                      the user's standing instructions, injected;
+                               agents change it only on the user's explicit request
+context/MEMORY.md              memory for every project, injected
+context/<name>.md              one memory too long for a line, linked from MEMORY.md
+projects/<project>/MEMORY.md   memory for one project, injected
+projects/<project>/<name>.md
 ```
 
-`MEMORY.md` entries have a type and fixed fields:
+Everything is plain Markdown without frontmatter. `MEMORY.md` holds one memory per line, e.g. `- when X → do Y (because Z)` or short key-value pairs; a procedure that does not fit a line gets its own file and a linking line. The tools check paths and revisions, never content. The Memo skill holds the rules for what qualifies and how to write it.
 
-| type | fields |
-| --- | --- |
-| rule | when, do, because? |
-| pitfall | when, avoid, instead, because? |
-| env | subject, key, value, note? (`key` from a fixed list: host, ip, url, port, path, version, account, owner, id, name, branch, schedule, retention, scope, cert, setting, limit, location, command) |
-| why | choice, because, rejected? |
+- `spec_read`: read up to 20 paths from one revision, default 200 lines per file and a shared 48 KB content budget. Content is raw Markdown; line numbers are physical. Set `line_numbers: true` for range edits. Truncated files include `next_read` arguments pinned to the snapshot.
+- `spec_search`: literal, case-insensitive search across full Markdown, or path enumeration with an empty query. Follow `next_search` for fixed-revision pagination.
+- `spec_edit`: a base revision, a one-line summary, and up to 100 operations in order. `replace`, `replace_lines`, `create`, `rename`, and `delete` change any document. Ranges refer to the base snapshot and must not mix with other operations on the same file. On `REVISION_CONFLICT`, reread and reconcile. On `SUBMISSION_UNCONFIRMED`, read before retrying because the write may have persisted. `applied=false` with `unchanged=true` is a successful no-op.
 
-Every entry also has `basis` (`user`, `observed`, or `inferred`) and may have `until` (when it retires) and `date`. The file stays readable and hand-editable on GitHub:
-
-```markdown
-## pitfall
-
-- **p1** 调 Dify 插件调用超时
-  - avoid: 在 Pod env 设 MAX_INVOCATION_TIMEOUT
-  - instead: 改 DIFY_BACKWARDS_INVOCATION_READ_TIMEOUT
-  - basis: observed
-```
-
-Limits are checked on every save, never truth: a field holds at most 240 UTF-8 bytes, a rendered entry 480, a project memory 7000 rendered bytes and the shared memory 2500. A save that would grow a memory past its budget fails with `MEMORY_FULL` and lists removal candidates, weakest basis first; a save that shrinks it always succeeds. INDEX.md is capped at 1500 bytes. A broken hand edit fails the next save with `MEMORY_FORMAT` and is flagged at the top of the injected memory.
-
-- `spec_read`: read up to 20 paths from one revision, default 200 lines per file and a shared 48 KB content budget. Overviews and `body_start_line` precede raw Markdown; line numbers are physical. Set `line_numbers: true` for range edits. Truncated files include `next_read` arguments pinned to the snapshot.
-- `spec_search`: literal, case-insensitive search across full Markdown, or enumeration with an empty query (MEMORY.md and INDEX.md first, then docs and tasks). Follow `next_search` for fixed-revision pagination.
-- `spec_edit`: a base revision, a one-line summary, and up to 100 operations in order. `add_entry`, `update_entry` (an empty string removes an optional field), and `remove_entry` change `MEMORY.md`; ids are assigned. `DUPLICATE_ENTRY` means an entry already has the same rule `when` and `do`, pitfall `when` and `avoid`, why `choice`, or env `subject` and `key`. `replace`, `replace_lines`, `create`, `rename`, and `delete` change docs and tasks. Ranges refer to the base snapshot and must not mix with other operations on the same file. Only `MEMORY.md`, `docs/`, and `tasks/` are writable; older files can only be deleted or renamed into `docs/`. The same save regenerates `INDEX.md` and `tasks/INDEX.md`, which cannot be edited. On `REVISION_CONFLICT`, reread and reconcile. On `SUBMISSION_UNCONFIRMED`, read before retrying because the write may have persisted. `applied=false` with `unchanged=true` is a successful no-op.
-
-`show projects/<project>/` (or `show context/`) prints exactly what a session receives. The CLI accepts the same read/search/edit JSON on stdin or `--input FILE`.
+`show projects/<project>/MEMORY.md` (or `show AGENTS.md`, `show context/MEMORY.md`) prints exactly what a session receives. The CLI accepts the same read/search/edit JSON on stdin or `--input FILE`.
 
 Revision references such as `r_0123456789abcdef` map to an immutable version in local state and belong to the active binding. Use the reference from the read that informed the change; if it is lost, reread.
 
@@ -79,11 +57,9 @@ Each edit checks the whole-store base revision. A change to any knowledge docume
 
 All edit operations validate before publication. Local tools and Hooks share a process lock and recover an interrupted transaction before exposing documents. Batches are complete only through the runtime; other filesystem readers may see partial publication and native editors bypass concurrency checks, so keep all writers on the tools. GitHub publishes a batch in one commit using `expectedHeadOid`. Case-colliding paths and symbolic-link documents are rejected for portable storage.
 
-Hooks inject each scope's rendered `MEMORY.md` and `INDEX.md` body. The write-time budgets keep a project's injection below 9000 bytes, under both hosts' hook limits (Claude Code 10,000 characters, Codex about 2,500 tokens), so nothing is clipped. Hooks use a 60-second head cache and fetch only those two files. They wait up to four seconds for a concurrent Spec operation; unavailable connections use cached files with explicit status. `refresh` downloads all bodies for offline access.
+Three SessionStart Hooks inject `AGENTS.md`, `context/MEMORY.md`, and the current project's `MEMORY.md`, each as its own hook output and only when it has content. Claude Code replaces any hook text over 10,000 characters with a file path and a 2,000-character preview, and Codex spills hook context over its per-hook limit (raised to 8,000 tokens in `codex-hooks.json`). Each output is therefore cut at a line near 9,500 characters, ending with a notice that names the file to read and shorten. Hooks use a 60-second head cache and fetch only their own file. They wait up to four seconds for a concurrent Spec operation; unavailable connections use cached files. `refresh` downloads all bodies for offline access.
 
 GitHub mode has no offline write queue and never falls back to a writable local master. A lost submission response is checked against the remote content before reporting verified success. If verification is also unavailable, `SUBMISSION_UNCONFIRMED` asks the caller to read the latest documents before retrying. Semantic contradictions are Memo's job.
-
-`background on|off` controls post-session maintenance (on by default). Prompt, Stop, and SessionEnd Hooks append the user's prompts and the agent's final replies to `memo/sessions/` under the state directory, then queue a handoff in `memo/pending/` and start a detached worker. An idle handoff waits 15 minutes and is replaced by each later Stop; SessionEnd and long sessions run at once. The worker runs `claude -p` with only `spec_read`, `spec_search`, `spec_edit`, and read tools, or `codex exec` in a read-only sandbox, using the session's model when the Hook or transcript names it and the host default otherwise. A worker environment flag keeps its own run unrecorded. SessionStart retries stale or failed handoffs (at most three attempts, seven days) and reports background writes once. Processed records are deleted. On `MEMORY_FULL` the worker removes inferred, then observed entries, and never a `basis: user` entry. `hooks/memo_worker.mjs --status` and `--session ID --dry-run` inspect the queue and prompt; `memo/worker.log` records outcomes. With background off, Hooks record nothing and Memo maintains knowledge in-session.
 
 Disabling Spec stops memory Hooks and read/search/edit access. Status and settings remain available, and Consider still works. The change applies to later operations; already-injected messages remain.
 

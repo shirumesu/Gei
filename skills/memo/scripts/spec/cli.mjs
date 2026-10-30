@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs";
 import { SpecStore } from "./store.mjs";
-import { scopeContext } from "./context.mjs";
+import { hookContext } from "./context.mjs";
 import { callTool } from "./tools.mjs";
 
 const help = `Gei Spec — local Markdown or a private GitHub knowledge repository
@@ -10,14 +10,14 @@ node <plugin>/skills/memo/scripts/spec/cli.mjs [spec] <command>
 
   status                         Show settings and cached connection status
   enable | disable               Enable/disable knowledge (other Skills stay available)
-  background on | off            Turn post-session Memo maintenance by plugin Hooks on/off
   connect github --repo OWNER/NAME [--branch NAME] [--create] [--apply]
                                  Preview binding/import; --apply performs the displayed action
   use local [--cached-revision REV] [--apply]
                                  Preview snapshot export; --apply backs up and switches
   refresh                        Download the current complete snapshot
   read | search | edit           Read JSON arguments from stdin or --input FILE
-  show SCOPE                     Print what a session receives for projects/<project>/ or context/
+  show PATH                      Print what a session receives for AGENTS.md, context/MEMORY.md,
+                                 or projects/<project>/MEMORY.md
   login                          Explain GitHub authentication
 
 Use gh auth login or GEI_GITHUB_TOKEN for GitHub. No credentials are saved in Spec.
@@ -41,13 +41,12 @@ try {
   let result;
   if (command === "status") result = await store.status();
   else if (command === "enable" || command === "disable") result = await store.setEnabled(command === "enable");
-  else if (command === "background" && ["on", "off"].includes(positional[0])) result = await store.setBackground(positional[0] === "on");
   else if (command === "refresh") result = await store.refresh();
   else if (command === "connect" && positional[0] === "github") result = await store.connect(options);
   else if (command === "use" && positional[0] === "local") result = await store.useLocal(options);
   else if (command === "show") {
-    if (!/^(projects\/[^/]+\/|context\/)$/u.test(positional[0] || "")) throw new Error("Use show projects/<project>/ or show context/.");
-    process.stdout.write(scopeContext(`Gei memory for ${positional[0]}`, positional[0], await store.startup(positional[0])) + "\n");
+    if (!/^(AGENTS\.md|context\/MEMORY\.md|projects\/[^/]+\/MEMORY\.md)$/u.test(positional[0] || "")) throw new Error("Use show AGENTS.md, show context/MEMORY.md, or show projects/<project>/MEMORY.md.");
+    process.stdout.write(hookContext(`# ${positional[0]}`, positional[0], await store.startup(positional[0])) + "\n");
     process.exit(0);
   }
   else if (command === "login") result = { command: "gh auth login --hostname github.com", alternative: "Set GEI_GITHUB_TOKEN in your private environment. Never put tokens in knowledge or plugin files." };

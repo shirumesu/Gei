@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { fail } from "./io.mjs";
+import { fail, isDocument } from "./io.mjs";
 
 export class GitHub {
   constructor({ env = process.env, fetcher = fetch, timeout = 15000, authTimeout = 3000 } = {}) {
@@ -52,7 +52,7 @@ export class GitHub {
   async tree(binding, revision, options) {
     const result = await this.request(`/repos/${binding.repo}/git/trees/${revision}?recursive=1`, options);
     if (result.truncated) fail("TOO_LARGE", "GitHub returned a truncated tree; use a dedicated knowledge repository.");
-    return result.tree.filter(item => /^(projects\/[^/]+\/|context\/).+\.md$/u.test(item.path));
+    return result.tree.filter(item => isDocument(item.path));
   }
   async content(binding, sha, options) {
     const blob = await this.request(`/repos/${binding.repo}/git/blobs/${sha}`, options);

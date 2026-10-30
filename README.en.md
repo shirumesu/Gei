@@ -78,7 +78,7 @@ This gives you only the Skills, not the Hooks or MCP.
 | Skill | What it does |
 | --- | --- |
 | consider | Before you start, judge whether it is worth doing, how to do it, and what the choice locks in |
-| memo | Keep only short entries the code cannot answer and that prevent a concrete mistake: agreements, pitfalls, environment facts, reasons behind choices |
+| memo | Keep what the code cannot tell in plain Markdown, one memory per line: your preferences, recurring practices, pitfalls. Shared across machines and agents |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
 
@@ -86,31 +86,27 @@ This gives you only the Skills, not the Hooks or MCP.
 
 | When | What it does |
 | --- | --- |
-| Session start | Inject the project's and the shared memory entries, plus the list of docs and tasks. Show the result of the last background maintenance |
-| Sending a message, the end of a reply, and the end of a session | Record the session and queue it for background maintenance |
-
-Background maintenance uses the current tool's headless mode (`claude -p` or `codex exec`) to write what is worth keeping from the session into the knowledge store, without interrupting the session. Turn it off with `spec background off`.
+| Session start | Three Hooks inject `AGENTS.md`, the shared memory, and the current project's memory. Empty ones inject nothing |
 
 ### MCP
 
 | Tool | What it does |
 | --- | --- |
-| `spec_read` | Read memory, docs, and tasks |
-| `spec_search` | Search the knowledge store |
-| `spec_edit` | Add, update, or remove memory entries; create or edit docs and tasks |
+| `spec_read` | Read memory |
+| `spec_search` | Search memory |
+| `spec_edit` | Edit, create, or delete memory files |
 
-Knowledge is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME`), in directories named by project. You do not add any files to the project:
+Memory is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME`). You do not add any files to the project:
 
 ```text
-projects/<project>/
-  MEMORY.md        memory entries, all injected at session start
-  docs/<doc>.md    long documents, listed by title and one-line description
-  tasks/<task>.md  work in progress
-  INDEX.md         generated list of docs and tasks
-context/           shared across projects, same layout
+AGENTS.md                      your standing instructions, injected; agents change it only when you ask
+context/MEMORY.md              shared memory, one per line, injected
+context/<name>.md              a memory too long for a line (a release procedure, say), linked from MEMORY.md
+projects/<project>/MEMORY.md   the current project's memory, injected
+projects/<project>/<name>.md
 ```
 
-Each memory entry is one of four types: `rule` (an agreement), `pitfall` (the usual method fails here), `env` (an environment fact outside the repo), or `why` (a reason the code cannot show). Fields are fixed and length-limited. A full project memory (7000 bytes) rejects new entries until something is removed or merged, so memory cannot grow without bound and the injection is never cut. `MEMORY.md` reads and edits fine on GitHub, and `spec show projects/<project>/` prints what a session actually receives.
+It is all plain Markdown with no types or metadata, readable and editable on GitHub. Memory keeps only static facts with evidence behind them, never tasks or progress. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
 
 You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
 
@@ -121,6 +117,5 @@ See the [usage guide](docs/spec.md).
 ## Acknowledgments and license
 
 - [superpowers](https://github.com/obra/superpowers), [gstack](https://github.com/garrytan/gstack), [Waza](https://github.com/tw93/waza)
-- Background maintenance references the Claude Code / Codex plugins from mem0 and OpenViking
 
 Released under the [MIT](LICENSE) license. The update history is in [CHANGELOG.md](CHANGELOG.md).

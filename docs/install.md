@@ -4,7 +4,7 @@ This document is for the AI agent that performs the installation. Install only G
 
 Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but they include the standalone Spec CLI.
 
-Storage uses project names without `project.json` or per-project bindings. Knowledge written before v0.14.0 (topics, notes, INDEX headers) is no longer injected; move what still matters into `MEMORY.md` entries or `docs/`. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
+Storage uses project names without `project.json` or per-project bindings. From v0.15.0, memory is plain Markdown: `AGENTS.md`, and a one-line-per-memory `MEMORY.md` in `context/` and each project. Typed entries, `docs/`, `tasks/`, and generated `INDEX.md` from earlier versions are no longer injected; fold what still matters into those files. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
 
 ## Boundaries
 
@@ -69,11 +69,9 @@ gei
   skills/memo/references/storage.md
   hooks/codex-hooks.json
   hooks/knowledge.mjs
-  hooks/inject_context.mjs
+  hooks/inject_agents.mjs
   hooks/inject_shared.mjs
-  hooks/memo.mjs
-  hooks/memo_hook.mjs
-  hooks/memo_worker.mjs
+  hooks/inject_project.mjs
 ```
 
 Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, expose `spec_read`, `spec_search`, and `spec_edit`, and answer a `spec_search` call. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
@@ -95,11 +93,9 @@ Gei
   bin/gei.mjs
   hooks/hooks.json
   hooks/knowledge.mjs
-  hooks/inject_context.mjs
+  hooks/inject_agents.mjs
   hooks/inject_shared.mjs
-  hooks/memo.mjs
-  hooks/memo_hook.mjs
-  hooks/memo_worker.mjs
+  hooks/inject_project.mjs
   skills/consider/SKILL.md
   skills/diagnose/SKILL.md
   skills/inspect/SKILL.md

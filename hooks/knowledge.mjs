@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { SpecStore } from "../skills/memo/scripts/spec/store.mjs";
-import { scopeContext } from "../skills/memo/scripts/spec/context.mjs";
+import { hookContext } from "../skills/memo/scripts/spec/context.mjs";
 import { writeJson } from "../skills/memo/scripts/spec/io.mjs";
 
 export function getHookStartDir(input, env = process.env) {
@@ -119,35 +119,29 @@ export function resolveProject(startDir, { knownProjects = null, rootsFile = nul
 export const projectRootsFile = store => path.join(store.state, "roots.json");
 
 export async function resolveWorkspace(startDir, store = new SpecStore({ authTimeout: 500 })) {
-  let knownProjects = null;
-  try { knownProjects = await store.projectNames(); } catch {}
-  return resolveProject(startDir, { knownProjects, rootsFile: projectRootsFile(store) });
+  return resolveProject(startDir, { knownProjects: await store.projectNames(), rootsFile: projectRootsFile(store) });
 }
 
-const BACKGROUND = "Background Memo is on: after the session a worker records what qualifies. During the session, change memory only when the user explicitly asks to record, correct, or remove something; do not offer to record.";
-const background = config => config.background !== false;
-const GUIDE = "Memory entries below are short facts this agent cannot find in the code: rules, pitfalls, environment, and decisions. Follow them; check an entry against the code when they disagree. Read listed docs and tasks with spec_read.";
-
-export async function loadProjectContext(cwd) {
+// Each SessionStart hook injects one document, or nothing when it is empty or Spec is disabled.
+async function load(name, header) {
   const store = new SpecStore({ authTimeout: 500 });
-  const config = store.config();
-  if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
+  if (!store.config().enabled) return "";
+  return hookContext(header, name, await store.startup(name));
+}
+
+export const loadAgents = () => load("AGENTS.md",
+  "# Gei AGENTS.md\nShared instructions for every project. Change this file only when the user explicitly asks.");
+
+export const loadShared = () => load("context/MEMORY.md",
+  "# Gei shared memory (context/MEMORY.md)\nApplies across projects; a project memory that conflicts wins. Read linked files with spec_read.");
+
+export async function loadProject(cwd) {
+  const store = new SpecStore({ authTimeout: 500 });
+  if (!store.config().enabled) return "";
   const project = await resolveWorkspace(cwd, store);
-  if (project.projectExists) rememberProjectRoot(projectRootsFile(store), project.projectId, project.projectRoot);
-  const scope = `projects/${project.projectId}/`;
-  const result = await store.startup(scope);
-  const via = project.parent ? ` (parent workspace ${project.parent.root}; ${project.ownProjectId} has no memory)` : "";
-  const header = [`Gei project memory · ${project.projectId}${via} · checkout ${project.checkoutRoot}`, GUIDE,
-    background(config) ? BACKGROUND : "Background Memo is off: record what qualifies with the Memo skill before the final reply.",
-    ...(result.memory || result.index ? [] : [`No memory for this project yet; the first add_entry on ${scope}MEMORY.md creates it.`])].join("\n");
-  return scopeContext(header, scope, result);
-}
-
-export async function loadSharedContext() {
-  const store = new SpecStore({ authTimeout: 500 });
-  const config = store.config();
-  if (!config.enabled || process.env.GEI_MEMO_WORKER === "1") return "";
-  const result = await store.startup("context/");
-  if (!result.memory && !result.index) return "";
-  return scopeContext("Gei shared memory · applies across projects; a project entry that conflicts wins.", "context/", result);
+  if (!project.projectExists) return "";
+  rememberProjectRoot(projectRootsFile(store), project.projectId, project.projectRoot);
+  const name = `projects/${project.projectId}/MEMORY.md`;
+  const via = project.parent ? `; parent workspace ${project.parent.root}` : "";
+  return hookContext(`# Gei project memory · ${project.projectId} (${name}${via})\nRead linked files with spec_read.`, name, await store.startup(name));
 }

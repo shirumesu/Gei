@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
-import { loadSharedContext, writeSessionStartContext, writeSessionStartError } from "./knowledge.mjs";
+import { loadShared, writeSessionStartContext, writeSessionStartError } from "./knowledge.mjs";
 
 try {
-  writeSessionStartContext(await loadSharedContext());
+  writeSessionStartContext(await loadShared());
 } catch (error) {
-  writeSessionStartError("shared knowledge loading", error);
+  writeSessionStartError("shared memory loading", error);
 }

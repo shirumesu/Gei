@@ -6,55 +6,24 @@
         "hooks": [
           {
             "type": "command",
-            "statusMessage": "Loading Gei project knowledge",
+            "statusMessage": "Loading Gei AGENTS.md",
             "timeout": 10,
-            "command": "node \"${PLUGIN_ROOT}/hooks/inject_context.mjs\""
+            "additionalContextLimit": 8000,
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_agents.mjs\""
           },
           {
             "type": "command",
-            "statusMessage": "Loading Gei shared conditions",
+            "statusMessage": "Loading Gei shared memory",
             "timeout": 10,
+            "additionalContextLimit": 8000,
             "command": "node \"${PLUGIN_ROOT}/hooks/inject_shared.mjs\""
           },
           {
             "type": "command",
-            "statusMessage": "Queuing Gei Memo maintenance",
+            "statusMessage": "Loading Gei project memory",
             "timeout": 10,
-            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "async": true,
-            "timeout": 10,
-            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "timeout": 5,
-            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "timeout": 3,
-            "command": "node \"${PLUGIN_ROOT}/hooks/memo_hook.mjs\" codex"
+            "additionalContextLimit": 8000,
+            "command": "node \"${PLUGIN_ROOT}/hooks/inject_project.mjs\""
           }
         ]
       }

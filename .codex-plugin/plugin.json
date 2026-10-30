@@ -1,7 +1,7 @@
 {
   "name": "gei",
   "version": "0.14.1",
-  "description": "Short, typed project memory kept outside the repo, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
+  "description": "Plain-Markdown memory kept outside the repo and shared across machines and agents, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
   "author": {
     "name": "shirumesu",
     "url": "https://github.com/shirumesu"
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Project knowledge, proposal evaluation, debugging, and request review for coding agents.",
-    "longDescription": "Short, typed project memory kept outside the repo, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
+    "longDescription": "Plain-Markdown memory kept outside the repo and shared across machines and agents, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
     "developerName": "shirumesu",
     "category": "Productivity",
     "capabilities": [

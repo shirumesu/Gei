@@ -26,14 +26,14 @@ export function locations(env = process.env) {
   if (state === home || state.startsWith(home + path.sep)) fail("CONFIG", "Spec state must be outside the knowledge directory.");
   return { home, state };
 }
+export const isDocument = value => value === "AGENTS.md" || /^(projects\/[^/]+\/|context\/).+\.md$/u.test(value);
 export function documentPath(value) {
-  if (typeof value !== "string" || !/^(projects\/[^/]+\/|context\/).+\.md$/u.test(value)
+  if (typeof value !== "string" || !isDocument(value)
       || value.includes("\\") || value.split("/").some(part => !part || part === "." || part === ".." || /[\x00-\x1f<>:"|?*]/u.test(part))) {
-    fail("INVALID_PATH", "Use a Markdown path under projects/<project>/ or context/.", { path: value });
+    fail("INVALID_PATH", "Use AGENTS.md or a Markdown path under projects/<project>/ or context/.", { path: value });
   }
   return value;
 }
-export const isDocument = value => /^(projects\/[^/]+\/|context\/).+\.md$/u.test(value);
 export function safeFile(root, relative) {
   documentPath(relative);
   let current = root;
@@ -64,6 +64,8 @@ export function scan(root) {
       }
     }
   }
+  const agents = path.join(root, "AGENTS.md");
+  if (fs.existsSync(agents)) files[documentPath("AGENTS.md")] = fs.readFileSync(safeFile(root, "AGENTS.md"), "utf8");
   for (const prefix of ["projects", "context"]) walk(path.join(root, prefix), prefix + "/");
   return files;
 }
