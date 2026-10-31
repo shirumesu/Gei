@@ -81,6 +81,7 @@ This gives you only the Skills, not the Hooks or MCP.
 | memo | Keep what the code cannot tell in plain Markdown, one file per memory: your preferences, recurring practices, pitfalls. Shared across machines and agents |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
+| deslop | Strip the AI-generated look from a product that already has a design language: audit each screen for bold small text, meaningless color, sparkle icons, repeated status, and off-grid spacing; you pick item by item, and only the picks are applied and written back to the design docs |
 
 ### Hooks
 
@@ -117,5 +118,6 @@ See the [usage guide](docs/spec.md).
 ## Acknowledgments and license
 
 - [superpowers](https://github.com/obra/superpowers), [gstack](https://github.com/garrytan/gstack), [Waza](https://github.com/tw93/waza)
+- deslop is adapted from [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky; `skills/deslop/` stays under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 Released under the [MIT](LICENSE) license. The update history is in [CHANGELOG.md](CHANGELOG.md).

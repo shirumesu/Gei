@@ -81,6 +81,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 | memo | 用纯 Markdown 记下代码里找不到的东西：你的偏好、反复出现的做法、踩过的坑，按主题分文件，跨机器、跨 Agent 共用 |
 | diagnose | 先拿到能复现的命令，找到根因再修 |
 | inspect | 用新上下文的子代理对照原始需求审查改动，需手动调用 |
+| deslop | 给已有设计语言的产品去掉“AI 味”：逐页审查粗体小字、无意义的彩色、闪光图标、重复的状态和不齐的间距，你逐条选，只改选中的并同步设计文档 |
 
 ### Hooks
 
@@ -117,5 +118,6 @@ projects/<project>/<topic>.md  一个主题的记忆
 ## 致谢与许可
 
 - [superpowers](https://github.com/obra/superpowers)、[gstack](https://github.com/garrytan/gstack)、[Waza](https://github.com/tw93/waza)
+- deslop 改编自 Damir Sokolovsky 的 [unslop](https://github.com/heydamir/unslop)，`skills/deslop/` 沿用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
 以 [MIT](LICENSE) 开源。更新记录见 [CHANGELOG.md](CHANGELOG.md)。
