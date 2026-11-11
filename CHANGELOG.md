@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+> [!IMPORTANT]
+> 记忆库改成 `~/.agents/geispec` 下的一个普通 git 克隆，去掉了 MCP 服务和 `spec_*` 工具。这是破坏性变更，没有兼容层。每台机器升级后按下面的迁移步骤做一次。
+
+### Memo
+
+- Agent 直接用自带的 Read、Edit、Grep 读写记忆文件，不再经过 MCP。跨机器同步全部交给 git：会话开始时提交本地改动、拉取、推送；每轮回复结束时，记忆库有改动就提交、拉取、推送。同步或推送失败会显示出来；两台机器改了同一处时不自动合并，提示你手动解决。Codex 同样有这两个 Hook。
+- 三个注入 Hook 合成一个。会话开始注入几行“记忆是做什么用的”和安全规则（包括“记忆与当前代码或你当下的话冲突时，以后者为准并当场改掉那条记忆”），再注入跨项目索引、项目索引和复用指针。
+- `AGENTS.md` 不再由 Hook 注入：`~/.claude/CLAUDE.md` 只留一行 `@~/.agents/geispec/AGENTS.md`，`~/.codex/AGENTS.md` 链接到同一个文件（Windows 上复制），没有 10,000 字符上限，压缩后也会重新加载。
+- 记忆只收三类：偏好与纠正、做法与坑、复用指针。偏好先记在项目里，你说“所有项目都这样”或在第二个不相关的项目里再次出现时才进 `context/`。禁令必须写明在什么情况下、因为什么；每条写明来源。
+- 新增 `projects/<project>/MAP.md` 复用指针：每行 `- 需要 X 时 → 路径#符号: 一句话约定`，只存位置不存描述，只在真实事件之后写（你指出“这个已经有了”、重复实现或找了很久、刚做完要复用的接口）。会话开始时在当前检出里检查每条指针，失效的不注入并列出来。
+- 注入有硬预算：用途说明 10 行、共享索引 20 行、项目索引 30 行、`MAP.md` 40 行，合计不超过 100 行、8,000 字符，单行不超过 150 字符。超出时 lint 报告，要先合并或删掉最久没读过的再新增。
+- 新增 `gei memo` 命令：`setup`（克隆或创建记忆库，设置 CLAUDE.md、Codex 链接和 Claude Code 权限，逐项确认）、`sync`、`lint`、`trace`（某次会话注入了什么、读了哪些记忆文件；`--usage` 统计每个文件最近被读的情况）。
+- 新增 `/gei:memo tidy`：手动、逐条地整理记忆，不整体重写，每次一个 git 提交。
+- 仓库里新增 `evals/`，用 `claude plugin eval` 跑写入、读取、复用、无害、膨胀五类场景，`evals/scores.md` 每个版本一行；“有记忆不得比没记忆差”是发布门槛。
+
+### 迁移
+
+1. 把旧的 `~/.agents/geispec` 移到别处备份（例如 `~/.agents/geispec-backups/`）。v0.15 的 GitHub 模式下它不再被读取，只是旧布局的残留。
+2. 运行 `node <gei>/bin/gei.mjs memo setup <你的记忆仓库地址>`，按提示确认每一项。原来绑定的 GitHub 仓库可以直接用，内容格式没变。
+3. 原来的 `AGENTS.md` 和 `~/.claude/CLAUDE.md` 内容不同时，setup 会停下，先把两份合成库里的 `AGENTS.md` 再重跑。
+4. 用过 Claude Code 自带记忆的，把 `~/.claude/projects/*/memory/` 里还有用的笔记搬进对应项目目录；setup 会设 `autoMemoryEnabled: false`。
+5. `~/.agents/gei-state` 里只需保留 `roots.json`，放到 `~/.agents/gei-state/roots.json`；其余是旧版本的缓存和锁，可以删掉。
+6. Codex 用户在 Hook 审核里重新信任 Gei 的 Hook。
+
 ### Deslop
 
 - 新增 deslop：给已经有设计语言的产品去掉“AI 味”。逐页审查小字加粗、没有含义的彩色、闪光图标、重复的状态和不齐的间距，每条带位置和具体改法，你逐条选采用或不改，只改选中的，并同步更新设计文档。

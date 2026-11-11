@@ -10,7 +10,6 @@
   <a href="https://github.com/shirumesu/Gei/releases"><img alt="Version" src="https://img.shields.io/github/v/release/shirumesu/Gei?label=Version&color=22B388"></a>
   <img alt="Host" src="https://img.shields.io/badge/Host-Codex%20%7C%20Claude%20Code-0F5C46">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/shirumesu/Gei?label=License&color=0F5C46"></a>
-  <img alt="MCP" src="https://img.shields.io/badge/MCP-stdio-FF6B81">
 </p>
 
 <h4>
@@ -65,7 +64,7 @@ Download [Gei-skills.zip](https://github.com/shirumesu/gei/releases/latest/downl
 git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 ```
 
-This gives you only the Skills, not the Hooks or MCP.
+This gives you only the Skills, not the Hooks or the `gei memo` command.
 
 </details>
 
@@ -78,7 +77,7 @@ This gives you only the Skills, not the Hooks or MCP.
 | Skill | What it does |
 | --- | --- |
 | consider | Before you start, judge whether it is worth doing, how to do it, and what the choice locks in |
-| memo | Keep what the code cannot tell in plain Markdown, one file per memory: your preferences, recurring practices, pitfalls. Shared across machines and agents |
+| memo | Keep what the code cannot tell in plain Markdown: your preferences and corrections, recurring practices and pitfalls, and where reusable code already lives. Kept in a git repository and shared across machines and agents |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
 | deslop | Strip the AI-generated look from a product that already has a design language: audit each screen for bold small text, meaningless color, sparkle icons, repeated status, and off-grid spacing; you pick item by item, and only the picks are applied and written back to the design docs |
@@ -87,31 +86,33 @@ This gives you only the Skills, not the Hooks or MCP.
 
 | When | What it does |
 | --- | --- |
-| Session start | Three Hooks inject `AGENTS.md`, the shared memory, and the current project's memory. Empty ones inject nothing |
+| Session start | Syncs the memory store (commit local changes, pull, push), checks format and budgets, and injects a statement of purpose, the shared index, the project index and its reuse pointers |
+| End of each turn | Commits, pulls and pushes when the store changed; failures are shown |
 
-### MCP
+### Memory
 
-| Tool | What it does |
-| --- | --- |
-| `spec_read` | Read memory |
-| `spec_search` | Search memory |
-| `spec_edit` | Edit, create, or delete memory files |
-
-Memory is stored in `~/.agents/geispec` by default (override with `GEI_SPEC_HOME`). You do not add any files to the project:
+Memory is a git repository at `~/.agents/geispec`, ideally a clone of your own private repository. Agents read and edit it with their own file tools; nothing is added to the project:
 
 ```text
-AGENTS.md                      your standing instructions, injected; agents change it only when you ask
-context/MEMORY.md              index of shared memories, injected
-context/<topic>.md             one topic's memory
-projects/<project>/MEMORY.md   index of the current project's memories, injected
-projects/<project>/<topic>.md  one topic's memory
+AGENTS.md                      your standing instructions, loaded by Claude Code and Codex themselves
+context/MEMORY.md              index of shared memory, injected
+context/<topic>.md             one topic
+projects/<project>/MEMORY.md   index of the current project's memory, injected
+projects/<project>/<topic>.md  one topic
+projects/<project>/MAP.md      reuse pointers, injected whole
 ```
 
-It is all plain Markdown with no types or metadata, readable and editable on GitHub. `MEMORY.md` holds only index lines, `- [topic](topic.md) - when to read it`, so the injection stays small and the agent reads a file when it needs it. Rules and facts on one topic share a file, each written out with its reason (Why) and use (How to apply). Memory keeps only what a later session will meet again, never tasks, progress, or archives of finished work. Each injected file is capped near 9,500 characters; beyond that it is cut at a line and the agent is told to shorten it. `spec show projects/<project>/MEMORY.md` prints what a session actually receives.
+It is all plain Markdown, readable and editable in an editor or on GitHub. An index line is `- [topic](topic.md) - when to read it`; the rule itself lives only in the topic file, with its reason (Why) and use (How to apply). A preference starts in its project and moves to `context/` only when you say it holds everywhere or it shows up in a second project. Each `MAP.md` line is a pointer, `- when you need X → path#symbol: one-line contract`; session start checks that each file and symbol still exists and leaves dead ones out. The injection has a hard budget of 100 lines and 8,000 characters.
 
-You can also store it in your own private GitHub repository. Tell the agent which repo to bind.
+There is one `AGENTS.md`: `~/.claude/CLAUDE.md` keeps the single line `@~/.agents/geispec/AGENTS.md`, and `~/.codex/AGENTS.md` links to the same file.
 
-See the [usage guide](docs/spec.md).
+After installing the plugin, run this once per machine in a terminal (it shows each change and asks first):
+
+```shell
+node <gei>/bin/gei.mjs memo setup <your-private-repository-url>
+```
+
+`gei memo sync`, `lint` and `trace` (what a session was given and which memory files it read) are also there; `/gei:memo tidy` is the manual cleanup. See the [usage guide](docs/spec.md).
 
 <br>
 

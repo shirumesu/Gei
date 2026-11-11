@@ -2,9 +2,9 @@
 
 This document is for the AI agent that performs the installation. Install only Gei, verify the selected install path, and report the result.
 
-Plugin Hooks and the bundled Spec MCP require Node.js 22 or newer on the host's PATH. Git project/worktree identity also requires `git`. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks or MCP are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods do not run Hooks or register MCP automatically, but they include the standalone Spec CLI.
+Plugin Hooks require Node.js 22 or newer and `git` on the host's PATH. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods have no Hooks and no `gei memo` command.
 
-Storage uses project names without `project.json` or per-project bindings. From v0.15.0, memory is plain Markdown: `AGENTS.md`, and in `context/` and each project a `MEMORY.md` index with one file per topic. Typed entries, `docs/`, `tasks/`, and generated `INDEX.md` from earlier versions are no longer injected; fold what still matters into those files. Spec defaults to local. GitHub connection and upload are separate user choices, not an installation side effect; use [Spec controls](spec.md) when requested. Do not migrate unrelated projects as part of an installation.
+Memory lives outside every project in `~/.agents/geispec`, a git clone of a repository the user owns (see [memory storage](spec.md)). Creating or cloning it and pointing `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md` and `~/.claude/settings.json` at it is `gei memo setup`, a separate step the user runs and confirms; it is not part of installation. Do not migrate unrelated projects as part of an installation.
 
 ## Boundaries
 
@@ -28,6 +28,7 @@ The required skills are:
 
 ```text
 consider
+deslop
 diagnose
 inspect
 memo
@@ -60,21 +61,20 @@ Local plugins are copied into `~/.codex/plugins/cache/gei/gei/local/`. After edi
 ```text
 gei
   .codex-plugin/plugin.json
-  .codex-plugin/spec.mcp.json
   bin/gei.mjs
   skills/consider/SKILL.md
+  skills/deslop/SKILL.md
   skills/diagnose/SKILL.md
   skills/inspect/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
+  skills/memo/scripts/cli.mjs
   hooks/codex-hooks.json
-  hooks/knowledge.mjs
-  hooks/inject_agents.mjs
-  hooks/inject_shared.mjs
-  hooks/inject_project.mjs
+  hooks/session_start.mjs
+  hooks/stop.mjs
 ```
 
-Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start, expose `spec_read`, `spec_search`, and `spec_edit`, and answer a `spec_search` call. Codex uses plugin-relative `cwd` and arguments, not Hook `${PLUGIN_ROOT}` expansion in MCP commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Run `node <plugin>/bin/gei.mjs memo --help` and confirm it prints the four commands. Codex asks the user to review and trust plugin Hooks (Review hooks in the composer, or `/hooks` in the CLI); a changed Hook needs trusting again after an update. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Claude Plugin
 
@@ -89,21 +89,20 @@ Use this for Claude Code when plugin marketplace installation is available.
 ```text
 Gei
   .claude-plugin/plugin.json
-  .mcp.json
   bin/gei.mjs
   hooks/hooks.json
-  hooks/knowledge.mjs
-  hooks/inject_agents.mjs
-  hooks/inject_shared.mjs
-  hooks/inject_project.mjs
+  hooks/session_start.mjs
+  hooks/stop.mjs
   skills/consider/SKILL.md
+  skills/deslop/SKILL.md
   skills/diagnose/SKILL.md
   skills/inspect/SKILL.md
   skills/memo/SKILL.md
   skills/memo/references/storage.md
+  skills/memo/scripts/cli.mjs
 ```
 
-Verify the bundled `skills/memo/scripts/spec/` CLI, MCP, and runtime modules are present. The Spec MCP must start through `${CLAUDE_PLUGIN_ROOT}`, expose `spec_read`, `spec_search`, and `spec_edit`, and answer a `spec_search` call. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Run `node <plugin>/bin/gei.mjs memo --help` and confirm it prints the four commands. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Skills Zip
 
@@ -137,6 +136,7 @@ unzip Gei-skills.zip -d <skills-dir>
 <skills-dir>/
   Gei/
     consider/SKILL.md
+    deslop/SKILL.md
     diagnose/SKILL.md
     inspect/SKILL.md
     memo/SKILL.md
@@ -165,6 +165,7 @@ git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 <skills-dir>/
   Gei/
     skills/consider/SKILL.md
+    skills/deslop/SKILL.md
     skills/diagnose/SKILL.md
     skills/inspect/SKILL.md
     skills/memo/SKILL.md
@@ -181,6 +182,16 @@ git -C <skills-dir>/Gei pull
 
 Termination condition: every required skill directory contains `SKILL.md` in a location scanned by the host.
 
+## Memory Setup
+
+After a plugin install, tell the user how to set up memory on this machine and let them run it in a terminal, because it changes their configuration and asks before each change:
+
+```shell
+node <plugin>/bin/gei.mjs memo setup <private-repository-url>
+```
+
+Without a URL it creates a local repository with no remote. Run it yourself only when the user asks, and pass `--yes` only when they want every change applied unseen. It stops, changing nothing, when `~/.agents/geispec` exists without git or when the user's existing instructions would be overwritten.
+
 ## Completion
 
 Report only:
@@ -188,4 +199,4 @@ Report only:
 1. Selected method.
 2. Installation path or plugin name.
 3. Verification result.
-4. Any required user action, limited to host restart or plugin enablement when the agent could not perform it.
+4. Any required user action: host restart, plugin or Hook enablement the agent could not perform, and the memory setup command.
