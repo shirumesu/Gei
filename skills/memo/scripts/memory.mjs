@@ -13,7 +13,7 @@ export function header(dir = storeDir()) {
     "- Read and edit these files directly with your file tools; hooks commit and sync the store. Never put memory in the repository.",
     "- An index line says only when to read its file; the rule is in the file. Read it before acting on such a task.",
     "- When a note conflicts with the current code or with what the user says now, follow the code and the user, and fix the note this turn.",
-    "- Worth recording: a user correction or preference, a practice or pitfall that will recur, a reuse pointer just earned.",
+    "- Worth recording: what the user corrects, prefers or warns you about, a practice or pitfall that will recur, a reuse pointer just earned.",
     "- Not worth recording: progress, finished work, one-off problems, rejected proposals, general knowledge, secrets.",
     "- Before writing, load the memo skill for where and how.",
   ];
@@ -91,7 +91,7 @@ export function sessionContext(project, dir = storeDir()) {
   const injected = header(dir).length + shared.lines.length + own.lines.length + map.live.length;
   const chars = parts.join("\n\n").length;
   if (injected > BUDGET.lines || chars > BUDGET.chars) problems.push(`Injected memory is ${injected} lines and ${chars} characters; the budget is ${BUDGET.lines} lines and ${BUDGET.chars} characters.`);
-  if (problems.length) parts.push(`## Memory problems (fix them when you touch these files)\n${problems.map(item => `- ${item}`).join("\n")}`);
+  if (problems.length) parts.push(`## Memory problems (fix any that concern your current task in this turn)\n${problems.map(item => `- ${item}`).join("\n")}`);
   return { context: parts.join("\n\n"), problems };
 }
 

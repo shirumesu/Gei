@@ -28,7 +28,7 @@ projects/<project>/MAP.md      reuse pointers; injected whole
 
 | Kind | Example | Where |
 | --- | --- | --- |
-| Preference or correction | "commit straight to main"; "emails in plain text" | `projects/<project>/<topic>.md`, promoted to `context/` only as below |
+| Preference, correction or warning | "commit straight to main"; "emails in plain text"; "never hand-edit the generated file" | `projects/<project>/<topic>.md`, promoted to `context/` only as below |
 | Practice or pitfall | the steps of a CVE round; an error a tool gives on a known input | `projects/<project>/<topic>.md` |
 | Reuse pointer | which function formats relative time | one line in `projects/<project>/MAP.md` |
 
@@ -55,9 +55,9 @@ projects/<project>/MAP.md      reuse pointers; injected whole
 - <when you need X> → <path>#<symbol>: <one-line contract>
 ```
 
-`<path>` is relative to the repository root and `<symbol>` must appear in that file. Never describe implementation; read the code for that. Write a pointer only after a real event: the user says something already exists, you duplicated something or searched long for it, or you just built an interface meant for reuse. Never generate a map by scanning the repository.
+For example: `- when you need a relative time phrase like "3 days ago" → src/core/chrono/span.js#spanPhrase: (from, to = new Date()) => string`. `<path>` is relative to the repository root and `<symbol>` must appear in that file. Never describe implementation; read the code for that. Write a pointer only after a real event: the user says something already exists, you duplicated something or searched long for it, or you just built an interface meant for reuse. Never generate a map by scanning the repository.
 
-Session start checks every pointer in the current checkout; dead ones are left out of the injection and listed as problems. Fix or delete them when you meet them.
+Session start checks every pointer in the current checkout; dead ones are left out of the injection and listed as problems. When a dead pointer concerns your task, find where the code went and fix the line, or delete it, in the same turn.
 
 ## Budgets
 

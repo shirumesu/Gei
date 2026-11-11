@@ -7,6 +7,7 @@
 //   node evals/e-growth/drive.mjs [--model claude-sonnet-5-5]
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -70,12 +71,14 @@ function runCase(name) {
 
 // What a session would be given with this store, measured by the real SessionStart hook.
 function measure(store, name) {
-  const home = path.join(run, "measure", name);
-  fs.mkdirSync(path.join(home, "cwd"), { recursive: true });
+  // Outside any git repository, so the workspace resolves to the project "cwd" like the runs.
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), `gei-e-${name}-`));
+  fs.mkdirSync(path.join(home, "cwd"));
   fs.mkdirSync(path.join(home, ".agents"), { recursive: true });
   fs.cpSync(store, path.join(home, ".agents", "geispec"), { recursive: true });
   const out = execFileSync("node", [path.join(repo, "hooks", "session_start.mjs")], {
     input: JSON.stringify({ cwd: path.join(home, "cwd") }), env: { ...process.env, HOME: home }, encoding: "utf8" });
+  fs.rmSync(home, { recursive: true });
   const context = JSON.parse(out).hookSpecificOutput.additionalContext;
   const topics = [];
   const walk = dir => {
