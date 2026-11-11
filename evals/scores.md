@@ -8,8 +8,9 @@ Run from the repository root (each run is a real model call on your account):
 claude plugin eval . --scaffold --trust-plugin --no-publish --model claude-sonnet-5-5 -j 4 --allow-tools Write Edit
 ```
 
-Version 0.15.1 also needed `--allow-real-servers --allow-tools "mcp__plugin_gei_spec__*"` for its MCP server.
+Grant the store as user settings would (runs have none): `--allow-tools Write Edit "Read(~/.agents/geispec/**)" "Edit(~/.agents/geispec/**)"`; writes outside the workspace are denied otherwise. Version 0.15.1 needed `--allow-real-servers --allow-tools Write Edit "mcp__plugin_gei_spec__*"` instead. The E family runs separately: `node evals/e-growth/drive.mjs`.
 
 | Version | Date | Model | Runs | A write | B read | C reuse | D no harm | E growth | D gate | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0.15.1 | 2026-11-11 | claude-sonnet-5-5 | 3 | 0.90 (0.65) | 1.00 (0.28) | — | — | — | — | A1: the implicit pnpm correction was never written to memory (0/3); all other A/B cases 3/3. Cost $1.69. |
+| 0.15.1 | 2026-11-11 | claude-sonnet-5-5 | 3 | 0.94 (0.72) | 1.00 (0.35) | — | — | — | — | Re-run with the final A/B graders. A1: the implicit pnpm correction reached memory in 1 of 3 runs. C–E need the new store and were not run. $1.70. |
+| Unreleased (git store) | 2026-11-11 | claude-sonnet-5-5 | 3 | 1.00 (0.72) | 1.00 (0.31) | 1.00 (0.78) | 1.00 (1.00) | 10 sessions: 3 topic files, 1 pointer, 0 near-duplicates, 1,455 injected chars; read and reuse checks on the grown store pass | Pass | C1/C2: no-memory runs also found the helpers (no margin). D1: the dead pointer was never fixed (with-only indicator 0/3). E: the s08 pitfall (generated users.json) was not recorded; E's one lint problem is the pointer checked against an empty measuring workspace. $3.47 + $0.53. |

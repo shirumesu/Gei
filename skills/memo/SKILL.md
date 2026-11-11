@@ -30,7 +30,7 @@ projects/<project>/MAP.md      reuse pointers; injected whole
 | --- | --- | --- |
 | Preference, correction or warning | "commit straight to main"; "emails in plain text"; "never hand-edit the generated file" | `projects/<project>/<topic>.md`, promoted to `context/` only as below |
 | Practice or pitfall | the steps of a CVE round; an error a tool gives on a known input | `projects/<project>/<topic>.md` |
-| Reuse pointer | which function formats relative time | one line in `projects/<project>/MAP.md` |
+| Reuse pointer | which function parses durations | one line in `projects/<project>/MAP.md` |
 
 **Promotion.** A preference starts in the project where it was stated. Move it to `context/` only when the user says it holds for all projects, or the same preference shows up in a second, unrelated project. Moving means one file in `context/` and the project copies deleted.
 
@@ -55,7 +55,7 @@ projects/<project>/MAP.md      reuse pointers; injected whole
 - <when you need X> → <path>#<symbol>: <one-line contract>
 ```
 
-For example: `- when you need a relative time phrase like "3 days ago" → src/core/chrono/span.js#spanPhrase: (from, to = new Date()) => string`. `<path>` is relative to the repository root and `<symbol>` must appear in that file. Never describe implementation; read the code for that. Write a pointer only after a real event: the user says something already exists, you duplicated something or searched long for it, or you just built an interface meant for reuse. Never generate a map by scanning the repository.
+For example: `- when you need to parse a duration like "1h30m" → lib/time/duration.ts#parseDuration: (text) => milliseconds; throws on bad input`. `<path>` is relative to the repository root and `<symbol>` must appear in that file. Never describe implementation; read the code for that. Write a pointer only after a real event: the user says something already exists, you duplicated something or searched long for it, or you just built an interface meant for reuse. Never generate a map by scanning the repository.
 
 Session start checks every pointer in the current checkout; dead ones are left out of the injection and listed as problems. When a dead pointer concerns your task, find where the code went and fix the line, or delete it, in the same turn.
 
