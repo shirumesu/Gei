@@ -19,7 +19,8 @@ export function header(dir = storeDir()) {
   ];
 }
 
-const INDEX_LINE = /^- \[[^\]]+\]\(([A-Za-z0-9][A-Za-z0-9._-]*\.md)\) - \S/u;
+// A line may link into a sibling project (../<project>/<topic>.md) to share one topic.
+const INDEX_LINE = /^- \[[^\]]+\]\(((?:\.\.\/[A-Za-z0-9][A-Za-z0-9._-]*\/)?[A-Za-z0-9][A-Za-z0-9._-]*\.md)\) - \S/u;
 const MAP_LINE = /^- (.+?) → ([^#\s]+)#([^:\s]+): \S/u;
 const lines = text => text.replace(/\r\n/gu, "\n").split("\n").filter(line => line.trim());
 const read = file => fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;

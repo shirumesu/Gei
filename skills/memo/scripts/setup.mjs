@@ -17,8 +17,9 @@ function storeStep(url) {
     throw new Error(`${dir} exists but is not a git repository. Move it aside (for example into ~/.agents/geispec-backups/) and run setup again; nothing was changed.`);
   }
   if (kind === "git") {
-    const remote = git(["remote", "get-url", "origin"], { cwd: dir, timeout: 5000 }).trim();
-    if (url && remote !== url) throw new Error(`${dir} already clones ${remote}, not ${url}. Change it by hand if that is intended.`);
+    const remotes = git(["remote"], { cwd: dir }).split("\n");
+    const remote = remotes.includes("origin") ? git(["remote", "get-url", "origin"], { cwd: dir }) : null;
+    if (url && remote !== url) throw new Error(`${dir} already has ${remote ? `origin ${remote}` : "no origin"}, not ${url}. Change it by hand if that is intended.`);
     return null;
   }
   return url

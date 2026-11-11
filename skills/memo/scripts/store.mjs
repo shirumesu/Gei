@@ -30,13 +30,14 @@ export function storeKind(dir = storeDir()) {
 function upstream(dir) {
   try { return git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], { cwd: dir }); }
   catch (error) {
-    if (/no upstream|does not point to a branch|unknown revision|HEAD/iu.test(error.message)) return null;
+    // A branch without upstream, or a detached HEAD, simply has nothing to sync with.
+    if (/no upstream configured|does not point to a branch/iu.test(error.message)) return null;
     throw error;
   }
 }
 
 const count = (dir, range) => Number(git(["rev-list", "--count", range], { cwd: dir }));
-const hasCommits = dir => { try { git(["rev-parse", "--verify", "-q", "HEAD"], { cwd: dir }); return true; } catch { return false; } };
+const hasCommits = dir => git(["rev-list", "-n", "1", "--all"], { cwd: dir }) !== "";
 
 function unfinished(dir) {
   const gitDir = path.join(dir, ".git");
