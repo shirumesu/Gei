@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: b2-follow-pitfall
+description: A pitfall the code cannot show (a generated file) is read and avoided.
+tags: [read, B]
+plugins: ["../../.."]
+context:
+  scaffold_script: scaffold.sh

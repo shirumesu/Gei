@@ -32,3 +32,6 @@ dist/
 
 # Local agent settings
 .claude/
+
+# Plugin eval results
+evals/results/

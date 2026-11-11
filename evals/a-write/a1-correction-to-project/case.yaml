@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: a1-correction-to-project
+description: A user correction about this project's tooling is captured in the project's memory, not in shared memory.
+tags: [write, A]
+plugins: ["../../.."]
+context:
+  scaffold_script: scaffold.sh
