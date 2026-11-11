@@ -8,6 +8,11 @@ PROJECT="$STORE/projects/cwd"
 
 # A small JavaScript project that every case starts from.
 base_project() {
+  base_repo
+  init_store
+}
+
+base_repo() {
   git init -q .
   git config user.name eval
   git config user.email eval@example.invalid
@@ -62,7 +67,6 @@ MD
   cp data/users.src.json data/users.json
   git add -A
   git commit -qm "Initial commit"
-  init_store
 }
 
 init_store() {
