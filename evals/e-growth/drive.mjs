@@ -15,7 +15,7 @@ const model = process.argv.includes("--model") ? process.argv[process.argv.index
 const stamp = new Date().toISOString().replace(/[:.]/gu, "-");
 const run = path.join(repo, "evals", "results", "e-growth", stamp);
 // Case discovery skips results/, so the generated cases live in a scratch directory of their own.
-const relCases = path.join(".e-growth", stamp);
+const relCases = path.join("e-growth-cases", stamp);
 const casesDir = path.join(repo, relCases);
 const fixture = path.join(repo, "evals", "lib", "fixture.sh");
 
@@ -127,7 +127,7 @@ try {
     checks[check.name] = result.score;
   }
 } finally {
-  fs.rmSync(path.join(repo, ".e-growth"), { recursive: true, force: true });
+  fs.rmSync(path.join(repo, "e-growth-cases"), { recursive: true, force: true });
 }
 const last = rows.at(-1);
 const report = [
