@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.16.0 - 2026-11-11
 
 > [!IMPORTANT]
 > 记忆库改成 `~/.agents/geispec` 下的一个普通 git 克隆，去掉了 MCP 服务和 `spec_*` 工具。这是破坏性变更，没有兼容层。每台机器升级后按下面的迁移步骤做一次。

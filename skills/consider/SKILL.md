@@ -54,4 +54,4 @@ Weigh the user's familiarity as a real benefit against capability gaps, not as a
 
 End with what another agent could implement: target behavior, boundaries, the decisive tradeoff, the first probe if any, and open unknowns. Keep your recommendations distinct from decisions the user accepted. A design-only request does not authorize implementation.
 
-Land accepted consequential decisions through Memo; ordinary discussion needs no file.
+The verdict itself, and proposals the user did not accept, need no file. Record through Memo only what Memo keeps: a preference, correction or warning the user gave along the way, or a pitfall that will recur.
