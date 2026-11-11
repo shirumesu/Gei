@@ -12,3 +12,4 @@ Version 0.15.1 also needed `--allow-real-servers --allow-tools "mcp__plugin_gei_
 
 | Version | Date | Model | Runs | A write | B read | C reuse | D no harm | E growth | D gate | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 0.15.1 | 2026-11-11 | claude-sonnet-5-5 | 3 | 0.90 (0.65) | 1.00 (0.28) | — | — | — | — | A1: the implicit pnpm correction was never written to memory (0/3); all other A/B cases 3/3. Cost $1.69. |
