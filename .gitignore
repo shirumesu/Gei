@@ -35,3 +35,4 @@ dist/
 
 # Plugin eval results
 evals/results/
+.e-growth/

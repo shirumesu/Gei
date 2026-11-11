@@ -13,8 +13,10 @@ import { fileURLToPath } from "node:url";
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const model = process.argv.includes("--model") ? process.argv[process.argv.indexOf("--model") + 1] : "claude-sonnet-5-5";
 const stamp = new Date().toISOString().replace(/[:.]/gu, "-");
-const relRun = path.join("evals", "results", "e-growth", stamp);
-const run = path.join(repo, relRun);
+const run = path.join(repo, "evals", "results", "e-growth", stamp);
+// Case discovery skips results/, so the generated cases live in a scratch directory of their own.
+const relCases = path.join(".e-growth", stamp);
+const casesDir = path.join(repo, relCases);
 const fixture = path.join(repo, "evals", "lib", "fixture.sh");
 
 const SESSIONS = [
@@ -37,7 +39,7 @@ const CHECKS = [
 ];
 
 function writeCase(name, prompt, graders, snapshot) {
-  const dir = path.join(run, "cases", name);
+  const dir = path.join(casesDir, name);
   fs.mkdirSync(path.join(dir, "graders"), { recursive: true });
   fs.writeFileSync(path.join(dir, "case.yaml"), `schema_version: "1.1"\nname: ${name}\nplugins: ["${path.relative(dir, repo)}"]\nruns: 1\ncontext:\n  scaffold_script: scaffold.sh\n`);
   fs.writeFileSync(path.join(dir, "prompt.md"), `---\nmax_turns: 30\ntimeout_seconds: 420\nallowed_tools: [Read, Glob, Grep, Skill, Write, Edit]\n---\n\n${prompt}\n`);
@@ -48,7 +50,7 @@ function writeCase(name, prompt, graders, snapshot) {
 
 function runCase(name) {
   const json = path.join(run, `${name}.json`);
-  const result = spawnSync("claude", ["plugin", "eval", ".", "--eval-dir", path.join(relRun, "cases"), "--case", name,
+  const result = spawnSync("claude", ["plugin", "eval", ".", "--eval-dir", relCases, "--case", name,
     "--runs", "1", "--ablation", "none", "--scaffold", "--trust-plugin", "--no-publish", "--keep-temp", "--model", model,
     "--threshold", "0", "--allow-tools", "Write", "Edit", "Read(~/.agents/geispec/**)", "Edit(~/.agents/geispec/**)", "--json", json],
   { cwd: repo, encoding: "utf8", timeout: 900000 });
@@ -106,7 +108,7 @@ fs.mkdirSync(run, { recursive: true });
 const rows = [];
 const checks = {};
 let cost = 0;
-// Generated cases must not linger where a normal suite run would find them.
+// The generated cases are scratch; only the stores, measurements and report are kept.
 try {
   let snapshot = null;
   for (const [index, prompt] of SESSIONS.entries()) {
@@ -125,7 +127,7 @@ try {
     checks[check.name] = result.score;
   }
 } finally {
-  fs.rmSync(path.join(run, "cases"), { recursive: true, force: true });
+  fs.rmSync(path.join(repo, ".e-growth"), { recursive: true, force: true });
 }
 const last = rows.at(-1);
 const report = [
