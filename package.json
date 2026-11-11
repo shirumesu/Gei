@@ -5,6 +5,6 @@
   "engines": { "node": ">=22" },
   "bin": { "gei": "bin/gei.mjs" },
   "scripts": {
-    "spec": "node bin/gei.mjs spec"
+    "memo": "node bin/gei.mjs memo"
   }
 }

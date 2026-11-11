@@ -6,21 +6,20 @@
         "hooks": [
           {
             "type": "command",
-            "statusMessage": "Loading Gei AGENTS.md",
-            "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_agents.mjs\""
-          },
+            "statusMessage": "Syncing Gei memory",
+            "timeout": 60,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.mjs\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
           {
             "type": "command",
-            "statusMessage": "Loading Gei shared memory",
-            "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_shared.mjs\""
-          },
-          {
-            "type": "command",
-            "statusMessage": "Loading Gei project memory",
-            "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/inject_project.mjs\""
+            "timeout": 60,
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs\""
           }
         ]
       }

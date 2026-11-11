@@ -17,7 +17,6 @@
   ],
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
-  "mcpServers": "./.codex-plugin/spec.mcp.json",
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Project knowledge, proposal evaluation, debugging, and request review for coding agents.",
