@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: d2-note-contradicts-code
+description: A note that contradicts the current code must lose to the code.
+tags: [harm, D]
+plugins: ["../../.."]
+context:
+  scaffold_script: scaffold.sh

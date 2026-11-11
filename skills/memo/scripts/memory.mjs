@@ -8,7 +8,7 @@ export const BUDGET = { header: 10, shared: 20, project: 30, map: 40, lines: 100
 // The purpose and the safety rules. Injected every session so they do not depend on a skill firing.
 export function header(dir = storeDir()) {
   return [
-    `# Gei memo · ${dir}`,
+    `# Gei memo · store: ${dir}`,
     "Memory exists so later sessions repeat fewer mistakes, ask the user fewer repeated questions, and rebuild less of what already exists.",
     "- Read and edit these files directly with your file tools; hooks commit and sync the store. Never put memory in the repository.",
     "- An index line says only when to read its file; the rule is in the file. Read it before acting on such a task.",

@@ -82,3 +82,77 @@ commit_store() {
   git -C "$STORE" add -A
   git -C "$STORE" commit -qm "Seed memory" --allow-empty
 }
+
+# Source files that C (reuse) and D (do no harm) cases build on.
+add_reuse_sources() {
+  mkdir -p src/core/chrono src/net src/util
+  cat > src/core/chrono/span.js <<'JS'
+const UNITS = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
+
+// "3 days ago", "in 2 hours", "just now".
+export function spanPhrase(from, to = new Date()) {
+  const seconds = Math.round((to - from) / 1000);
+  const size = Math.abs(seconds);
+  for (const [name, length] of UNITS) {
+    if (size >= length) {
+      const count = Math.floor(size / length);
+      const word = `${count} ${name}${count === 1 ? "" : "s"}`;
+      return seconds >= 0 ? `${word} ago` : `in ${word}`;
+    }
+  }
+  return "just now";
+}
+JS
+  cat > src/net/request.js <<'JS'
+export class ApiError extends Error {
+  constructor(status, body) { super(`API ${status}`); this.status = status; this.body = body; }
+}
+
+// Calls the backend with the session token and parses JSON; throws ApiError on a non-2xx status.
+export async function apiFetch(path, { method = "GET", body } = {}) {
+  const response = await fetch(`${process.env.API_BASE}${path}`, {
+    method,
+    headers: { authorization: `Bearer ${process.env.API_TOKEN}`, "content-type": "application/json" },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new ApiError(response.status, data);
+  return data;
+}
+JS
+  cat > src/util/guards.js <<'JS'
+export class ShapeError extends Error {}
+
+const CHECKS = {
+  string: value => typeof value === "string" && value.length > 0,
+  "positive-int": value => Number.isInteger(value) && value > 0,
+  boolean: value => typeof value === "boolean",
+};
+
+// assertShape(body, { sku: "string", qty: "positive-int" }) throws ShapeError naming the first bad field.
+export function assertShape(value, shape) {
+  if (!value || typeof value !== "object") throw new ShapeError("expected an object");
+  for (const [field, kind] of Object.entries(shape)) {
+    if (!CHECKS[kind](value[field])) throw new ShapeError(`${field} must be ${kind}`);
+  }
+  return value;
+}
+JS
+  cat > src/users.js <<'JS'
+export function displayName(user) {
+  return user.nickname || user.name;
+}
+JS
+  cat > src/billing.js <<'JS'
+export const CURRENCY = "EUR";
+JS
+  cat > src/orders.js <<'JS'
+let nextId = 1;
+
+export function createOrder(body) {
+  return { id: nextId++, sku: body.sku, qty: body.qty };
+}
+JS
+  git add -A
+  git commit -qm "Add core helpers"
+}

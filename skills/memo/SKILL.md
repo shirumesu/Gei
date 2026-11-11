@@ -9,7 +9,7 @@ Memory exists so later sessions repeat fewer mistakes, ask the user fewer repeat
 
 ## Layout
 
-The store is `~/.agents/geispec`, a git clone. Paths below are relative to it.
+The store is `~/.agents/geispec`, a git clone. The first line of the injected memory gives its absolute path: use that path with your file tools rather than expanding `~` yourself. Paths below are relative to it.
 
 ```
 AGENTS.md                      the user's standing instructions; loaded by Claude Code and Codex, not by Gei
