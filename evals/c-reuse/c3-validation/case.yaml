@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: c3-validation
-description: A MAP.md pointer leads to the shared validator.
-tags: [reuse, C]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

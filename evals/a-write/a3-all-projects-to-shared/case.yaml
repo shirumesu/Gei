@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: a3-all-projects-to-shared
-description: A preference the user states for all projects goes to shared memory.
-tags: [write, A]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

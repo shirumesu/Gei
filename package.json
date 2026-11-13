@@ -2,8 +2,8 @@
   "name": "gei",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
-  "bin": { "gei": "bin/gei.mjs" },
+  "engines": { "node": "^22.13.0 || >=23.4.0" },
+  "bin": { "gei": "bin/gei.mjs", "memo": "bin/memo" },
   "scripts": {
     "memo": "node bin/gei.mjs memo"
   }

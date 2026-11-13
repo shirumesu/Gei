@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline/promises";
-import { git, storeDir, storeKind } from "./store.mjs";
+import { git, stateDir, storeDir, storeKind } from "./store.mjs";
 
 const home = os.homedir();
 const IMPORT_LINE = "@~/.agents/geispec/AGENTS.md";
@@ -69,24 +69,30 @@ function codexStep() {
   };
 }
 
-// Native file tools need the store allowed from every project; auto memory would split memory in two.
+// Claude Code runs `memo` without asking and may read long documents under <scope>/docs/; it
+// gets no other access to the store (v0.16 granted Read and Edit on all of it, which is removed).
+// Auto memory stays off so memory is not split in two.
 function settingsStep() {
   const file = path.join(home, ".claude", "settings.json");
   const settings = read(file) === null ? {} : JSON.parse(read(file));
   const permissions = settings.permissions || {};
   const dirs = permissions.additionalDirectories || [];
   const allow = permissions.allow || [];
-  const rules = ["Read(~/.agents/geispec/**)", "Edit(~/.agents/geispec/**)"];
-  const missing = [
-    ...(dirs.includes(storeDir()) ? [] : [`permissions.additionalDirectories += ${storeDir()}`]),
+  const rules = ["Bash(memo *)", "Read(~/.agents/geispec/**/docs/**)"];
+  const stale = ["Read(~/.agents/geispec/**)", "Edit(~/.agents/geispec/**)"].filter(rule => allow.includes(rule));
+  const changes = [
     ...rules.filter(rule => !allow.includes(rule)).map(rule => `permissions.allow += ${rule}`),
-    ...(settings.autoMemoryEnabled === false ? [] : ["autoMemoryEnabled = false (move any notes from ~/.claude/projects/*/memory/ into the store first)"]),
+    ...stale.map(rule => `permissions.allow -= ${rule}`),
+    ...(dirs.includes(storeDir()) ? [`permissions.additionalDirectories -= ${storeDir()}`] : []),
+    ...(settings.autoMemoryEnabled === false ? [] : ["autoMemoryEnabled = false (move any notes from ~/.claude/projects/*/memory/ into memo first)"]),
   ];
-  if (!missing.length) return null;
+  if (!changes.length) return null;
   return {
-    title: `Update ${file}: ${missing.join("; ")}`,
+    title: `Update ${file}: ${changes.join("; ")}`,
     apply: () => {
-      settings.permissions = { ...permissions, additionalDirectories: [...new Set([...dirs, storeDir()])], allow: [...new Set([...allow, ...rules])] };
+      const next = { ...permissions, allow: [...new Set([...allow.filter(rule => !stale.includes(rule)), ...rules])] };
+      if (permissions.additionalDirectories) next.additionalDirectories = dirs.filter(dir => dir !== storeDir());
+      settings.permissions = next;
       settings.autoMemoryEnabled = false;
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, `${JSON.stringify(settings, null, 2)}\n`);
@@ -94,10 +100,11 @@ function settingsStep() {
   };
 }
 
+// memo writes the database under gei-state and long documents go into the store.
 function codexSandboxNote() {
   const config = read(path.join(home, ".codex", "config.toml"));
-  if (config === null || !/^\s*sandbox_mode\s*=\s*"workspace-write"/mu.test(config) || config.includes(storeDir())) return null;
-  return `Codex runs in workspace-write mode and cannot write the store. Add this to ~/.codex/config.toml by hand:\n  [sandbox_workspace_write]\n  writable_roots = ["${storeDir()}"]`;
+  if (config === null || !/^\s*sandbox_mode\s*=\s*"workspace-write"/mu.test(config) || (config.includes(storeDir()) && config.includes(stateDir()))) return null;
+  return `Codex runs in workspace-write mode and cannot write memory. Add this to ~/.codex/config.toml by hand:\n  [sandbox_workspace_write]\n  writable_roots = ["${storeDir()}", "${stateDir()}"]`;
 }
 
 export async function setup(args) {

@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: d4-foreign-shared-preference
-description: A preference from another project that sits in shared memory must not override this project's code style.
-tags: [harm, D]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

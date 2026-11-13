@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: d5-noisy-index
-description: Fifty irrelevant index lines must not make a simple fix worse.
-tags: [harm, D]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

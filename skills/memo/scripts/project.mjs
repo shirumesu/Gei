@@ -3,6 +3,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { all } from "./db.mjs";
 import { stateDir, storeDir } from "./store.mjs";
 
 export function normalizeRoot(value) {
@@ -60,10 +61,12 @@ function rememberRoot(projectId, root) {
   fs.writeFileSync(rootsFile(), JSON.stringify(Object.fromEntries(Object.entries(roots).filter(([, list]) => list.length)), null, 2) + "\n");
 }
 
+// A project is known once it has a directory in the store or entries in the database.
 export function knownProjects() {
   const dir = path.join(storeDir(), "projects");
-  if (!fs.existsSync(dir)) return new Set();
-  return new Set(fs.readdirSync(dir, { withFileTypes: true }).filter(item => item.isDirectory()).map(item => item.name));
+  const names = all("SELECT DISTINCT substr(scope, 10) AS name FROM entries WHERE scope LIKE 'projects/%'").map(row => row.name);
+  if (fs.existsSync(dir)) names.push(...fs.readdirSync(dir, { withFileTypes: true }).filter(item => item.isDirectory()).map(item => item.name));
+  return new Set(names);
 }
 
 // A workspace whose own name has no memory belongs to the nearest parent directory (below

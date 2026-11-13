@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: c2-api-client
-description: A MAP.md pointer leads to the project's API client instead of raw fetch.
-tags: [reuse, C]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

@@ -1,5 +1,6 @@
-// The memory store is a plain directory, normally a git clone, at ~/.agents/geispec.
-// Agents read and edit it with their own file tools; this module only syncs it with git.
+// The memory store is a directory, normally a git clone, at ~/.agents/geispec. It holds the
+// snapshots of memo.db, long documents under <scope>/docs/, and the user's AGENTS.md.
+// This module holds the paths and the git steps; sync.mjs puts them together.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -7,6 +8,9 @@ import path from "node:path";
 
 export const storeDir = () => path.join(os.homedir(), ".agents", "geispec");
 export const stateDir = () => path.join(os.homedir(), ".agents", "gei-state");
+
+// The generated snapshot files, by path relative to the store.
+export const isSnapshot = rel => /^(context|projects\/[^/]+)\/(entries\.jsonl|signals\.tsv)$/u.test(rel.split(path.sep).join("/"));
 
 export function git(args, { cwd = storeDir(), timeout = 20000 } = {}) {
   try {
@@ -27,7 +31,7 @@ export function storeKind(dir = storeDir()) {
   return fs.existsSync(path.join(dir, ".git")) ? "git" : "plain";
 }
 
-function upstream(dir) {
+export function upstream(dir) {
   try { return git(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], { cwd: dir }); }
   catch (error) {
     // A branch without upstream, or a detached HEAD, simply has nothing to sync with.
@@ -36,26 +40,19 @@ function upstream(dir) {
   }
 }
 
-const count = (dir, range) => Number(git(["rev-list", "--count", range], { cwd: dir }));
-const hasCommits = dir => git(["rev-list", "-n", "1", "--all"], { cwd: dir }) !== "";
+export const count = (dir, range) => Number(git(["rev-list", "--count", range], { cwd: dir }));
+export const hasCommits = dir => git(["rev-list", "-n", "1", "--all"], { cwd: dir }) !== "";
 
-function unfinished(dir) {
+export function unfinished(dir) {
   const gitDir = path.join(dir, ".git");
   return ["MERGE_HEAD", "rebase-merge", "rebase-apply"].some(name => fs.existsSync(path.join(gitDir, name)));
 }
 
-// Commits local changes, rebases onto the upstream and pushes. Throws on any failure, with
-// what already happened, so the caller can show it. `onlyIfDirty` skips the network when
-// there is nothing local to publish (the end-of-turn hook).
-export function sync({ onlyIfDirty = false } = {}) {
-  const dir = storeDir();
-  const kind = storeKind(dir);
-  if (kind === "missing") throw new Error(`${dir} does not exist. Run \`gei memo setup\`.`);
-  if (kind === "plain") return { kind, done: [] };
-  if (unfinished(dir)) throw new Error(`${dir} has an unfinished merge or rebase. Finish or abort it there by hand.`);
-  const done = [];
-  const dirty = git(["status", "--porcelain"], { cwd: dir }) !== "";
-  if (dirty) {
+// Commits local changes to hand-edited files, then fetches and rebases onto the upstream.
+// Returns the upstream branch, or null for a store without one. Throws on any failure, with what
+// already happened, so the caller can show it.
+export function commitAndPull(dir, done) {
+  if (git(["status", "--porcelain"], { cwd: dir }) !== "") {
     git(["add", "-A"], { cwd: dir });
     git(["commit", "-q", "-m", `Update memory from ${os.hostname()}`], { cwd: dir });
     done.push("committed local changes");
@@ -63,14 +60,10 @@ export function sync({ onlyIfDirty = false } = {}) {
   const remoteBranch = hasCommits(dir) ? upstream(dir) : null;
   if (!remoteBranch) {
     if (git(["remote"], { cwd: dir })) throw new Error(`${dir} has a remote but its branch has no upstream. Run \`git push -u origin HEAD\` there once.`);
-    return { kind, done };
+    return null;
   }
-  if (onlyIfDirty && !dirty && count(dir, "@{u}..HEAD") === 0) return { kind, done };
-  const step = (what, args, timeout) => {
-    try { return git(args, { cwd: dir, timeout }); }
-    catch (error) { throw new Error(`${done.length ? done.join(", ") + "; then " : ""}${what} failed. ${error.message}`); }
-  };
-  step("fetch", ["fetch", "-q"], 25000);
+  try { git(["fetch", "-q"], { cwd: dir, timeout: 25000 }); }
+  catch (error) { throw new Error(`${done.length ? done.join(", ") + "; then " : ""}fetch failed. ${error.message}`); }
   if (count(dir, "HEAD..@{u}") > 0) {
     try { git(["rebase", "-q", "@{u}"], { cwd: dir }); }
     catch (error) {
@@ -81,11 +74,7 @@ export function sync({ onlyIfDirty = false } = {}) {
     }
     done.push(`pulled ${remoteBranch}`);
   }
-  if (count(dir, "@{u}..HEAD") > 0) {
-    step("push", ["push", "-q"], 25000);
-    done.push(`pushed to ${remoteBranch}`);
-  }
-  return { kind, done };
+  return remoteBranch;
 }
 
 // Codex reads ~/.codex/AGENTS.md; setup links it to the store, and Windows gets a copy instead.

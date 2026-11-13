@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// memo <command>: the agent's way into memory. The plugin's bin/ is on the Bash tool's PATH in
+// Claude Code; elsewhere run node "<plugin root>/bin/memo". See skills/memo/scripts/cli.mjs.
+import("../skills/memo/scripts/cli.mjs").then(({ main }) => main(process.argv.slice(2))).catch(error => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

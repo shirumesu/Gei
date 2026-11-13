@@ -1,25 +1,41 @@
 # Memory storage and sync
 
-Gei's memory is a folder of Markdown files at `~/.agents/geispec`, a git clone of a private repository you own. Agents read and edit it with their own file tools; two Hooks keep it in sync with git. There is no server, MCP, or database. Without a remote the folder is a local git repository; a folder without git also works and is simply never synced.
+Gei's memory is a table of short entries. The working copy is a SQLite database on each machine; a git clone of a private repository you own carries the entries between machines. Agents read and write through one command, `memo`, and never open the store's files. There is no server and no MCP.
 
 ## Layout
 
 ```text
-AGENTS.md                      your standing instructions, loaded by Claude Code and Codex themselves
-context/MEMORY.md              index of shared memory, injected
-context/<topic>.md             one shared topic
-projects/<project>/MEMORY.md   index of one project's memory, injected
-projects/<project>/<topic>.md  one topic
-projects/<project>/MAP.md      reuse pointers, injected whole
+~/.agents/gei-state/memo.db              this machine's database: every entry, its strength, its history
+~/.agents/geispec/                       git clone of your private memory repository
+  projects/<project>/entries.jsonl       snapshot of a project's entries, one line each, sorted by id
+  projects/<project>/signals.tsv         snapshot of their strength
+  projects/<project>/docs/               long documents, plain Markdown
+  context/entries.jsonl, signals.tsv     the shared scope, seen from every project
+  context/docs/
+  AGENTS.md                              your standing instructions, loaded by Claude Code and Codex themselves
 ```
 
-Everything is plain Markdown without frontmatter. A `MEMORY.md` line is `- [<topic>](<topic>.md) - <when to read it>`; the rule itself is only in the topic file, with its Why and How to apply. A `MAP.md` line is `- <when you need X> → <path>#<symbol>: <one-line contract>`. What belongs in memory and how to write it is in the [memo skill](../skills/memo/SKILL.md).
+The database is the source. The snapshot files are generated from it on every sync, so the same database always produces the same text and the repository's history shows every change to an entry. Do not edit them by hand: the next sync overwrites them.
 
-`AGENTS.md` is the one copy of your instructions: `~/.claude/CLAUDE.md` holds the single line `@~/.agents/geispec/AGENTS.md`, and `~/.codex/AGENTS.md` is a symbolic link to the file (a copy on Windows, refreshed on every sync). Edits from any machine or agent reach the others through git and take effect in their next session.
+`AGENTS.md` is the one copy of your instructions: `~/.claude/CLAUDE.md` holds the single line `@~/.agents/geispec/AGENTS.md`, and `~/.codex/AGENTS.md` is a symbolic link to the file (a copy on Windows, refreshed on every sync).
+
+## An entry
+
+| Field | Meaning | Limit |
+| --- | --- | --- |
+| id | Five lowercase letters or digits, assigned by `memo` | |
+| keys | The literal things that will show up again (tool, command, file, error text, service) plus a broad one | 1 to 6, 24 characters each |
+| when | The situation in which it applies | 60 characters |
+| do | What to do; the text an agent is shown | 300 characters |
+| why | The source and reason; shown by `memo show` | 200 characters |
+| origin | Said by the user, or judged by the agent | fixed at creation |
+| pin | Its `do` opens every session; never weakens, never evicted | 8 per scope, `do` at most 160 characters |
+
+Anything longer than an entry is a Markdown file under `docs/` with one entry pointing at it. What earns an entry and how to write one is in the [memo skill](../skills/memo/SKILL.md).
 
 ## Setup
 
-Run once per machine, in a terminal:
+Run once per machine, in a terminal. It needs Node.js 22.13 or newer.
 
 ```shell
 node <gei>/bin/gei.mjs memo setup <private-repository-url>
@@ -30,32 +46,44 @@ It shows each change and asks before applying it (`--yes` applies all):
 1. Clone the repository into `~/.agents/geispec`, or create a local repository when no URL is given. An existing folder without git is left alone and setup stops; move it aside first.
 2. Replace `~/.claude/CLAUDE.md` with the import line. If the store has no `AGENTS.md` yet, the current content moves into it; if both have different content, setup stops so you can merge them.
 3. Link `~/.codex/AGENTS.md` to the store's `AGENTS.md`, stopping if it has instructions of its own.
-4. Add to `~/.claude/settings.json`: `permissions.additionalDirectories` and `Read`/`Edit` allow rules for the store, so every project can use it without prompts, and `autoMemoryEnabled: false`, so Claude Code's own memory does not split notes off into a store other agents cannot see. Move any notes from `~/.claude/projects/*/memory/` first.
+4. Update `~/.claude/settings.json`: allow `Bash(memo *)` so the command runs without a prompt, allow reading the store's `docs/` directories, remove the whole-store Read and Edit rules an earlier version added, and set `autoMemoryEnabled: false` so Claude Code's own memory does not split notes off into a store other agents cannot see.
 
-For Codex in `workspace-write` mode, setup prints the `[sandbox_workspace_write] writable_roots` entry to add to `~/.codex/config.toml`. It finally checks that the remote answers without a prompt; the hooks use your normal git credentials (`gh auth setup-git` or the system credential helper).
-
-## Sync
-
-- **Session start** commits local changes, pulls with rebase and pushes, then lints and injects.
-- **End of each turn** (the Stop Hook, in Claude Code and Codex) does nothing when the store is clean and pushed; otherwise it commits, pulls and pushes.
-- Any failure is shown to you. Unpushed commits go out at the next sync. When this machine and the remote changed the same lines, the rebase is aborted, nothing is pushed, and the message names the files: resolve it with `git pull --rebase` in the store.
-- A turn that is killed before its Stop Hook runs is published at the next session start on that machine.
-
-Every sync is an ordinary commit, so `git log` in the store shows which machine changed what and when, and `git revert` undoes it.
+For Codex in `workspace-write` mode, setup prints the `writable_roots` entries to add to `~/.codex/config.toml` (the store and `~/.agents/gei-state`). It finally checks that the remote answers without a prompt; the hooks use your normal git credentials.
 
 ## What a session receives
 
-Session start injects, in this order and within these budgets:
+Memory enters a session only at its start. After that the agent looks things up itself.
 
-| Part | Limit |
+| When | What |
 | --- | --- |
-| A short statement of what memory is for and its safety rules, including that the current code and the user's current words win over a note | 10 lines |
-| `context/MEMORY.md` | 20 lines |
-| The project's `MEMORY.md` | 30 lines |
-| The project's `MAP.md`, live pointers only | 40 lines |
-| All together | 100 lines and 8,000 characters; 150 characters per line |
+| Session start | At most 3,500 characters, whatever the number of entries: how to use `memo`, the pinned entries, "look up when" lines for entries that were used before or that you stated, and up to 30 keys chosen to cover the most entries |
+| The first prompt, and the first after compaction | Up to three entries whose keys or `when` share two or more words with the prompt. Anything weaker adds nothing |
+| A subagent's start | The same session-start text |
+| `memo find <word> ...` | Up to three entries, each one line with the reason it ranked, and how many more matched |
 
-Lint runs at the same time: index lines that do not parse, links to missing files, topic files without an index line, lines and files over budget, and dead pointers. A pointer is dead when its file is missing from the current checkout or no longer contains its symbol; dead pointers are left out of the injection. Problems are listed at the end of the injected text and summarized in a message to you.
+`find` ranks by fixed rules, each deciding only when the ones before it tie: active before shadow; more of the query's words matched (a word that matches more than max(8, 10% of the entries) is not counted unless every word is like that); a match in a key before one in `when` before one in `do`; more of the uncounted broad words; level; uses; most recently used.
+
+## Strength and forgetting
+
+Nothing here uses the calendar: a project left alone for months loses nothing.
+
+- An agent that acts on an entry cites it as `[m:<id>]`. A citation of an entry delivered earlier in the same session sets its level to 3 and adds one use, once per session.
+- An entry takes a loss only when it was delivered, another entry of the same delivery was cited, and it ranked above that one. After `2 + floor(log2(uses + 1))` losses it drops a level, so the more an entry has been used, the slower it sinks.
+- A delivery in which nothing was cited changes nothing.
+- `memo wrong <id>` sets the level to 0; marking an entry that is already at 0 deletes it. `memo put --replace <id>` is a revision and keeps the level and uses.
+- Level only orders results. Entries leave the session-start text and the automatic match only by eviction: past 300 active, unpinned, agent-origin entries in a scope, the weakest becomes a shadow. `find` still returns shadows, and a citation brings one back. Entries you stated are never evicted.
+
+## Sync
+
+Merging is done by `memo`, not by git:
+
+1. The snapshot files in the working tree are put back as committed.
+2. Other changes (`docs/`, `AGENTS.md`) are committed, fetched and rebased as ordinary files. When this machine and the remote changed the same lines of one, the rebase is aborted, nothing is pushed, and the message names the files: resolve it with `git pull --rebase` in the store.
+3. The snapshots, now the remote's latest, are merged into the database entry by entry: the newer content wins and the other version is kept in the local history; the newer strength wins. A deletion is a state of the entry, so another machine cannot bring it back.
+4. The snapshots are exported; when they changed they are committed alone and pushed.
+5. When the push fails, that commit is undone (the database keeps everything); when the remote moved, the sync starts again, at most three times.
+
+Session start always syncs. The end of a turn syncs when entries or hand-edited files changed, or when only strength changed and the last sync is more than 30 minutes old. Any failure is shown to you.
 
 ## Project names
 
@@ -63,20 +91,22 @@ The project name is the main repository root's directory name for Git repositori
 
 ## Commands
 
-`node <gei>/bin/gei.mjs memo <command>`; nothing is added to PATH. A source checkout also has `npm run memo -- <command>`.
+`memo <command>` in Claude Code, where the plugin's `bin/` is on PATH; `node <gei>/bin/memo <command>` elsewhere. `gei memo <command>` is the same set.
 
 | Command | Effect |
 | --- | --- |
+| `find <word> [word...]` | Look entries up in this project and the shared scope |
+| `keys [word]` | The common keys; with a word, the keys that match it and the keys used beside them |
+| `put --keys ... --when ... --do ... [--why ...]` | Save an entry. `--user`: you said it. `--shared`: every project. `--pin`. Refuses likely secrets and over-long fields; when a similar entry exists it prints it and asks for `--replace <id>` or `--new` |
+| `del`, `restore`, `pin`, `unpin`, `wrong`, `mv <id> --shared` | Manage one entry by id |
+| `show <id>` | Every field, the strength and the revision history |
+| `review` | Entries worth a look: never used, at level 0, deleted as wrong, possible duplicates, brought back from shadow, and searches that keep finding nothing |
+| `log [--session <id>]` | What a session was given and what it cited |
+| `sync` | Sync now |
 | `setup [<url>] [--yes]` | The setup above |
-| `sync` | Commit, pull and push now |
-| `lint` | Lint every scope, and the current project's pointers against this checkout; exits 1 on problems |
-| `trace [<session-id>]` | What a Claude Code session in the current directory was given and which memory files it read, wrote or searched, by step (default: the latest session) |
-| `trace --usage` | Reads per memory file across all Claude Code transcripts, least recently read first: the candidates for removal |
-
-`trace` reads Claude Code's transcripts in `~/.claude/projects/`; their format is not a documented interface, and Codex transcripts are not supported yet.
 
 ## When memory misleads
 
-Because an index line only says when to read a file, a rule can act only after a read, and reads are in the transcript. To find out whether a note caused a mistake: run `trace` for that session, take the notes it read, copy the store without the suspect note, and rerun the same prompt. `/gei:memo tidy` then edits or removes the note, one commit per run.
+`memo log --session <id>` shows which entries a session was given and which it cited. `memo show <id>` gives an entry's source and history. Fix the entry with `memo put --replace <id>`, mark it with `memo wrong <id>`, or remove it with `memo del <id>`; `/gei:memo tidy` walks through `memo review` with you.
 
 See [installation](install.md).

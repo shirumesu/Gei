@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: c1-relative-time
-description: A MAP.md pointer leads to reusing a helper instead of rewriting it.
-tags: [reuse, C]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

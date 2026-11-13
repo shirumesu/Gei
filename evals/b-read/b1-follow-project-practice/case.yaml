@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: b1-follow-project-practice
-description: A project practice in memory is read and followed when the task triggers it.
-tags: [read, B]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh

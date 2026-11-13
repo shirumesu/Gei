@@ -1,7 +1,0 @@
-schema_version: "1.1"
-name: a2-one-off-fix-no-write
-description: A one-off bug fix leaves the memory store unchanged.
-tags: [write, A, no-write]
-plugins: ["../../.."]
-context:
-  scaffold_script: scaffold.sh
