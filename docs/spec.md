@@ -1,6 +1,6 @@
 # Memory storage and sync
 
-Gei's memory is a table of short entries. The working copy is a SQLite database on each machine; a git clone of a private repository you own carries the entries between machines. Agents read and write through one command, `memo`, and never open the store's files. There is no server and no MCP.
+Gei's memory is a table of short entries. The working copy is a SQLite database on each machine; a git clone of a private repository you own carries the entries between machines. Agents read and write through the plugin's local memo MCP server, whose tools show each call and its result in the conversation, and never open the store's files. The `memo` command in a terminal does the same and the maintenance on top. Nothing runs outside your machine but the git remote.
 
 ## Layout
 
@@ -29,7 +29,7 @@ The database is the source. The snapshot files are generated from it on every sy
 | do | What to do; the text an agent is shown | 300 characters |
 | why | The source and reason; shown by `memo show` | 200 characters |
 | origin | Said by the user, or judged by the agent | fixed at creation |
-| pin | Its `do` opens every session; never weakens, never evicted | 8 per scope, `do` at most 160 characters |
+| pin | Its `do` heads every `brief`; never weakens, never evicted | 8 per scope, `do` at most 160 characters |
 
 Anything longer than an entry is a Markdown file under `docs/` with one entry pointing at it. What earns an entry and how to write one is in the [memo skill](../skills/memo/SKILL.md).
 
@@ -46,20 +46,22 @@ It shows each change and asks before applying it (`--yes` applies all):
 1. Clone the repository into `~/.agents/geispec`, or create a local repository when no URL is given. An existing folder without git is left alone and setup stops; move it aside first.
 2. Replace `~/.claude/CLAUDE.md` with the import line. If the store has no `AGENTS.md` yet, the current content moves into it; if both have different content, setup stops so you can merge them.
 3. Link `~/.codex/AGENTS.md` to the store's `AGENTS.md`, stopping if it has instructions of its own.
-4. Update `~/.claude/settings.json`: allow `Bash(memo *)` so the command runs without a prompt, allow reading the store's `docs/` directories, remove the whole-store Read and Edit rules an earlier version added, and set `autoMemoryEnabled: false` so Claude Code's own memory does not split notes off into a store other agents cannot see.
+4. Update `~/.claude/settings.json`: allow `mcp__plugin_gei_memo__*` and `Bash(memo *)` so the tools and the command run without a prompt, allow reading the store's `docs/` directories, remove the whole-store Read and Edit rules an earlier version added, and set `autoMemoryEnabled: false` so Claude Code's own memory does not split notes off into a store other agents cannot see.
 
 For Codex in `workspace-write` mode, setup prints the `writable_roots` entries to add to `~/.codex/config.toml` (the store and `~/.agents/gei-state`). It finally checks that the remote answers without a prompt; the hooks use your normal git credentials.
 
 ## What a session receives
 
-Memory enters a session only at its start. After that the agent looks things up itself.
+No entry enters a session unless the agent asks for it with a tool, so everything it was given is in the conversation for you to see. Session start adds two lines only: what memory is, call `brief` first and `find` before each task, never touch the store's files. How to use each tool is in the tool's own description.
 
-| When | What |
+| Tool | What it returns |
 | --- | --- |
-| Session start | At most 3,500 characters, whatever the number of entries: how to use `memo`, the pinned entries, "look up when" lines for entries that were used before or that you stated, and up to 30 keys chosen to cover the most entries |
-| The first prompt, and the first after compaction | Up to three entries whose keys or `when` share two or more words with the prompt. Anything weaker adds nothing |
-| A subagent's start | The same session-start text |
-| `memo find <word> ...` | Up to three entries, each one line with the reason it ranked, and how many more matched |
+| `brief` (once, before the first task; a subagent too) | At most 3,500 characters, whatever the number of entries: the pinned entries, "look up when" lines for entries that were used before or that you stated, and up to 30 keys chosen to cover the most entries |
+| `find` with a few words (before each task) | Up to three entries, each one line with the reason it ranked, and how many more matched |
+| `keys`, `show` | The keys; one entry in full |
+| `put`, `wrong`, `del` | What was saved, marked or deleted, or why a save was refused |
+
+The plugin's hooks do the bookkeeping: session start syncs and records the session; after `brief` and `find` a hook records which entries the result showed (the MCP server cannot, as it does not know the current session after `/clear`); the end of each turn counts citations and syncs.
 
 `find` ranks by fixed rules, each deciding only when the ones before it tie: active before shadow; more of the query's words matched (a word that matches more than max(8, 10% of the entries) is not counted unless every word is like that); a match in a key before one in `when` before one in `do`; more of the uncounted broad words; level; uses; most recently used.
 
@@ -67,11 +69,11 @@ Memory enters a session only at its start. After that the agent looks things up 
 
 Nothing here uses the calendar: a project left alone for months loses nothing.
 
-- An agent that acts on an entry cites it as `[m:<id>]`. A citation of an entry delivered earlier in the same session sets its level to 3 and adds one use, once per session.
-- An entry takes a loss only when it was delivered, another entry of the same delivery was cited, and it ranked above that one. After `2 + floor(log2(uses + 1))` losses it drops a level, so the more an entry has been used, the slower it sinks.
-- A delivery in which nothing was cited changes nothing.
-- `memo wrong <id>` sets the level to 0; marking an entry that is already at 0 deletes it. `memo put --replace <id>` is a revision and keeps the level and uses.
-- Level only orders results. Entries leave the session-start text and the automatic match only by eviction: past 300 active, unpinned, agent-origin entries in a scope, the weakest becomes a shadow. `find` still returns shadows, and a citation brings one back. Entries you stated are never evicted.
+- An agent that acts on an entry cites it as `[m:<id>]`. A citation of an entry shown by `brief` or `find` earlier in the same session sets its level to 3 and adds one use, once per session.
+- An entry takes a loss only when it was in a `find` result, another entry of the same result was cited, and it ranked above that one. After `2 + floor(log2(uses + 1))` losses it drops a level, so the more an entry has been used, the slower it sinks.
+- A result in which nothing was cited changes nothing.
+- `wrong` sets the level to 0; marking an entry that is already at 0 deletes it. `put` with `replace` is a revision and keeps the level and uses.
+- Level only orders results. Entries leave `brief` only by eviction: past 300 active, unpinned, agent-origin entries in a scope, the weakest becomes a shadow. `find` still returns shadows, and a citation brings one back. Entries you stated are never evicted.
 
 ## Sync
 
@@ -91,10 +93,11 @@ The project name is the main repository root's directory name for Git repositori
 
 ## Commands
 
-`memo <command>` in Claude Code, where the plugin's `bin/` is on PATH; `node <gei>/bin/memo <command>` elsewhere. `gei memo <command>` is the same set.
+Every tool is also a command, for you in a terminal: `memo <command>` in Claude Code, where the plugin's `bin/` is on PATH; `node <gei>/bin/memo <command>` elsewhere. `gei memo <command>` is the same set.
 
 | Command | Effect |
 | --- | --- |
+| `brief` | What the `brief` tool returns |
 | `find <word> [word...]` | Look entries up in this project and the shared scope |
 | `keys [word]` | The common keys; with a word, the keys that match it and the keys used beside them |
 | `put --keys ... --when ... --do ... [--why ...]` | Save an entry. `--user`: you said it. `--shared`: every project. `--pin`. Refuses likely secrets and over-long fields; when a similar entry exists it prints it and asks for `--replace <id>` or `--new` |
@@ -107,6 +110,6 @@ The project name is the main repository root's directory name for Git repositori
 
 ## When memory misleads
 
-`memo log --session <id>` shows which entries a session was given and which it cited. `memo show <id>` gives an entry's source and history. Fix the entry with `memo put --replace <id>`, mark it with `memo wrong <id>`, or remove it with `memo del <id>`; `/gei:memo tidy` walks through `memo review` with you.
+`memo log --session <id>` shows which entries a session was given and which it cited. `memo show <id>` gives an entry's source and history. Fix the entry with `memo put --replace <id>`, mark it with `memo wrong <id>`, or remove it with `memo del <id>` (or ask the agent to, with the tools); `/gei:memo tidy` walks through `memo review` with you.
 
 See [installation](install.md).

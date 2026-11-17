@@ -49,50 +49,19 @@ export function compare(a, b) {
   return (x.shadow - y.shadow) || (b.counted - a.counted) || (b.pos - a.pos) || (b.broad - a.broad) || strength(x, y);
 }
 
-// Rules 4 to 7 alone: the order without a query (session start, eviction display).
+// Rules 4 to 7 alone: the order without a query (`brief`, eviction display).
 export function strength(x, y) {
   return (y.level - x.level) || (y.uses - x.uses)
     || (x.used_at === y.used_at ? 0 : x.used_at === null ? 1 : y.used_at === null ? -1 : y.used_at.localeCompare(x.used_at))
     || x.id.localeCompare(y.id);
 }
 
-// `memo find`: words against keys, when and do of every non-deleted entry given.
+// `find`: words against keys, when and do of every non-deleted entry given.
 export function rankQuery(items, words) {
   const hits = new Map(words.map(word => {
     const test = matcher(word);
     return [word, new Map(items.map(item => [item.id, position(test, item, true)]).filter(([, pos]) => pos > 0))];
   }));
-  return rankHits(items, hits);
-}
-
-const STOPWORDS = new Set(`a an the and or but if then else when while to of in on at by for with from into onto as is are was
-were be been being it its this that these those i you he she we they me my your our their do does did done not no yes can could
-should would will shall may might must have has had so too very just also there here what which who how why where all any some
-each about after before up down out over under again please use using need make get let want like one two new now how's it's
-i'm don't can't won't`.split(/\s+/u));
-
-const asciiTokens = text => text.toLowerCase().split(/[^a-z0-9_.\-/]+/u).map(token => token.replace(/^[.\-/]+|[.\-/]+$/gu, ""))
-  .filter(token => token.length > 1 && !STOPWORDS.has(token));
-const cjkRuns = text => (text.match(/[^\x00-\x7f]+/gu) || []).flatMap(run => run.split(/[\s\p{P}]+/u)).filter(run => run.length > 1);
-
-// The first prompt of a session: which of an entry's terms (its keys, the words of its `when`)
-// occur in the prompt. A term is one "word" for the ranking rules; the position is key or when.
-export function rankPrompt(items, prompt) {
-  const promptTokens = new Set(asciiTokens(prompt));
-  const lower = prompt.toLowerCase();
-  const present = term => ASCII.test(term)
-    ? asciiTokens(term).length > 0 && asciiTokens(term).every(token => promptTokens.has(token))
-    : lower.includes(term);
-  const hits = new Map();
-  const hit = (term, id, pos) => {
-    if (!hits.has(term)) hits.set(term, new Map());
-    const map = hits.get(term);
-    if ((map.get(id) || 0) < pos) map.set(id, pos);
-  };
-  for (const item of items) {
-    for (const key of item.keys) if (present(key)) hit(key, item.id, 3);
-    for (const term of [...asciiTokens(item.when), ...cjkRuns(item.when)]) if (present(term)) hit(term, item.id, 2);
-  }
   return rankHits(items, hits);
 }
 

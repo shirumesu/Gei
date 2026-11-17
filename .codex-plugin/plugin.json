@@ -1,6 +1,6 @@
 {
   "name": "gei",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "description": "Memory as a table of short entries kept outside the repo, looked up and written with one command and shared across machines and agents through git, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
   "author": {
     "name": "shirumesu",
@@ -17,6 +17,15 @@
   ],
   "skills": "./skills/",
   "hooks": "./hooks/codex-hooks.json",
+  "mcpServers": {
+    "memo": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/skills/memo/scripts/mcp.mjs"
+      ]
+    }
+  },
   "interface": {
     "displayName": "Gei",
     "shortDescription": "Project knowledge, proposal evaluation, debugging, and request review for coding agents.",

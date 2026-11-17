@@ -2,7 +2,7 @@
 
 This document is for the AI agent that performs the installation. Install only Gei, verify the selected install path, and report the result.
 
-Plugin Hooks and the `memo` command require Node.js 22.13 or newer (they use the built-in `node:sqlite`) and `git` on the host's PATH. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods have no Hooks and no `memo` command, so they have no memory.
+Plugin Hooks, the memo MCP server and the `memo` command require Node.js 22.13 or newer (they use the built-in `node:sqlite`) and `git` on the host's PATH. Check `node --version` and `git --version` for plugin methods; report missing prerequisites rather than claiming Hooks are operational from file presence alone. No npm install or hosted service is needed. Skills-only methods have no Hooks, no memo tools and no `memo` command, so they have no memory.
 
 Memory lives outside every project: entries in a local SQLite database under `~/.agents/gei-state`, synced through `~/.agents/geispec`, a git clone of a repository the user owns (see [memory storage](spec.md)). Creating or cloning it and pointing `~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md` and `~/.claude/settings.json` at it is `gei memo setup`, a separate step the user runs and confirms; it is not part of installation. Do not migrate unrelated projects as part of an installation.
 
@@ -70,15 +70,14 @@ gei
   skills/memo/SKILL.md
   skills/memo/references/storage.md
   skills/memo/scripts/cli.mjs
+  skills/memo/scripts/mcp.mjs
   hooks/codex-hooks.json
   hooks/session_start.mjs
-  hooks/user_prompt.mjs
-  hooks/subagent_start.mjs
+  hooks/post_tool.mjs
   hooks/stop.mjs
-  hooks/guard.mjs
 ```
 
-Run `node <plugin>/bin/memo --help` and confirm it prints the command list (find, keys, put and the rest). Codex asks the user to review and trust plugin Hooks (Review hooks in the composer, or `/hooks` in the CLI); a changed Hook needs trusting again after an update. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Run `node <plugin>/bin/memo --help` and confirm it prints the command list (brief, find, keys, put and the rest), and confirm the host lists the plugin's `memo` MCP server. Codex asks the user to review and trust plugin Hooks (Review hooks in the composer, or `/hooks` in the CLI); a changed Hook needs trusting again after an update. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Claude Plugin
 
@@ -93,14 +92,13 @@ Use this for Claude Code when plugin marketplace installation is available.
 ```text
 Gei
   .claude-plugin/plugin.json
+  .mcp.json
   bin/gei.mjs
   bin/memo
   hooks/hooks.json
   hooks/session_start.mjs
-  hooks/user_prompt.mjs
-  hooks/subagent_start.mjs
+  hooks/post_tool.mjs
   hooks/stop.mjs
-  hooks/guard.mjs
   skills/consider/SKILL.md
   skills/deslop/SKILL.md
   skills/diagnose/SKILL.md
@@ -108,9 +106,10 @@ Gei
   skills/memo/SKILL.md
   skills/memo/references/storage.md
   skills/memo/scripts/cli.mjs
+  skills/memo/scripts/mcp.mjs
 ```
 
-Run `node <plugin>/bin/memo --help` and confirm it prints the command list (find, keys, put and the rest). Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Run `node <plugin>/bin/memo --help` and confirm it prints the command list (brief, find, keys, put and the rest), and confirm the host lists the plugin's `memo` MCP server. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Skills Zip
 

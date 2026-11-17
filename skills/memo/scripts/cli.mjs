@@ -3,6 +3,7 @@ import { setup } from "./setup.mjs";
 
 const HELP = `Usage: memo <command>   (the same as gei memo <command>)
 
+  brief                   Pinned entries, "look up when" lines and the common keys.
   find <word> [word...]   Up to 3 entries for these words, from this project and the shared scope.
   keys [word]             The common keys, or the keys that match a word.
   put --keys k1,k2 --when "<situation>" --do "<what to do>" [--why "<source and reason>"]
@@ -39,14 +40,6 @@ function parse(args, flags, switches = []) {
   return { options, positional };
 }
 
-// Accepts abc12, m:abc12 and [m:abc12].
-function idOf(positional, command) {
-  if (positional.length !== 1) throw new Error(`Usage: memo ${command} <id>`);
-  const id = positional[0].replace(/^\[?m:|\]$/gu, "");
-  if (!/^[a-z0-9]{5}$/u.test(id)) throw new Error(`"${positional[0]}" is not an entry id (five lowercase letters or digits).`);
-  return id;
-}
-
 const session = () => process.env.CLAUDE_CODE_SESSION_ID || null;
 
 export async function main(args) {
@@ -60,20 +53,29 @@ export async function main(args) {
   const project = () => resolveProject(process.cwd());
   const { options, positional } = parse(rest, ["keys", "when", "do", "why", "group", "replace", "session"], ["pin", "user", "shared", "new"]);
   const say = text => console.log(text);
+  const idOf = (positional, command) => {
+    if (positional.length !== 1) throw new Error(`Usage: memo ${command} <id>`);
+    return memo.parseId(positional[0]);
+  };
   switch (command) {
-    case "find": return say(read.find(project(), (await import("./rank.mjs")).queryWords(positional.join(" ")), { session: session() }));
+    // Recorded like the MCP tools' results (an agent may run these in a shell). A find without a
+    // session still counts toward `memo review`'s searches that found nothing.
+    case "brief": {
+      const text = read.brief(project());
+      if (session() !== null) read.record({ session: session(), project: project(), via: "start", query: null, text });
+      return say(text);
+    }
+    case "find": {
+      const words = (await import("./rank.mjs")).queryWords(positional.join(" "));
+      const text = read.find(project(), words);
+      read.record({ session: session(), project: project(), via: "find", query: words.join(" "), text });
+      return say(text);
+    }
     case "keys": return say(read.keys(project(), positional.length ? positional.join(" ") : null));
     case "put": {
       for (const name of ["keys", "when", "do"]) if (options[name] === null) throw new Error(`memo put needs --${name}: memo put --keys k1,k2 --when "<situation>" --do "<what to do>" [--why "<source and reason>"] (memo --help for the rest).`);
       if (positional.length) throw new Error(`Unexpected argument "${positional[0]}"; quote values that contain spaces.`);
-      if (options.replace !== null && options.new) throw new Error("--replace and --new exclude each other.");
-      const keys = [...new Set(options.keys.split(",").map(key => key.trim().toLowerCase()).filter(Boolean))];
-      return say(memo.put({
-        keys, when: options.when.trim(), do: options.do.trim(), why: options.why === null ? null : options.why.trim(), group: options.group,
-        pin: options.pin, user: options.user, shared: options.shared, new: options.new,
-        replace: options.replace === null ? null : idOf([options.replace], "put --replace"),
-        scope: options.shared ? "context" : memo.projectScope(project()), session: session(),
-      }));
+      return say(memo.putFrom({ ...options, keys: options.keys.split(",") }, project(), session()));
     }
     case "del": return say(memo.del(idOf(positional, command)));
     case "restore": return say(memo.restore(idOf(positional, command)));

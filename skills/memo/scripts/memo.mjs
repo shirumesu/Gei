@@ -23,7 +23,7 @@ export function describe(item) {
 
 function need(id) {
   const item = entry(id);
-  if (!item) throw new Error(`No entry ${id}. \`memo find <word>\` shows ids.`);
+  if (!item) throw new Error(`No entry ${id}. find shows ids.`);
   return item;
 }
 
@@ -91,9 +91,9 @@ export function evict(scope) {
   }
 }
 
-const shadowNotes = list => list.map(item => `Shadowed [m:${item.id}] (L${item.level}, uses ${item.uses}) to stay within ${LIMITS.cap} entries; \`memo find\` still finds it: ${item.do.slice(0, 80)}`);
+const shadowNotes = list => list.map(item => `Shadowed [m:${item.id}] (L${item.level}, uses ${item.uses}) to stay within ${LIMITS.cap} entries; \`find\` still finds it: ${item.do.slice(0, 80)}`);
 
-// `memo put`. options: keys, when, do, why, group, pin, user, shared, replace, new, scope, session.
+// `put` (CLI and tool). options: keys, when, do, why, group, pin, user, shared, replace, new, scope, session.
 export function put(options) {
   const fields = { keys: options.keys, when: options.when, do: options.do, why: options.why };
   validate(fields);
@@ -120,7 +120,7 @@ export function put(options) {
         .filter(item => item.keys.some(key => fields.keys.includes(key)) && similarity(item.do, fields.do) >= LIMITS.similar);
       if (similar.length) {
         throw new Error([`Not saved: ${similar.length === 1 ? "this entry is" : "these entries are"} close to the new one.`, ...similar.map(describe),
-          "Run again with --replace <id> to revise one of them, or --new if yours is a different rule."].join("\n"));
+          "Save again with replace <id> (--replace) to revise one of them, or with new (--new) if yours is a different rule."].join("\n"));
       }
     }
     const item = {
@@ -133,6 +133,26 @@ export function put(options) {
     contentChanged();
     return [`Saved [m:${item.id}] in ${item.scope} (L${item.level}${item.pin ? ", pinned" : ""}).`, ...shadowNotes(evict(item.scope))].join("\n");
   });
+}
+
+// What the CLI and the MCP put tool share: keys lowercased and deduplicated, text trimmed, the
+// scope chosen. `keys` is a list of strings; `why`, `group` and `replace` may be null.
+export function putFrom(input, project, session) {
+  if (input.replace !== null && input.new) throw new Error("replace and new exclude each other.");
+  return put({
+    keys: [...new Set(input.keys.map(key => key.trim().toLowerCase()).filter(Boolean))],
+    when: input.when.trim(), do: input.do.trim(), why: input.why === null ? null : input.why.trim(), group: input.group,
+    pin: input.pin, user: input.user, shared: input.shared, new: input.new,
+    replace: input.replace === null ? null : parseId(input.replace),
+    scope: input.shared ? "context" : projectScope(project), session,
+  });
+}
+
+// Accepts abc12, m:abc12 and [m:abc12].
+export function parseId(value) {
+  const id = value.replace(/^\[?m:|\]$/gu, "");
+  if (!/^[a-z0-9]{5}$/u.test(id)) throw new Error(`"${value}" is not an entry id (five lowercase letters or digits).`);
+  return id;
 }
 
 function update(id, change, message) {
@@ -175,7 +195,7 @@ export const wrong = id => update(id, item => {
   return { item: { ...item, state: "deleted", flagged: item.flagged + 1, updated_at: stamp, signal_at: stamp }, content: true, signals: true };
 }, item => item.state === "deleted"
   ? `[m:${item.id}] was already at level 0 and is now deleted (\`memo restore ${item.id}\` undoes it).`
-  : `[m:${item.id}] is now level 0. Save the corrected rule with \`memo put --replace ${item.id} ...\` if there is one.`);
+  : `[m:${item.id}] is now level 0. Save the corrected rule with put and replace ${item.id} if there is one.`);
 
 export const mv = (id, scope) => update(id, item => {
   if (item.scope === scope) return `[m:${id}] is already in ${scope}.`;
@@ -191,15 +211,15 @@ export function show(id) {
     ...(rows.length ? ["History (oldest first):", ...rows.map(row => `  rev ${row.rev} ${row.updated_at} (${row.reason}) keys: ${JSON.parse(row.keys).join(", ")} | when: ${row.when_text} | do: ${row.do_text}`)] : [])].join("\n");
 }
 
-// One delivery batch: what was put in front of the agent, in rank order. A query that found
+// One delivery batch: the ids put in front of the agent, in rank order. A query that found
 // nothing is kept too (entry_id NULL), for `memo review`.
-export function deliver({ session, project, via, query, list }) {
+export function deliver({ session, project, via, query, ids }) {
   const batch = crypto.randomBytes(6).toString("hex");
   const stamp = now();
   const insert = (id, rank) => run("INSERT INTO deliveries (session_id, batch_id, project, entry_id, rank, via, query, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     session, batch, project, id, rank, via, query, stamp);
-  if (!list.length) insert(null, null);
-  list.forEach((item, index) => insert(item.id, index + 1));
+  if (!ids.length) insert(null, null);
+  ids.forEach((id, index) => insert(id, index + 1));
 }
 
 // Losses needed to drop a level: 2 + floor(log2(uses + 1)). A single loss says little: in trials
@@ -208,7 +228,7 @@ export const threshold = uses => 2 + Math.floor(Math.log2(uses + 1));
 
 // Citations [m:<id>] in a final message, for ids delivered earlier in the same session. A use
 // raises level to 3 once per session per entry. Entries ranked above a cited one in the same
-// find or first-prompt batch take one loss per session (never pinned, never session-start ones).
+// find batch take one loss per session (never pinned, never ones from `brief`).
 export function cite(session, message) {
   const ids = [...new Set([...message.matchAll(/\[m:([a-z0-9]{5})\]/gu)].map(match => match[1]))];
   if (!ids.length) return { used: [], lost: [] };

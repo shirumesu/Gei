@@ -64,7 +64,7 @@ Download [Gei-skills.zip](https://github.com/shirumesu/gei/releases/latest/downl
 git clone https://github.com/shirumesu/gei.git <skills-dir>/Gei
 ```
 
-This gives you only the Skills, not the Hooks or the `memo` command, so there is no memory.
+This gives you only the Skills, not the Hooks, the memo tools or the `memo` command, so there is no memory.
 
 </details>
 
@@ -77,20 +77,31 @@ This gives you only the Skills, not the Hooks or the `memo` command, so there is
 | Skill | What it does |
 | --- | --- |
 | consider | Before you start, judge whether it is worth doing, how to do it, and what the choice locks in |
-| memo | Keep what the code cannot tell as a table of short entries: your preferences and corrections, and pitfalls that will recur. Stored in a local database and synced across machines and agents through a git repository; agents look entries up and save them with the `memo` command, and what a session starts with has a fixed ceiling |
+| memo | Keep what the code cannot tell as a table of short entries: your preferences and corrections, and pitfalls that will recur. Stored in a local database and synced across machines and agents through a git repository; agents look entries up and save them with the plugin's memo tools, and you see every call and its result |
 | diagnose | Get a command that reproduces the problem, find the root cause, then fix it |
 | inspect | Review the change against the original request with a subagent in a fresh context. Invoke it manually |
 | deslop | Strip the AI-generated look from a product that already has a design language: audit each screen for bold small text, meaningless color, sparkle icons, repeated status, and off-grid spacing; you pick item by item, and only the picks are applied and written back to the design docs |
 
+### memo tools
+
+The plugin brings a local MCP server; agents read and write memory through it, and each call and its result shows in the conversation:
+
+| Tool | What it does |
+| --- | --- |
+| `brief` | Called once before the first task of a session: pinned entries, the situations worth a lookup, the common keys, at most 3,500 characters |
+| `find` | Before each task, a lookup by a few words; at most three entries |
+| `keys`, `show` | The keys; one entry with every field and its revision history |
+| `put`, `wrong`, `del` | Save or revise an entry (a similar one is refused until the agent chooses to replace it or add a new one); mark one wrong; delete one |
+
 ### Hooks
+
+The Hooks put no entries into the context. They only do this:
 
 | When | What it does |
 | --- | --- |
-| Session start | Syncs the memory store and puts in how to use memory, the pinned entries and the common keys, at most 3,500 characters in all |
-| The first prompt of a session | Matched once against the entries; up to three are added only when two or more words match. The first prompt after compaction gets the same |
-| End of each turn | Records which entries the reply cited and updates their strength; syncs when something changed, and shows any failure |
-| Subagent start and stop | Gives a subagent the same session-start text and records the entries it cited |
-| Before a file edit | Denies a direct edit of the store's snapshot files |
+| Session start | Syncs the memory store and puts in two lines of basic use |
+| After `brief` or `find` | Records which entries the agent was shown |
+| End of each turn (subagents too) | Counts which entries the reply cited and updates their strength; syncs when something changed, and shows any failure |
 
 ### Memory
 
@@ -105,7 +116,7 @@ Memory is a table of short entries. Each has 1 to 6 keys, the situation it appli
   context/                            the shared scope, same layout
 ```
 
-Agents read and write only through the `memo` command: `memo find <word>` looks entries up and `memo put` saves one; when a similar entry exists the save is refused until the agent chooses to replace it or add a new one. Memory enters a session only at its start and is looked up on demand after that, so the context it takes does not grow with the number of entries.
+Agents read and write only through the memo tools, never the store's files. Entries arrive only when the agent calls `brief` or `find`, each with a ceiling on what it returns, so the context they take does not grow with the number of entries.
 
 Strength does not use the calendar. An agent that acts on an entry cites it as `[m:<id>]` and the entry rises to the top level; an entry that ranked above a cited one in the same lookup and was not used takes a loss, and after enough losses drops a level, more slowly the more it has been used. Past the capacity the weakest entry becomes a shadow: still found by a lookup, and restored when it is used. Entries you stated and pinned entries are never evicted.
 
@@ -119,7 +130,7 @@ After installing the plugin, run this once per machine in a terminal (it needs N
 node <gei>/bin/gei.mjs memo setup <your-private-repository-url>
 ```
 
-`memo review` (entries never used, possible duplicates, searches that keep finding nothing), `memo log` (what a session was given and cited) and `memo sync` are also there; `/gei:memo tidy` is the manual cleanup. See the [usage guide](docs/spec.md).
+The `memo` command in a terminal has every tool plus `memo pin`, `memo restore`, `memo review` (entries never used, possible duplicates, searches that keep finding nothing), `memo log` (what a session was given and cited) and `memo sync`; `/gei:memo tidy` is the manual cleanup. See the [usage guide](docs/spec.md).
 
 <br>
 

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "memo": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/skills/memo/scripts/mcp.mjs"]
+    }
+  }
+}

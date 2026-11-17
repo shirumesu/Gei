@@ -69,8 +69,9 @@ function codexStep() {
   };
 }
 
-// Claude Code runs `memo` without asking and may read long documents under <scope>/docs/; it
-// gets no other access to the store (v0.16 granted Read and Edit on all of it, which is removed).
+// Claude Code calls the memo tools and runs `memo` without asking, and may read long documents
+// under <scope>/docs/; it gets no other access to the store (v0.16 granted Read and Edit on all
+// of it, which is removed).
 // Auto memory stays off so memory is not split in two.
 function settingsStep() {
   const file = path.join(home, ".claude", "settings.json");
@@ -78,7 +79,7 @@ function settingsStep() {
   const permissions = settings.permissions || {};
   const dirs = permissions.additionalDirectories || [];
   const allow = permissions.allow || [];
-  const rules = ["Bash(memo *)", "Read(~/.agents/geispec/**/docs/**)"];
+  const rules = ["mcp__plugin_gei_memo__*", "Bash(memo *)", "Read(~/.agents/geispec/**/docs/**)"];
   const stale = ["Read(~/.agents/geispec/**)", "Edit(~/.agents/geispec/**)"].filter(rule => allow.includes(rule));
   const changes = [
     ...rules.filter(rule => !allow.includes(rule)).map(rule => `permissions.allow += ${rule}`),

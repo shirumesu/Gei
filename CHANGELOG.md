@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.17.1 - 2026-11-17
+
+> [!IMPORTANT]
+> Agent 改用插件自带的 memo 工具（本地 MCP 服务）读写记忆，调用和返回的内容都显示在对话里。Hooks 不再往上下文里放任何条目。升级后在每台机器上重新运行一次 `gei memo setup`，让 memo 工具免确认运行。
+
+### Memo
+
+- 新增本地 MCP 服务，提供 `brief`、`find`、`keys`、`show`、`put`、`wrong`、`del` 七个工具。Agent 在会话的第一个任务前调用 `brief`，拿到置顶条目、哪些情况该查和常用键；每个任务前用 `find` 查。怎么用写在各工具的描述里。写入被拒绝时（内容相近、疑似密钥、id 不对），原因作为工具的错误结果返回。
+- 会话开始只注入两行基础用法，不再送入置顶条目和“什么时候查”。
+- 去掉会话第一句提问的自动匹配，以及子代理开局注入。子代理和主会话一样，自己调用 `brief`。
+- 去掉拦截快照文件编辑的 Hook。快照仍由同步生成并覆盖，开局说明要求 Agent 不碰记忆库文件。
+- 新增 PostToolUse Hook，在 `brief`、`find` 返回后记下给 Agent 看了哪些条目，引用照旧在每轮结束时统计。这件事放在 Hook 里做，是因为 MCP 服务在 `/clear` 之后仍是同一个进程，不知道新的会话 id。
+- 终端里的 `memo` 命令新增 `memo brief`，其余命令不变。
+- `gei memo setup` 额外允许 `mcp__plugin_gei_memo__*`。
+- README 和 `docs/` 按新方式更新。
+
+### 迁移
+
+1. 每台机器升级插件后重新运行 `node <gei>/bin/gei.mjs memo setup`，允许 memo 工具免确认运行。不运行的话，每次调用工具都会请你确认。
+2. Codex 用户需要在 Hook 审核里重新信任 Gei 的 Hook，并确认插件的 `memo` MCP 服务已启用。
+
 ## v0.17.0 - 2026-11-13
 
 > [!IMPORTANT]

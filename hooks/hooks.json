@@ -13,36 +13,14 @@
         ]
       }
     ],
-    "UserPromptSubmit": [
+    "PostToolUse": [
       {
+        "matcher": "^mcp__plugin_gei_memo__(brief|find)$",
         "hooks": [
           {
             "type": "command",
             "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/user_prompt.mjs\""
-          }
-        ]
-      }
-    ],
-    "SubagentStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/subagent_start.mjs\""
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "timeout": 10,
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs\""
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/post_tool.mjs\""
           }
         ]
       }
