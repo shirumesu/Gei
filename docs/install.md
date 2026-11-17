@@ -50,7 +50,7 @@ For local development, add the source checkout instead:
 codex plugin marketplace add /absolute/path/to/gei
 ```
 
-The same marketplace entry uses `source: "local"` and `path: "./"` to load the plugin from the marketplace root. A local source includes working-tree edits; a Git source uses the fetched repository snapshot.
+Codex and Claude Code share `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json`; the marketplace entry's `source: "./"` loads the plugin from the marketplace root. A local source includes working-tree edits; a Git source uses the fetched repository snapshot.
 
 2. Install and enable `gei` through the Codex plugin mechanism available in the current host.
 
@@ -60,7 +60,8 @@ Local plugins are copied into `~/.codex/plugins/cache/gei/gei/local/`. After edi
 
 ```text
 gei
-  .codex-plugin/plugin.json
+  .claude-plugin/plugin.json
+  codex.mcp.json
   bin/gei.mjs
   bin/memo
   skills/consider/SKILL.md
@@ -71,13 +72,13 @@ gei
   skills/memo/references/storage.md
   skills/memo/scripts/cli.mjs
   skills/memo/scripts/mcp.mjs
-  hooks/codex-hooks.json
+  hooks/hooks.json
   hooks/session_start.mjs
   hooks/post_tool.mjs
   hooks/stop.mjs
 ```
 
-Run `node <plugin>/bin/memo --help` and confirm it prints the command list (brief, find, keys, put and the rest), and confirm the host lists the plugin's `memo` MCP server. Codex asks the user to review and trust plugin Hooks (Review hooks in the composer, or `/hooks` in the CLI); a changed Hook needs trusting again after an update. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
+Run `node <plugin>/bin/memo --help` and confirm it prints the command list (brief, find, keys, put and the rest). Codex gets the memo MCP server (`gei_memo`) only from memory setup below, not from the plugin. Codex asks the user to review and trust plugin Hooks (Review hooks in the composer, or `/hooks` in the CLI); a changed Hook needs trusting again after an update. Termination condition: `gei` is installed and enabled, or plugin source addition succeeded but host enablement requires user interaction that the agent cannot perform.
 
 ## Method: Claude Plugin
 
@@ -197,7 +198,7 @@ After a plugin install, tell the user how to set up memory on this machine and l
 node <plugin>/bin/gei.mjs memo setup <private-repository-url>
 ```
 
-Without a URL it creates a local repository with no remote. Run it yourself only when the user asks, and pass `--yes` only when they want every change applied unseen. It stops, changing nothing, when `~/.agents/geispec` exists without git or when the user's existing instructions would be overwritten.
+Without a URL it creates a local repository with no remote. Under Codex it also registers the memo MCP server in `~/.codex/config.toml`; until then Codex has no memo tools. Run it yourself only when the user asks, and pass `--yes` only when they want every change applied unseen. It stops, changing nothing, when `~/.agents/geispec` exists without git or when the user's existing instructions would be overwritten.
 
 ## Completion
 

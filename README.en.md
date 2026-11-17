@@ -50,7 +50,7 @@ Then enable `gei` in Codex's plugin manager. Restart, and it takes effect in a n
 
 ```shell
 /plugin marketplace add shirumesu/gei
-/plugin install gei@gei-claude
+/plugin install gei@gei
 ```
 
 </details>
@@ -124,7 +124,7 @@ On sync, `memo` merges two machines' entries one by one (the later change to an 
 
 There is one `AGENTS.md`: `~/.claude/CLAUDE.md` keeps the single line `@~/.agents/geispec/AGENTS.md`, and `~/.codex/AGENTS.md` links to the same file.
 
-After installing the plugin, run this once per machine in a terminal (it needs Node.js 22.13 or newer, shows each change and asks first):
+After installing the plugin, run this once per machine in a terminal (it needs Node.js 22.13 or newer, shows each change and asks first). It is also what registers the memo tools with Codex, in `~/.codex/config.toml`:
 
 ```shell
 node <gei>/bin/gei.mjs memo setup <your-private-repository-url>

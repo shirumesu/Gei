@@ -4,6 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline/promises";
+import { fileURLToPath } from "node:url";
+import { configBlock, configFile, currentBlock, LAUNCHER, launcherFile, pointerFile, SERVER_NAME, writePointer } from "./codex.mjs";
 import { git, stateDir, storeDir, storeKind } from "./store.mjs";
 
 const home = os.homedir();
@@ -69,6 +71,33 @@ function codexStep() {
   };
 }
 
+// Codex gets the memo MCP server from its config.toml, through a launcher at a fixed path
+// (scripts/codex.mjs says why). The pointer starts at the plugin this setup runs from.
+function codexMcpStep() {
+  if (!fs.existsSync(path.join(home, ".codex"))) return null;
+  const config = read(configFile()) ?? "";
+  const current = currentBlock(config);
+  if (current !== null && current !== configBlock()) {
+    throw new Error(`${configFile()} already has [mcp_servers.${SERVER_NAME}], different from what setup writes:\n${current}Expected:\n${configBlock()}Change it by hand, then run setup again.`);
+  }
+  const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
+  const changes = [
+    ...(read(launcherFile()) === LAUNCHER ? [] : [`write ${launcherFile()}`]),
+    ...(fs.existsSync(pointerFile()) ? [] : [`point ${pointerFile()} at ${pluginRoot}`]),
+    ...(current === null ? [`add [mcp_servers.${SERVER_NAME}] to ${configFile()}, running node ${launcherFile()}`] : []),
+  ];
+  if (!changes.length) return null;
+  return {
+    title: `Register the memo MCP server with Codex: ${changes.join("; ")}`,
+    apply: () => {
+      fs.mkdirSync(stateDir(), { recursive: true });
+      fs.writeFileSync(launcherFile(), LAUNCHER);
+      if (!fs.existsSync(pointerFile())) writePointer(pluginRoot);
+      if (current === null) fs.writeFileSync(configFile(), `${config}${config === "" || config.endsWith("\n\n") ? "" : config.endsWith("\n") ? "\n" : "\n\n"}${configBlock()}`);
+    },
+  };
+}
+
 // Claude Code calls the memo tools and runs `memo` without asking, and may read long documents
 // under <scope>/docs/; it gets no other access to the store (v0.16 granted Read and Edit on all
 // of it, which is removed).
@@ -125,7 +154,7 @@ export async function setup(args) {
     await run(storeStep(url));
     // The other steps read the store, so they are planned only once it exists.
     if (storeKind() === "missing") return;
-    for (const plan of [claudeStep, codexStep, settingsStep]) await run(plan());
+    for (const plan of [claudeStep, codexStep, codexMcpStep, settingsStep]) await run(plan());
   } finally { prompt?.close(); }
   const note = codexSandboxNote();
   if (note) console.log(note);

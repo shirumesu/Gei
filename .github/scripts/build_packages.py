@@ -7,7 +7,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 ROOT = Path(__file__).resolve().parents[2]
 PLUGIN_ENTRIES = (
-    ".codex-plugin", ".claude-plugin", "assets", "bin", "package.json",
+    ".claude-plugin", ".mcp.json", "codex.mcp.json", "assets", "bin", "package.json",
     "skills", "docs", "hooks", "LICENSE", "README.md", "README.en.md", "CHANGELOG.md",
 )
 

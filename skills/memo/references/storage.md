@@ -35,7 +35,7 @@ No unpushed commit ever contains snapshot files, so a rebase never conflicts on 
 
 The hooks never hand the agent an entry or a tool manual; entries reach it only as results of the memo tools, which the user sees, and how to use each tool is in its description.
 
-- **SessionStart** syncs, records the session's project, and injects two lines: what memory is, call `brief` first and `find` before each task, never touch the store's files.
+- **SessionStart** syncs, records the session's project, and injects two lines: what memory is, call `brief` first and `find` before each task, never touch the store's files. Under Codex it also points `~/.agents/gei-state/codex-plugin-root` at the installed plugin.
 - **PostToolUse** on `brief` and `find` records which entries the result showed (the lines that start with `[m:<id>]`, in order), so citations can count. The MCP server cannot do this itself: it outlives `/clear`, which starts a new session id, and a tool call carries no session id.
 - **Stop** and **SubagentStop** count `[m:<id>]` citations in the final message and update strength, then sync when entries or hand-edited files changed, or when only strength changed and the last sync is more than 30 minutes old.
 
@@ -49,7 +49,7 @@ The project name is the main repository root's directory name for Git repositori
 
 ## Tools And Commands
 
-The memo MCP server (`skills/memo/scripts/mcp.mjs`, declared in `.mcp.json` and the Codex manifest) has the agent's everyday tools: `brief`, `find`, `keys`, `show`, `put`, `wrong`, `del`. A refusal (a similar entry, a likely secret, a bad id) comes back as an error result with the reason. In Claude Code they are `mcp__plugin_gei_memo__<tool>`.
+The memo MCP server (`skills/memo/scripts/mcp.mjs`: Claude Code loads it from the plugin's `.mcp.json`; Codex from `~/.codex/config.toml`, where `setup` registers it through a launcher, see `scripts/codex.mjs`) has the agent's everyday tools: `brief`, `find`, `keys`, `show`, `put`, `wrong`, `del`. A refusal (a similar entry, a likely secret, a bad id) comes back as an error result with the reason. In Claude Code they are `mcp__plugin_gei_memo__<tool>`, in Codex `mcp__gei_memo__<tool>`.
 
 The shell command has all of them and the maintenance ones: `memo <command>` in Claude Code (the plugin's `bin/` is on PATH); `node "<gei>/bin/memo" <command>` elsewhere; `gei memo <command>` is the same set.
 
@@ -61,6 +61,6 @@ The shell command has all of them and the maintenance ones: `memo <command>` in 
 - `review`: the maintenance lists for `/gei:memo tidy`.
 - `log [--session <id>]`: what a session was shown (`start` for `brief`, `find`; `prime` in sessions before the tools) and what it cited or lost.
 - `sync`: what the hooks do, on demand.
-- `setup [<repository-url>] [--yes]`: clone the repository (or create a local one), point `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` at the store's `AGENTS.md`, and update `~/.claude/settings.json`: allow `mcp__plugin_gei_memo__*`, `Bash(memo *)` and `Read(~/.agents/geispec/**/docs/**)`, remove the older whole-store Read and Edit rules and additional directory, and set `autoMemoryEnabled: false`. Each change is shown and confirmed. Codex in `workspace-write` mode needs the store and `~/.agents/gei-state` under `[sandbox_workspace_write] writable_roots`.
+- `setup [<repository-url>] [--yes]`: clone the repository (or create a local one), point `~/.claude/CLAUDE.md` and `~/.codex/AGENTS.md` at the store's `AGENTS.md`, register the memo MCP server in `~/.codex/config.toml`, and update `~/.claude/settings.json`: allow `mcp__plugin_gei_memo__*`, `Bash(memo *)` and `Read(~/.agents/geispec/**/docs/**)`, remove the older whole-store Read and Edit rules and additional directory, and set `autoMemoryEnabled: false`. Each change is shown and confirmed. Codex in `workspace-write` mode needs the store and `~/.agents/gei-state` under `[sandbox_workspace_write] writable_roots`.
 
 Never ask for a token in chat. If the remote rejects a push, explain the credential setup (`gh auth setup-git` or the system credential helper).

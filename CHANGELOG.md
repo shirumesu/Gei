@@ -3,7 +3,7 @@
 ## v0.17.1 - 2026-11-17
 
 > [!IMPORTANT]
-> Agent 改用插件自带的 memo 工具（本地 MCP 服务）读写记忆，调用和返回的内容都显示在对话里。Hooks 不再往上下文里放任何条目。升级后在每台机器上重新运行一次 `gei memo setup`，让 memo 工具免确认运行。
+> Agent 改用 memo 工具（本地 MCP 服务）读写记忆，调用和返回的内容都显示在对话里。Hooks 不再往上下文里放任何条目。Claude Code 和 Codex 改用同一份插件清单和市场文件，市场名统一为 `gei`，需要卸载后重新安装，再重跑一次 `gei memo setup`。
 
 ### Memo
 
@@ -12,14 +12,21 @@
 - 去掉会话第一句提问的自动匹配，以及子代理开局注入。子代理和主会话一样，自己调用 `brief`。
 - 去掉拦截快照文件编辑的 Hook。快照仍由同步生成并覆盖，开局说明要求 Agent 不碰记忆库文件。
 - 新增 PostToolUse Hook，在 `brief`、`find` 返回后记下给 Agent 看了哪些条目，引用照旧在每轮结束时统计。这件事放在 Hook 里做，是因为 MCP 服务在 `/clear` 之后仍是同一个进程，不知道新的会话 id。
+- Claude Code 从插件加载 memo 工具。Codex 的插件配置没法指向插件里的文件，所以改由 `gei memo setup` 在 `~/.codex/config.toml` 注册 `gei_memo`：它运行 `~/.agents/gei-state/codex-mcp.mjs`，再按每次会话开始时更新的指针加载插件里的服务。插件更新后的第一个会话可能还在用旧服务，下一个会话就会换成新的。
 - 终端里的 `memo` 命令新增 `memo brief`，其余命令不变。
 - `gei memo setup` 额外允许 `mcp__plugin_gei_memo__*`。
 - README 和 `docs/` 按新方式更新。
 
+### 插件
+
+- Claude Code 和 Codex 共用 `.claude-plugin/plugin.json`、`.claude-plugin/marketplace.json` 和 `hooks/hooks.json`。删除 `.codex-plugin/`、`.agents/plugins/marketplace.json` 和 `hooks/codex-hooks.json`。
+- Claude Code 的市场名从 `gei-claude` 改为 `gei`，安装命令变成 `/plugin install gei@gei`。
+
 ### 迁移
 
-1. 每台机器升级插件后重新运行 `node <gei>/bin/gei.mjs memo setup`，允许 memo 工具免确认运行。不运行的话，每次调用工具都会请你确认。
-2. Codex 用户需要在 Hook 审核里重新信任 Gei 的 Hook，并确认插件的 `memo` MCP 服务已启用。
+1. Claude Code：卸载 `gei@gei-claude`，移除 `gei-claude` 市场，重新添加市场并安装 `gei@gei`。
+2. Codex：卸载 Gei 后重新添加市场并安装，在 Hook 审核里重新信任 Gei 的 Hook。
+3. 每台机器重新运行 `node <gei>/bin/gei.mjs memo setup`：允许 memo 工具免确认运行，并为 Codex 注册 memo 工具。
 
 ## v0.17.0 - 2026-11-13
 

@@ -15,7 +15,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "^mcp__plugin_gei_memo__(brief|find)$",
+        "matcher": "^mcp__.*memo__(brief|find)$",
         "hooks": [
           {
             "type": "command",

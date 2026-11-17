@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 // SessionStart (startup, resume, clear, compact, fork): sync the store, record the session's
 // project, and inject a few lines of basic use. No entries: the agent asks for them with `brief`.
-import { additionalContext, hook, sessionId } from "./lib.mjs";
+// Under Codex, also point the memo MCP launcher at this plugin directory (see scripts/codex.mjs).
+import { additionalContext, hook, inCodex, pluginRoot, sessionId } from "./lib.mjs";
 
 await hook("SessionStart", async (input, warnings) => {
   const session = sessionId(input);
+  if (inCodex) (await import("../skills/memo/scripts/codex.mjs")).writePointer(pluginRoot);
   const { refreshCodexCopy, storeKind } = await import("../skills/memo/scripts/store.mjs");
   if (storeKind() === "missing") {
     warnings.push("Gei memo: ~/.agents/geispec does not exist, so memory is unavailable. Run `gei memo setup` (node <gei>/bin/gei.mjs memo setup).");

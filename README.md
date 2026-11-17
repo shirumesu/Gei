@@ -50,7 +50,7 @@ codex plugin marketplace add https://github.com/shirumesu/gei.git
 
 ```shell
 /plugin marketplace add shirumesu/gei
-/plugin install gei@gei-claude
+/plugin install gei@gei
 ```
 
 </details>
@@ -124,7 +124,7 @@ Agent 只通过 memo 工具读写，不会自己去翻记忆库文件。条目�
 
 `AGENTS.md` 只有一份：`~/.claude/CLAUDE.md` 只留一行 `@~/.agents/geispec/AGENTS.md`，`~/.codex/AGENTS.md` 链接到同一个文件。
 
-每台机器装好插件后在终端运行一次（需要 Node.js 22.13 以上；会逐项显示要改什么，确认后才改）：
+每台机器装好插件后在终端运行一次（需要 Node.js 22.13 以上；会逐项显示要改什么，确认后才改）。Codex 的 memo 工具也由这一步注册到 `~/.codex/config.toml`：
 
 ```shell
 node <gei>/bin/gei.mjs memo setup <你的私有仓库地址>

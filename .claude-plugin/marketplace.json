@@ -1,5 +1,5 @@
 {
-  "name": "gei-claude",
+  "name": "gei",
   "owner": {
     "name": "shirumesu",
     "url": "https://github.com/shirumesu"
@@ -10,7 +10,14 @@
       "name": "gei",
       "source": "./",
       "description": "Gei：放在项目外、只记真正有用内容的简短记忆，动手前的方案评估，先复现再定位的调试，以及对照需求的审查。",
-      "category": "productivity"
+      "category": "productivity",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      }
     }
-  ]
+  ],
+  "interface": {
+    "displayName": "Gei"
+  }
 }

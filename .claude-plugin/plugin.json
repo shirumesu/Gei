@@ -3,9 +3,10 @@
   "name": "gei",
   "displayName": "Gei",
   "version": "0.17.1",
-  "description": "Memory as a table of short entries kept outside the repo, looked up and written with one command and shared across machines and agents through git, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
+  "description": "Memory as a table of short entries kept outside the repo, looked up and written through MCP tools and shared across machines and agents through git, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
   "author": {
-    "name": "shirumesu"
+    "name": "shirumesu",
+    "url": "https://github.com/shirumesu"
   },
   "homepage": "https://github.com/shirumesu/gei",
   "repository": "https://github.com/shirumesu/gei",
@@ -14,7 +15,32 @@
     "agent",
     "skills",
     "workflow",
-    "claude-code"
+    "claude-code",
+    "codex"
   ],
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "mcpServers": "./codex.mcp.json",
+  "interface": {
+    "displayName": "Gei",
+    "shortDescription": "Project knowledge, proposal evaluation, debugging, and request review for coding agents.",
+    "longDescription": "Memory as a table of short entries kept outside the repo, looked up and written through MCP tools and shared across machines and agents through git, pre-commitment evaluation of proposals and designs, root-cause debugging, and request-fidelity review.",
+    "developerName": "shirumesu",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
+    "websiteURL": "https://github.com/shirumesu/gei",
+    "privacyPolicyURL": "https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement",
+    "termsOfServiceURL": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
+    "defaultPrompt": [
+      "How about adding a login feature for good?",
+      "Complete this plan and update the documentation.",
+      "remember this project workflow."
+    ],
+    "brandColor": "#839f9f",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png"
+  }
 }

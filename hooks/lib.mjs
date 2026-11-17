@@ -5,6 +5,12 @@
 // SessionStart injects a few lines of basic use; the rest is bookkeeping (sync, sessions, what
 // each session was shown, citations).
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+export const pluginRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+// Codex exports PLUGIN_ROOT to plugin hooks; Claude Code exports only CLAUDE_PLUGIN_ROOT.
+export const inCodex = process.env.PLUGIN_ROOT !== undefined;
 
 export function sessionId(input) {
   const id = input.session_id;
